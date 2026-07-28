@@ -215,23 +215,20 @@
 
         // 数据加载
         async function loadData() {
-            try {
-                let data;
-                try {
-                    const response = await fetch('./data/procurement_issues.json');
-                    if (!response.ok) throw new Error('Network response not ok');
-                    data = await response.json();
-                } catch (e) {
-                    data = INLINE_DATA;
-                }
-                if (!data || !data.issues || data.issues.length === 0) {
-                    data = INLINE_DATA;
-                }
-                renderDashboard(data);
-            } catch (error) {
-                console.error('加载数据失败:', error);
-                renderDashboard(INLINE_DATA);
-            }
+            // 直接使用内联数据，确保看板始终正常显示
+            renderDashboard(INLINE_DATA);
+
+            // 尝试从外部 JSON 获取最新数据（可选，非阻塞）
+            fetch('./data/procurement_issues.json')
+                .then(function(response) {
+                    if (response.ok) return response.json();
+                })
+                .then(function(remoteData) {
+                    if (remoteData && remoteData.issues && remoteData.issues.length > 0) {
+                        renderDashboard(remoteData);
+                    }
+                })
+                .catch(function() {});
         }
 
         function renderDashboard(data) {
