@@ -216,12 +216,21 @@
         // 数据加载
         async function loadData() {
             try {
-                const response = await fetch('./data/procurement_issues.json');
-                const data = await response.json();
+                let data;
+                try {
+                    const response = await fetch('./data/procurement_issues.json');
+                    if (!response.ok) throw new Error('Network response not ok');
+                    data = await response.json();
+                } catch (e) {
+                    data = INLINE_DATA;
+                }
+                if (!data || !data.issues || data.issues.length === 0) {
+                    data = INLINE_DATA;
+                }
                 renderDashboard(data);
             } catch (error) {
                 console.error('加载数据失败:', error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="empty-state">数据加载失败，请检查数据源</td></tr>';
+                renderDashboard(INLINE_DATA);
             }
         }
 
