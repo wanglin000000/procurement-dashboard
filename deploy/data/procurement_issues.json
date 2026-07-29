@@ -1,0 +1,41 @@
+{
+  "issues": [
+    {
+      "id": "1",
+      "ticketNo": "PACR260710000012",
+      "description": "付款单提交后没有对应审批流",
+      "createTime": "2026/7/24",
+      "status": "已解决",
+      "resolveTime": "2026/7/24 0:00:00",
+      "solution": "偶发接口问题，技术重推",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "2",
+      "ticketNo": "PACR260716000006",
+      "description": "付款单推送每刻失败",
+      "createTime": "2026/7/28 14:32:00",
+      "status": "已解决",
+      "resolveTime": "2026/7/28 16:08:14",
+      "solution": "由于单据涉及到转派，导致在推进每刻的时候会进行ismine字段的校验",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "3",
+      "ticketNo": "PACR260716000008",
+      "description": "付款单推送每刻失败",
+      "createTime": "2026/7/28 14:32:00",
+      "status": "已解决",
+      "resolveTime": "2026/7/28 16:08:14",
+      "solution": "由于单据涉及到转派，导致在推进每刻的时候会进行ismine字段的校验",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    }
+  ],
+  "fetchTime": "2026-07-28T16:16:15.530154"
+}
