@@ -76,7 +76,7 @@
         <div class="meta">
             <span id="updateTime">--</span>
             <span id="dataSource">数据来源：钉钉文档</span>
-            <span id="versionTag" style="color:#4da3ff;font-weight:700;margin-left:12px;">Build 280726 | 数据:3条</span>
+            <span id="versionTag" style="color:#4da3ff;font-weight:700;margin-left:12px;">Build 290729 | 数据:5条</span>
         </div>
     </div>
 
@@ -169,6 +169,7 @@
             const s = status.trim();
             if (s === '已解决' || s === '关闭' || s === '已完成') return '已解决';
             if (s === '待处理' || s === '新建' || s === '未开始') return '待处理';
+            if (s === '解决中' || s === '处理中') return '处理中';
             // 其余状态（如"每刻侧排查中"等）统一归为处理中
             return '处理中';
         }
@@ -210,9 +211,33 @@
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "4",
+      "ticketNo": "PR260701000006",
+      "description": "采购申请单涉及驳回，导致与报销系统状态不一致",
+      "createTime": "2026/7/29 9:43:27",
+      "status": "已解决",
+      "resolveTime": "2026/7/29 11:42:38",
+      "solution": "商越直接对单据状态进行变更",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "5",
+      "ticketNo": "PR260717000001",
+      "description": "采购申请单不涉及召回，但是两边的状态不一致，需要排查一下问题的原因",
+      "createTime": "2026/7/29 14:58:49",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-07-28T16:16:15.530154"
+  "fetchTime": "2026-07-29T15:07:36"
 };
 
         // 数据加载
@@ -317,7 +342,7 @@
         function normalizeUrgency(urgency) {
             if (!urgency) return '';
             const u = urgency.trim().toUpperCase();
-            if (u === '高' || u === 'P1') return '高';
+            if (u === '高' || u === 'P0' || u === 'P1') return '高';
             if (u === '中' || u === 'P2') return '中';
             if (u === '低' || u === 'P3' || u === 'P4') return '低';
             return u;

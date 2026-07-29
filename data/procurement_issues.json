@@ -47,7 +47,19 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "5",
+      "ticketNo": "PR260717000001",
+      "description": "采购申请单不涉及召回，但是两边的状态不一致，需要排查一下问题的原因",
+      "createTime": "2026/7/29 14:58:49",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-07-29T11:55:35.211427"
+  "fetchTime": "2026-07-29T15:07:36.025992"
 }
