@@ -111,6 +111,13 @@
         .modal .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
         .modal .close-btn:hover { color: var(--text); }
         .modal { position: relative; }
+        /* 明细列表弹窗 */
+        .detail-modal { max-width: 940px; width: 92%; }
+        .detail-modal .detail-title { font-size: 18px; color: var(--primary); margin-bottom: 4px; }
+        .detail-modal .detail-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+        .detail-modal .modal-table-wrap { max-height: 56vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+        .detail-modal table th { position: sticky; top: 0; z-index: 1; }
+        .detail-modal .row-solution { max-width: 240px; }
         @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -125,7 +132,7 @@
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card clickable" id="card-total" onclick="clearFilter()" title="点击查看全部明细">
+        <div class="stat-card clickable" id="card-total" onclick="openDetailModal('all','全部')" title="点击查看全部明细">
             <div class="label">问题总数</div>
             <div class="value primary" id="totalCount">--</div>
         </div>
@@ -522,10 +529,55 @@
         }
 
         function drillDown(field, value) {
-            activeFilter = { field: field, value: value };
-            currentPage = 1;
-            renderTable(currentIssues);
-            document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            openDetailModal(field, value);
+        }
+
+        function openDetailModal(field, value) {
+            const issues = (currentIssues && currentIssues.length) ? currentIssues : (INLINE_DATA.issues || []);
+            let rows = issues;
+            let title = '全部问题明细';
+            if (field && field !== 'all') {
+                const fn = { status: '问题状态', type: '问题类型', urgency: '紧急程度', handler: '处理人' }[field] || field;
+                title = fn + '：' + value;
+                rows = issues.filter(function(i) {
+                    if (field === 'status') return normalizeStatus(i.status) === value;
+                    if (field === 'type') return (i.type || '--') === value;
+                    if (field === 'urgency') return normalizeUrgency(i.urgency) === value;
+                    if (field === 'handler') return (i.handler || '--') === value;
+                    return true;
+                });
+            }
+            document.getElementById('detailTitle').textContent = title;
+            document.getElementById('detailSub').textContent = '共 ' + rows.length + ' 条';
+            const body = document.getElementById('detailBody');
+            if (rows.length === 0) {
+                body.innerHTML = '<tr><td colspan="10" class="empty-state">该条件下暂无数据</td></tr>';
+            } else {
+                body.innerHTML = rows.map(function(i) {
+                    const normStatus = normalizeStatus(i.status);
+                    const statusClass = normStatus === '待处理' ? 'pending' : normStatus === '处理中' ? 'processing' : 'resolved';
+                    const normUrgency = normalizeUrgency(i.urgency);
+                    const urgencyClass = normUrgency === '高' ? 'high' : normUrgency === '中' ? 'medium' : 'low';
+                    const sol = (i.solution && i.solution.trim()) ? i.solution : '--';
+                    return '<tr>' +
+                        '<td>' + escapeHtml(i.id || '--') + '</td>' +
+                        '<td>' + escapeHtml(i.ticketNo || '--') + '</td>' +
+                        '<td>' + escapeHtml(i.description || '--') + '</td>' +
+                        '<td>' + escapeHtml(i.type || '--') + '</td>' +
+                        '<td><span class="urgency-tag ' + urgencyClass + '">' + (normUrgency || '--') + '</span></td>' +
+                        '<td><span class="status-tag ' + statusClass + '">' + escapeHtml(i.status || '--') + '</span></td>' +
+                        '<td>' + escapeHtml(i.handler || '--') + '</td>' +
+                        '<td>' + (i.createTime ? new Date(i.createTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                        '<td>' + (i.resolveTime ? new Date(i.resolveTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                        '<td class="row-solution">' + escapeHtml(sol) + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
         }
 
         function clearFilter() {
@@ -645,6 +697,33 @@
 
         loadData();
     </script>
+    <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+        <div class="modal detail-modal">
+            <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+            <div class="detail-title" id="detailTitle">明细</div>
+            <div class="detail-sub" id="detailSub"></div>
+            <div class="modal-table-wrap">
+                <table id="detailTable">
+                    <thead>
+                        <tr>
+                            <th>问题ID</th>
+                            <th>单号</th>
+                            <th>问题描述</th>
+                            <th>问题类型</th>
+                            <th>紧急程度</th>
+                            <th>问题状态</th>
+                            <th>处理人</th>
+                            <th>提出时间</th>
+                            <th>解决时间</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="solutionModal" onclick="if(event.target===this)closeModal()">
         <div class="modal">
             <button class="close-btn" onclick="closeModal()">&times;</button>
