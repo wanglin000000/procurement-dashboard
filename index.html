@@ -8,28 +8,18 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <script>
-    // 抗缓存：每次加载都检测 etag 变化，变化则强制拉最新
+    // 强制绕过浏览器缓存：每次打开页面都追加唯一时间戳参数
     (function(){
-      if(window.location.hostname!=='wanglin000000.github.io') return;
-      if(window.location.search.indexOf('__r=')>=0) return; // 已在刷新
-      try{
-        var xhr=new XMLHttpRequest();
-        xhr.open('HEAD', window.location.href.split('?')[0]+'?__r='+Date.now(), true);
-        xhr.onload=function(){
-          var etag=xhr.getResponseHeader('etag');
-          if(!etag) return;
-          var prev=localStorage.getItem('__dash_etag');
-          localStorage.setItem('__dash_etag', etag);
-          if(prev && prev!==etag){
-            // etag 变了，说明服务器有新版，强制刷新
-            window.location.href=window.location.href.split('?')[0]+'?__r='+Date.now();
-          }
-        };
-        xhr.send();
-      }catch(e){}
+      var loc = window.location;
+      if (loc.hostname !== 'wanglin000000.github.io') return;
+      var sep = loc.search ? '&' : '?';
+      if (loc.search.indexOf('__r=') < 0) {
+        // 无 __r 参数 → 追加时间戳参数强制拉最新
+        loc.replace(loc.href + sep + '__r=' + Date.now());
+      }
     })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=20260728"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=20260817a"></script>
     <style>
         :root {
             --primary: #4da3ff;
