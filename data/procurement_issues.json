@@ -53,13 +53,85 @@
       "ticketNo": "PR260717000001",
       "description": "采购申请单不涉及召回，但是两边的状态不一致，需要排查一下问题的原因",
       "createTime": "2026/7/29 14:58:49",
-      "status": "解决中",
+      "status": "已解决",
       "resolveTime": "",
       "solution": "",
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "6",
+      "ticketNo": "CON20260528000002",
+      "description": "业务人员操作了采购员变更导致触发了审批流，在报销系统已经审批完成",
+      "createTime": "2026/7/30 15:35:25",
+      "status": "已解决",
+      "resolveTime": "2026/7/30 18:30:49",
+      "solution": "订正数据",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "7",
+      "ticketNo": "PACR260731000004",
+      "description": "采购系统单据推送每刻失败",
+      "createTime": "2026/7/31 16:20:24",
+      "status": "已解决",
+      "resolveTime": "2026/8/6 14:43:31",
+      "solution": "待业务解决合同问题后，找周娜重推",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "8",
+      "ticketNo": "CON20260610000002",
+      "description": "采购系统单据涉及驳回，导致与每刻系统单据状态不一致",
+      "createTime": "2026/8/6 11:46:47",
+      "status": "已解决",
+      "resolveTime": "2026/8/6 13:44:09",
+      "solution": "合同在商越目前是审批驳回，需要关闭合同审批流，重新提交",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "9",
+      "ticketNo": "PACR260724000007",
+      "description": "采购付款申请驳回之后在采购系统重新提交，没有触发审批驳回直达，而是直接触发了新的审批流",
+      "createTime": "2026/8/11 14:07:34",
+      "status": "已解决",
+      "resolveTime": "2026/8/11 18:25:13",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "10",
+      "ticketNo": "PACR260722000001-92694248",
+      "description": "采购付款申请单状态商越与每刻的状态不一致",
+      "createTime": "2026/8/11 15:49:27",
+      "status": "已解决",
+      "resolveTime": "2026/8/11 16:55:37",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "11",
+      "ticketNo": "PACR260812000001",
+      "description": "付款申请单推送每刻失败",
+      "createTime": "2026/8/12 10:44:51",
+      "status": "已解决",
+      "resolveTime": "2026/8/13 15:40:05",
+      "solution": "每刻排查中，待反馈",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-07-29T15:07:36.025992"
+  "fetchTime": "2026-08-17T14:31:39"
 }
