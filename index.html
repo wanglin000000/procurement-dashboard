@@ -7,7 +7,29 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <script>if(window.location.hostname==='wanglin000000.github.io'&&!window.__v){window.__v=true;var xhr=new XMLHttpRequest();xhr.open('HEAD',window.location.href.split('?')[0]+'?v='+Date.now());xhr.send()}</script>
+    <script>
+    // 抗 CDN/浏览器缓存：检测到新部署(etag 变化)时自动硬刷新一次
+    (function(){
+      if(window.location.hostname!=='wanglin000000.github.io') return;
+      try{
+        if(window.location.search.indexOf('_=')>=0) return; // 已在刷新流程中
+        var xhr=new XMLHttpRequest();
+        xhr.open('HEAD', window.location.href.split('?')[0]+'?_='+Date.now());
+        xhr.onload=function(){
+          var etag=xhr.getResponseHeader('etag');
+          if(!etag) return;
+          var prev=localStorage.getItem('__dash_etag');
+          if(prev && prev!==etag){
+            localStorage.setItem('__dash_etag', etag);
+            window.location.href=window.location.href.split('?')[0]+'?_='+Date.now();
+          } else {
+            localStorage.setItem('__dash_etag', etag);
+          }
+        };
+        xhr.send();
+      }catch(e){}
+    })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=20260728"></script>
     <style>
         :root {
