@@ -53,6 +53,16 @@
         .urgency-tag.medium { background: rgba(251,191,36,0.15); color: #fbbf24; }
         .urgency-tag.low { background: rgba(74,222,128,0.15); color: #4ade80; }
         .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+        /* 数据明细分页 */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+        .pagination button { background: #1e1e30; border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; min-width: 38px; transition: all 0.15s; }
+        .pagination button:hover:not(:disabled) { background: #2a2a45; border-color: var(--primary); }
+        .pagination button.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination .page-info { color: var(--text-secondary); font-size: 13px; margin: 0 8px; }
+        .pagination .page-jump { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 13px; }
+        .pagination .page-jump input { width: 48px; background: #1e1e30; border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; text-align: center; font-size: 13px; }
+        .pagination .page-jump input:focus { outline: none; border-color: var(--primary); }
         .solution-link { color: var(--primary); cursor: pointer; text-decoration: underline; font-weight: 500; }
         .solution-link:hover { color: #79b8ff; }
         .solution-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; }
@@ -155,6 +165,7 @@
                 <tr><td colspan="10" class="empty-state">正在加载数据...</td></tr>
             </tbody>
         </table>
+        <div class="pagination" id="pagination"></div>
     </div>
 
     <script>
@@ -380,6 +391,7 @@
             renderHandlerChart(issues);
 
             // 表格
+            currentPage = 1;
             renderTable(issues);
         }
 
@@ -449,13 +461,24 @@
             });
         }
 
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        let currentIssues = [];
+
         function renderTable(issues) {
+            currentIssues = issues;
             const tbody = document.getElementById('tableBody');
             if (issues.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">暂无数据</td></tr>';
+                document.getElementById('pagination').innerHTML = '';
                 return;
             }
-            tbody.innerHTML = issues.map(i => {
+            const totalPages = Math.ceil(issues.length / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            const startIdx = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = issues.slice(startIdx, startIdx + PAGE_SIZE);
+            tbody.innerHTML = pageItems.map(i => {
                 const normStatus = normalizeStatus(i.status);
                 const statusClass = normStatus === '待处理' ? 'pending' : normStatus === '处理中' ? 'processing' : 'resolved';
                 const normUrgency = normalizeUrgency(i.urgency);
@@ -475,6 +498,44 @@
                     <td>${solutionDisplay}</td>
                 </tr>`;
             }).join('');
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(1)">« 首页</button>';
+            html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">‹ 上一页</button>';
+            const maxBtns = 5;
+            let startP = Math.max(1, currentPage - Math.floor(maxBtns / 2));
+            let endP = Math.min(totalPages, startP + maxBtns - 1);
+            startP = Math.max(1, endP - maxBtns + 1);
+            for (let p = startP; p <= endP; p++) {
+                html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+            }
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">下一页 ›</button>';
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + totalPages + ')">末页 »</button>';
+            html += '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + currentIssues.length + ' 条</span>';
+            html += '<span class="page-jump">跳至 <input type="number" min="1" max="' + totalPages + '" id="jumpInput" onkeydown="if(event.key===\'Enter\')doJump(' + totalPages + ')"> 页 <button onclick="doJump(' + totalPages + ')">Go</button></span>';
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1) return;
+            currentPage = page;
+            renderTable(currentIssues);
+            document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function doJump(totalPages) {
+            const input = document.getElementById('jumpInput');
+            let val = parseInt(input.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > totalPages) val = totalPages;
+            goToPage(val);
         }
 
         function escapeHtml(str) {
