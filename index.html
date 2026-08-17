@@ -85,6 +85,18 @@
         .pagination .page-jump { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 13px; }
         .pagination .page-jump input { width: 48px; background: #1e1e30; border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; text-align: center; font-size: 13px; }
         .pagination .page-jump input:focus { outline: none; border-color: var(--primary); }
+        /* 指标下钻 */
+        .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+        .stat-card.clickable:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 4px 16px rgba(77,163,255,0.25); }
+        .stat-card.active-filter { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+        .chart-card { cursor: pointer; transition: border-color 0.15s; }
+        .chart-card:hover { border-color: var(--primary); }
+        .chart-hint { font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 10px; }
+        .filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 10px 16px; background: rgba(77,163,255,0.1); border: 1px solid rgba(77,163,255,0.3); border-radius: 10px; font-size: 14px; }
+        .filter-bar .filter-label { color: var(--text); }
+        .filter-bar .filter-label strong { color: var(--primary); }
+        .filter-bar .clear-btn { margin-left: auto; background: var(--primary); border: none; color: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .filter-bar .clear-btn:hover { background: #79b8ff; }
         .solution-link { color: var(--primary); cursor: pointer; text-decoration: underline; font-weight: 500; }
         .solution-link:hover { color: #79b8ff; }
         .solution-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; }
@@ -113,19 +125,19 @@
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card clickable" id="card-total" onclick="clearFilter()" title="点击查看全部明细">
             <div class="label">问题总数</div>
             <div class="value primary" id="totalCount">--</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card clickable" id="card-pending" onclick="drillDown('status','待处理')" title="点击下钻：待处理明细">
             <div class="label">待处理</div>
             <div class="value warning" id="pendingCount">--</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card clickable" id="card-processing" onclick="drillDown('status','处理中')" title="点击下钻：处理中明细">
             <div class="label">处理中</div>
             <div class="value primary" id="processingCount">--</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card clickable" id="card-resolved" onclick="drillDown('status','已解决')" title="点击下钻：已解决明细">
             <div class="label">已解决</div>
             <div class="value success" id="resolvedCount">--</div>
         </div>
@@ -140,34 +152,42 @@
     </div>
 
     <div class="charts-grid">
-        <div class="chart-card">
+        <div class="chart-card" title="点击扇区下钻明细">
             <h3>问题状态分布</h3>
             <div class="chart-container">
                 <canvas id="statusChart"></canvas>
             </div>
+            <div class="chart-hint">点击扇区下钻 → 明细</div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card" title="点击扇区下钻明细">
             <h3>问题类型分布</h3>
             <div class="chart-container">
                 <canvas id="typeChart"></canvas>
             </div>
+            <div class="chart-hint">点击扇区下钻 → 明细</div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card" title="点击柱下钻明细">
             <h3>紧急程度分布</h3>
             <div class="chart-container">
                 <canvas id="urgencyChart"></canvas>
             </div>
+            <div class="chart-hint">点击柱下钻 → 明细</div>
         </div>
-        <div class="chart-card">
+        <div class="chart-card" title="点击柱下钻明细">
             <h3>处理人工作量</h3>
             <div class="chart-container">
                 <canvas id="handlerChart"></canvas>
             </div>
+            <div class="chart-hint">点击柱下钻 → 明细</div>
         </div>
     </div>
 
     <div class="table-card">
         <h3>问题明细</h3>
+        <div class="filter-bar" id="filterBar" style="display:none;">
+            <span>当前筛选：</span><span class="filter-label" id="filterLabel"></span>
+            <button class="clear-btn" onclick="clearFilter()">✕ 清除筛选</button>
+        </div>
         <table id="problemTable">
             <thead>
                 <tr>
@@ -342,7 +362,7 @@
       "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-17T15:12:37"
+  "fetchTime": "2026-08-17T17:04:47"
 };
 
         // 数据加载
@@ -365,6 +385,9 @@
 
         function renderDashboard(data) {
             const issues = data.issues || [];
+            activeFilter = null;
+            document.getElementById('filterBar').style.display = 'none';
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
 
             const now = new Date();
             document.getElementById('updateTime').textContent = '更新时间：' + now.toLocaleString('zh-CN');
@@ -428,7 +451,7 @@
                         borderWidth: 0
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8ed' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8ed' } } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; drillDown('status', label); } } }
             });
         }
 
@@ -441,7 +464,7 @@
                     labels: Object.keys(counts),
                     datasets: [{ data: Object.values(counts), backgroundColor: ['#4da3ff', '#f87171', '#4ade80', '#facc15', '#a78bfa', '#fb923c'], borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8ed' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8ed' } } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; drillDown('type', label); } } }
             });
         }
 
@@ -464,7 +487,7 @@
                     labels: ['高', '中', '低'],
                     datasets: [{ data: [high, medium, low], backgroundColor: ['#f87171', '#facc15', '#4ade80'], borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, x: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; drillDown('urgency', label); } }, scales: { y: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, x: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
             });
         }
 
@@ -479,27 +502,71 @@
                     labels: labels.length ? labels : ['暂无数据'],
                     datasets: [{ data: values.length ? values : [0], backgroundColor: '#4da3ff', borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y', scales: { x: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, y: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y', onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; if (label && label !== '暂无数据') drillDown('handler', label); } }, scales: { x: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, y: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
             });
         }
 
         const PAGE_SIZE = 10;
         let currentPage = 1;
         let currentIssues = [];
+        let activeFilter = null; // {field:'status'|'type'|'urgency'|'handler', value:'...'}
+
+        function matchFilter(i) {
+            if (!activeFilter) return true;
+            const f = activeFilter.field, v = activeFilter.value;
+            if (f === 'status') return normalizeStatus(i.status) === v;
+            if (f === 'type') return (i.type || '--') === v;
+            if (f === 'urgency') return normalizeUrgency(i.urgency) === v;
+            if (f === 'handler') return (i.handler || '--') === v;
+            return true;
+        }
+
+        function drillDown(field, value) {
+            activeFilter = { field: field, value: value };
+            currentPage = 1;
+            renderTable(currentIssues);
+            document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function clearFilter() {
+            activeFilter = null;
+            currentPage = 1;
+            renderTable(currentIssues);
+        }
+
+        function updateFilterBar() {
+            const bar = document.getElementById('filterBar');
+            const label = document.getElementById('filterLabel');
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+            if (!activeFilter) {
+                bar.style.display = 'none';
+                return;
+            }
+            const fieldName = { status: '问题状态', type: '问题类型', urgency: '紧急程度', handler: '处理人' }[activeFilter.field] || activeFilter.field;
+            label.textContent = fieldName + ' = ' + activeFilter.value;
+            bar.style.display = 'flex';
+            if (activeFilter.field === 'status') {
+                const map = { '待处理': 'card-pending', '处理中': 'card-processing', '已解决': 'card-resolved' };
+                const id = map[activeFilter.value];
+                if (id) document.getElementById(id).classList.add('active-filter');
+            }
+        }
 
         function renderTable(issues) {
             currentIssues = issues;
+            const display = issues.filter(matchFilter);
             const tbody = document.getElementById('tableBody');
-            if (issues.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">暂无数据</td></tr>';
+            if (display.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">当前筛选条件下暂无匹配数据</td></tr>';
                 document.getElementById('pagination').innerHTML = '';
+                updateFilterBar();
                 return;
             }
-            const totalPages = Math.ceil(issues.length / PAGE_SIZE);
+            const totalPages = Math.ceil(display.length / PAGE_SIZE);
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
             const startIdx = (currentPage - 1) * PAGE_SIZE;
-            const pageItems = issues.slice(startIdx, startIdx + PAGE_SIZE);
+            const pageItems = display.slice(startIdx, startIdx + PAGE_SIZE);
             tbody.innerHTML = pageItems.map(i => {
                 const normStatus = normalizeStatus(i.status);
                 const statusClass = normStatus === '待处理' ? 'pending' : normStatus === '处理中' ? 'processing' : 'resolved';
@@ -520,10 +587,11 @@
                     <td>${solutionDisplay}</td>
                 </tr>`;
             }).join('');
-            renderPagination(totalPages);
+            renderPagination(totalPages, display.length);
+            updateFilterBar();
         }
 
-        function renderPagination(totalPages) {
+        function renderPagination(totalPages, totalCount) {
             const container = document.getElementById('pagination');
             if (totalPages <= 1) {
                 container.innerHTML = '';
@@ -540,7 +608,7 @@
             }
             html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">下一页 ›</button>';
             html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + totalPages + ')">末页 »</button>';
-            html += '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + currentIssues.length + ' 条</span>';
+            html += '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + totalCount + ' 条</span>';
             html += '<span class="page-jump">跳至 <input type="number" min="1" max="' + totalPages + '" id="jumpInput" onkeydown="if(event.key===\'Enter\')doJump(' + totalPages + ')"> 页 <button onclick="doJump(' + totalPages + ')">Go</button></span>';
             container.innerHTML = html;
         }
@@ -549,7 +617,6 @@
             if (page < 1) return;
             currentPage = page;
             renderTable(currentIssues);
-            document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function doJump(totalPages) {
