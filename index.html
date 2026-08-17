@@ -369,9 +369,21 @@
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "12",
+      "ticketNo": "PACR260615000010",
+      "description": "付款申请单推送每刻失败",
+      "createTime": "2026/6/15",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-17T17:04:47"
+  "fetchTime": "2026-08-17T18:50:00"
 };
 
         // 数据加载
@@ -484,9 +496,9 @@
         function normalizeUrgency(urgency) {
             if (!urgency) return '';
             const u = urgency.trim().toUpperCase();
-            if (u === '高' || u === 'P0' || u === 'P1') return '高';
-            if (u === '中' || u === 'P2') return '中';
-            if (u === '低' || u === 'P3' || u === 'P4') return '低';
+            if (u === '高' || u === 'P0') return '高';
+            if (u === '中' || u === 'P1') return '中';
+            if (u === '低' || u === 'P2') return '低';
             return u;
         }
 
