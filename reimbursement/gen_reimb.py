@@ -1,0 +1,600 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import json, os
+
+OUT_DIR = "/Users/lin.wang1/WorkBuddy/2026-07-30-14-49-08/reimbursement-dashboard"
+os.makedirs(OUT_DIR, exist_ok=True)
+
+with open("/tmp/reimb_issues.json", encoding="utf-8") as f:
+    issues = json.load(f)
+
+inline = {
+    "issues": issues,
+    "fetchTime": "2026-08-18T17:10:00",
+}
+inline_js = "const INLINE_DATA = " + json.dumps(inline, ensure_ascii=False, indent=2) + ";\n"
+
+HTML = r"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>报销系统问题处理进度看板</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+    // 强制绕过浏览器/CDN 缓存：仅在无 __r 或 __r 过期时重定向，避免无限 reload 循环
+    (function(){
+      var loc = window.location;
+      if (loc.hostname !== 'wanglin000000.github.io') return;
+      var params = new URLSearchParams(loc.search);
+      var r = params.get('__r');
+      var now = Date.now();
+      if (!r || (now - parseInt(r, 10)) > 2000) {
+        loc.replace(loc.pathname + '?__r=' + now);
+      }
+    })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=20260818a"></script>
+    <style>
+        :root {
+            --primary: #4da3ff;
+            --success: #4ade80;
+            --warning: #facc15;
+            --danger: #f87171;
+            --bg: #0b0b12;
+            --card-bg: #161625;
+            --text: #e8e8ed;
+            --text-secondary: #9494a8;
+            --border: #2a2a3e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .header h1 { font-size: 24px; font-weight: 600; color: var(--primary); }
+        .header .meta { font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .refresh-btn { background: rgba(77,163,255,0.15); border: 1px solid rgba(77,163,255,0.4); color: var(--primary); padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.15s; }
+        .refresh-btn:hover { background: rgba(77,163,255,0.3); border-color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+        .stat-card .label { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
+        .stat-card .value { font-size: 32px; font-weight: 700; }
+        .stat-card .value.success { color: var(--success); }
+        .stat-card .value.warning { color: var(--warning); }
+        .stat-card .value.danger { color: var(--danger); }
+        .stat-card .value.primary { color: var(--primary); }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .chart-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+        .chart-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+        .chart-container { position: relative; height: 280px; }
+        .table-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid var(--border); }
+        .table-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #1e1e30; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+        td { font-size: 14px; }
+        .status-tag { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-tag.pending { background: rgba(251,188,4,0.15); color: #facc15; }
+        .status-tag.processing { background: rgba(77,163,255,0.15); color: #4da3ff; }
+        .status-tag.resolved { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .urgency-tag { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .urgency-tag.high { background: rgba(248,113,113,0.15); color: #f87171; }
+        .urgency-tag.medium { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .urgency-tag.low { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+        .pagination button { background: #1e1e30; border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; min-width: 38px; transition: all 0.15s; }
+        .pagination button:hover:not(:disabled) { background: #2a2a45; border-color: var(--primary); }
+        .pagination button.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination .page-info { color: var(--text-secondary); font-size: 13px; margin: 0 8px; }
+        .pagination .page-jump { display: flex; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 13px; }
+        .pagination .page-jump input { width: 48px; background: #1e1e30; border: 1px solid var(--border); color: var(--text); padding: 6px 8px; border-radius: 6px; text-align: center; font-size: 13px; }
+        .pagination .page-jump input:focus { outline: none; border-color: var(--primary); }
+        .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+        .stat-card.clickable:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 4px 16px rgba(77,163,255,0.25); }
+        .stat-card.active-filter { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+        .chart-card { cursor: pointer; transition: border-color 0.15s; }
+        .chart-card:hover { border-color: var(--primary); }
+        .chart-hint { font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 10px; }
+        .solution-link { color: var(--primary); cursor: pointer; text-decoration: underline; font-weight: 500; }
+        .solution-link:hover { color: #79b8ff; }
+        .progress-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 13px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 28px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.5); position: relative; }
+        .modal h3 { font-size: 18px; margin-bottom: 16px; color: var(--primary); }
+        .modal .field { margin-bottom: 12px; }
+        .modal .field .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .modal .field .value { font-size: 14px; }
+        .modal .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
+        .modal .close-btn:hover { color: var(--text); }
+        .detail-modal { max-width: 980px; width: 92%; }
+        .detail-modal .detail-title { font-size: 18px; color: var(--primary); margin-bottom: 4px; }
+        .detail-modal .detail-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 14px; }
+        .detail-modal .modal-table-wrap { max-height: 56vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+        .detail-modal table th { position: sticky; top: 0; z-index: 1; }
+        .detail-modal .row-progress { max-width: 260px; }
+        @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>报销系统问题处理进度看板</h1>
+        <div class="meta">
+            <button class="refresh-btn" onclick="window.location.href=window.location.href.split('?')[0]+'?__r='+Date.now()">⟳ 刷新最新</button>
+            <span id="updateTime">--</span>
+            <span id="dataSource">数据来源：钉钉文档</span>
+            <span id="versionTag" style="color:#4da3ff;font-weight:700;">Build 260818 | 数据:__N__条</span>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card clickable" id="card-total" onclick="openDetailModal('all','全部')" title="点击查看全部明细">
+            <div class="label">问题总数</div>
+            <div class="value primary" id="totalCount">--</div>
+        </div>
+        <div class="stat-card clickable" id="card-pending" onclick="drillDown('status','待处理')" title="点击下钻：待处理明细">
+            <div class="label">待处理（未反馈）</div>
+            <div class="value warning" id="pendingCount">--</div>
+        </div>
+        <div class="stat-card clickable" id="card-processing" onclick="drillDown('status','处理中')" title="点击下钻：处理中明细">
+            <div class="label">处理中</div>
+            <div class="value primary" id="processingCount">--</div>
+        </div>
+        <div class="stat-card clickable" id="card-resolved" onclick="drillDown('status','已解决')" title="点击下钻：已解决明细">
+            <div class="label">已解决（已完成）</div>
+            <div class="value success" id="resolvedCount">--</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">解决率</div>
+            <div class="value success" id="resolveRate">--</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">平均处理时长</div>
+            <div class="value primary" id="avgTime">--</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card" title="点击扇区下钻明细">
+            <h3>问题状态分布</h3>
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-hint">点击扇区下钻 → 明细</div>
+        </div>
+        <div class="chart-card" title="点击柱下钻明细">
+            <h3>紧急程度分布</h3>
+            <div class="chart-container">
+                <canvas id="urgencyChart"></canvas>
+            </div>
+            <div class="chart-hint">点击柱下钻 → 明细</div>
+        </div>
+        <div class="chart-card" title="点击柱下钻明细">
+            <h3>处理人工作量</h3>
+            <div class="chart-container">
+                <canvas id="handlerChart"></canvas>
+            </div>
+            <div class="chart-hint">点击柱下钻 → 明细</div>
+        </div>
+        <div class="chart-card" title="点击柱下钻明细">
+            <h3>按提出月份分布</h3>
+            <div class="chart-container">
+                <canvas id="monthChart"></canvas>
+            </div>
+            <div class="chart-hint">点击柱下钻 → 明细</div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <h3>问题明细</h3>
+        <div class="filter-bar" id="filterBar" style="display:none;">
+            <span>当前筛选：</span><span class="filter-label" id="filterLabel"></span>
+            <button class="clear-btn" onclick="clearFilter()">✕ 清除筛选</button>
+        </div>
+        <table id="problemTable">
+            <thead>
+                <tr>
+                    <th>问题ID</th>
+                    <th>单号</th>
+                    <th>问题描述</th>
+                    <th>紧急程度</th>
+                    <th>问题状态</th>
+                    <th>处理人</th>
+                    <th>提出时间</th>
+                    <th>解决时间</th>
+                    <th>解决进度</th>
+                    <th>解决方案</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="10" class="empty-state">正在加载数据...</td></tr>
+            </tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        Chart.defaults.color = '#9494a8';
+        Chart.defaults.borderColor = '#2a2a3e';
+        Chart.defaults.plugins.legend.labels.color = '#e8e8ed';
+
+        // 报销系统状态标准化
+        function normalizeStatus(status) {
+            if (!status || status.trim() === '') return '待处理';
+            const s = status.trim();
+            if (s === '已完成') return '已解决';
+            if (s === '未反馈') return '待处理';
+            // 解决中 / 已反馈，未解决 / 已反馈未解决 等统一归为处理中
+            return '处理中';
+        }
+
+        const INLINE_DATA = __INLINE_DATA__;
+
+        async function loadData() {
+            renderDashboard(INLINE_DATA);
+            fetch('./data/reimbursement_issues.json')
+                .then(function(response) { if (response.ok) return response.json(); })
+                .then(function(remoteData) {
+                    if (remoteData && remoteData.issues && remoteData.issues.length > 0) {
+                        renderDashboard(remoteData);
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function renderDashboard(data) {
+            const issues = data.issues || [];
+            activeFilter = null;
+            document.getElementById('filterBar').style.display = 'none';
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+
+            const now = new Date();
+            document.getElementById('updateTime').textContent = '更新时间：' + now.toLocaleString('zh-CN');
+
+            const fetchTime = data.fetchTime ? new Date(data.fetchTime).toLocaleString('zh-CN') : '未记录';
+            document.getElementById('versionTag').textContent = '数据时间：' + fetchTime + ' | 共 ' + issues.length + ' 条';
+
+            const total = issues.length;
+            const pending = issues.filter(i => normalizeStatus(i.status) === '待处理').length;
+            const processing = issues.filter(i => normalizeStatus(i.status) === '处理中').length;
+            const resolved = issues.filter(i => normalizeStatus(i.status) === '已解决').length;
+            const resolveRate = total > 0 ? ((resolved / total) * 100).toFixed(1) + '%' : '0%';
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('processingCount').textContent = processing;
+            document.getElementById('resolvedCount').textContent = resolved;
+            document.getElementById('resolveRate').textContent = resolveRate;
+
+            // 平均处理时长
+            const resolvedWithTime = issues.filter(i => normalizeStatus(i.status) === '已解决' && i.createTime && i.resolveTime);
+            let avgTime = '--';
+            if (resolvedWithTime.length > 0) {
+                const totalMinutes = resolvedWithTime.reduce((sum, i) => {
+                    const create = new Date(i.createTime);
+                    const resolve = new Date(i.resolveTime);
+                    return sum + (resolve - create) / (1000 * 60);
+                }, 0);
+                const mins = Math.round(totalMinutes / resolvedWithTime.length);
+                if (mins < 60) {
+                    avgTime = mins + '分钟';
+                } else if (mins < 1440) {
+                    const h = Math.floor(mins / 60);
+                    const m = mins % 60;
+                    avgTime = m > 0 ? h + '小时' + m + '分钟' : h + '小时';
+                } else {
+                    const d = Math.floor(mins / 1440);
+                    const h = Math.round((mins % 1440) / 60);
+                    avgTime = h > 0 ? d + '天' + h + '小时' : d + '天';
+                }
+            }
+            document.getElementById('avgTime').textContent = avgTime;
+
+            renderStatusChart(pending, processing, resolved);
+            renderUrgencyChart(issues);
+            renderHandlerChart(issues);
+            renderMonthChart(issues);
+
+            currentPage = 1;
+            renderTable(issues);
+        }
+
+        function renderStatusChart(pending, processing, resolved) {
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['待处理', '处理中', '已解决'],
+                    datasets: [{ data: [pending, processing, resolved], backgroundColor: ['#facc15', '#4da3ff', '#4ade80'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e8e8ed' } } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; drillDown('status', label); } } }
+            });
+        }
+
+        function normalizeUrgency(urgency) {
+            if (!urgency) return '';
+            const u = urgency.trim().toUpperCase();
+            if (u === '高' || u === 'P0') return '高';
+            if (u === '中' || u === 'P1') return '中';
+            if (u === '低' || u === 'P2') return '低';
+            return u;
+        }
+
+        function renderUrgencyChart(issues) {
+            const high = issues.filter(i => normalizeUrgency(i.urgency) === '高').length;
+            const medium = issues.filter(i => normalizeUrgency(i.urgency) === '中').length;
+            const low = issues.filter(i => normalizeUrgency(i.urgency) === '低').length;
+            new Chart(document.getElementById('urgencyChart'), {
+                type: 'bar',
+                data: { labels: ['高', '中', '低'], datasets: [{ data: [high, medium, low], backgroundColor: ['#f87171', '#facc15', '#4ade80'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; drillDown('urgency', label); } }, scales: { y: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, x: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
+            });
+        }
+
+        function renderHandlerChart(issues) {
+            const counts = {};
+            issues.forEach(i => { if (i.handler) counts[i.handler] = (counts[i.handler] || 0) + 1; });
+            const labels = Object.keys(counts);
+            const values = Object.values(counts);
+            new Chart(document.getElementById('handlerChart'), {
+                type: 'bar',
+                data: { labels: labels.length ? labels : ['暂无数据'], datasets: [{ data: values.length ? values : [0], backgroundColor: '#4da3ff', borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, indexAxis: 'y', onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; if (label && label !== '暂无数据') drillDown('handler', label); } }, scales: { x: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, y: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
+            });
+        }
+
+        function extractMonth(createTime) {
+            if (!createTime) return '未知';
+            const m = /^(\d{4})\/(\d{1,2})/.exec(createTime.trim());
+            if (m) return m[1] + '-' + (m[2].length === 1 ? '0' + m[2] : m[2]);
+            const d = new Date(createTime);
+            if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            return '未知';
+        }
+
+        function renderMonthChart(issues) {
+            const counts = {};
+            issues.forEach(i => { const mo = extractMonth(i.createTime); counts[mo] = (counts[mo] || 0) + 1; });
+            const labels = Object.keys(counts).sort();
+            const values = labels.map(k => counts[k]);
+            new Chart(document.getElementById('monthChart'), {
+                type: 'bar',
+                data: { labels: labels.length ? labels : ['暂无数据'], datasets: [{ data: values.length ? values : [0], backgroundColor: '#a78bfa', borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, onClick: function(evt, els) { if (els.length) { const label = this.data.labels[els[0].index]; if (label && label !== '暂无数据') drillDown('month', label); } }, scales: { y: { beginAtZero: true, grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } }, x: { grid: { color: '#2a2a3e' }, ticks: { color: '#9494a8' } } } }
+            });
+        }
+
+        const PAGE_SIZE = 10;
+        let currentPage = 1;
+        let currentIssues = [];
+        let activeFilter = null;
+
+        function matchFilter(i) {
+            if (!activeFilter) return true;
+            const f = activeFilter.field, v = activeFilter.value;
+            if (f === 'status') return normalizeStatus(i.status) === v;
+            if (f === 'urgency') return normalizeUrgency(i.urgency) === v;
+            if (f === 'handler') return (i.handler || '--') === v;
+            if (f === 'month') return extractMonth(i.createTime) === v;
+            return true;
+        }
+
+        function drillDown(field, value) {
+            openDetailModal(field, value);
+        }
+
+        function openDetailModal(field, value) {
+            const issues = (currentIssues && currentIssues.length) ? currentIssues : (INLINE_DATA.issues || []);
+            let rows = issues;
+            let title = '全部问题明细';
+            if (field && field !== 'all') {
+                const fn = { status: '问题状态', urgency: '紧急程度', handler: '处理人', month: '提出月份' }[field] || field;
+                title = fn + '：' + value;
+                rows = issues.filter(function(i) {
+                    if (field === 'status') return normalizeStatus(i.status) === value;
+                    if (field === 'urgency') return normalizeUrgency(i.urgency) === value;
+                    if (field === 'handler') return (i.handler || '--') === value;
+                    if (field === 'month') return extractMonth(i.createTime) === value;
+                    return true;
+                });
+            }
+            document.getElementById('detailTitle').textContent = title;
+            document.getElementById('detailSub').textContent = '共 ' + rows.length + ' 条';
+            const body = document.getElementById('detailBody');
+            if (rows.length === 0) {
+                body.innerHTML = '<tr><td colspan="10" class="empty-state">该条件下暂无数据</td></tr>';
+            } else {
+                body.innerHTML = rows.map(function(i) {
+                    const normStatus = normalizeStatus(i.status);
+                    const statusClass = normStatus === '待处理' ? 'pending' : normStatus === '处理中' ? 'processing' : 'resolved';
+                    const normUrgency = normalizeUrgency(i.urgency);
+                    const urgencyClass = normUrgency === '高' ? 'high' : normUrgency === '中' ? 'medium' : 'low';
+                    const sol = (i.solution && i.solution.trim()) ? i.solution : '--';
+                    const prog = (i.progress && i.progress.trim()) ? i.progress : '--';
+                    return '<tr>' +
+                        '<td>' + escapeHtml(i.id || '--') + '</td>' +
+                        '<td>' + escapeHtml(i.ticketNo || '--') + '</td>' +
+                        '<td>' + escapeHtml(i.description || '--') + '</td>' +
+                        '<td><span class="urgency-tag ' + urgencyClass + '">' + (normUrgency || '--') + '</span></td>' +
+                        '<td><span class="status-tag ' + statusClass + '">' + escapeHtml(i.status || '--') + '</span></td>' +
+                        '<td>' + escapeHtml(i.handler || '--') + '</td>' +
+                        '<td>' + (i.createTime ? new Date(i.createTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                        '<td>' + (i.resolveTime ? new Date(i.resolveTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                        '<td class="row-progress">' + escapeHtml(prog) + '</td>' +
+                        '<td class="row-progress">' + escapeHtml(sol) + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function clearFilter() {
+            activeFilter = null;
+            currentPage = 1;
+            renderTable(currentIssues);
+        }
+
+        function updateFilterBar() {
+            const bar = document.getElementById('filterBar');
+            const label = document.getElementById('filterLabel');
+            document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+            if (!activeFilter) { bar.style.display = 'none'; return; }
+            const fieldName = { status: '问题状态', urgency: '紧急程度', handler: '处理人', month: '提出月份' }[activeFilter.field] || activeFilter.field;
+            label.textContent = fieldName + ' = ' + activeFilter.value;
+            bar.style.display = 'flex';
+            if (activeFilter.field === 'status') {
+                const map = { '待处理': 'card-pending', '处理中': 'card-processing', '已解决': 'card-resolved' };
+                const id = map[activeFilter.value];
+                if (id) document.getElementById(id).classList.add('active-filter');
+            }
+        }
+
+        function renderTable(issues) {
+            currentIssues = issues;
+            const display = issues.filter(matchFilter);
+            const tbody = document.getElementById('tableBody');
+            if (display.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">当前筛选条件下暂无匹配数据</td></tr>';
+                document.getElementById('pagination').innerHTML = '';
+                updateFilterBar();
+                return;
+            }
+            const totalPages = Math.ceil(display.length / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            const startIdx = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = display.slice(startIdx, startIdx + PAGE_SIZE);
+            tbody.innerHTML = pageItems.map(i => {
+                const normStatus = normalizeStatus(i.status);
+                const statusClass = normStatus === '待处理' ? 'pending' : normStatus === '处理中' ? 'processing' : 'resolved';
+                const normUrgency = normalizeUrgency(i.urgency);
+                const urgencyClass = normUrgency === '高' ? 'high' : normUrgency === '中' ? 'medium' : 'low';
+                const hasSolution = i.solution && i.solution.trim();
+                const hasProgress = i.progress && i.progress.trim();
+                const ticketLink = '<span class="solution-link" onclick="showDetail(\'' + escapeHtml(i.ticketNo || '') + '\',\'' + escapeHtml(i.description || '') + '\',\'' + escapeHtml(i.progress || '') + '\',\'' + escapeHtml(i.solution || '') + '\')">查看</span>';
+                const progressDisplay = hasProgress ? '<span class="solution-link" onclick="showDetail(\'' + escapeHtml(i.ticketNo || '') + '\',\'' + escapeHtml(i.description || '') + '\',\'' + escapeHtml(i.progress || '') + '\',\'' + escapeHtml(i.solution || '') + '\')">查看</span>' : '--';
+                const solutionDisplay = hasSolution ? ticketLink : '--';
+                return '<tr>' +
+                    '<td>' + (i.id || '--') + '</td>' +
+                    '<td>' + (i.ticketNo || '--') + '</td>' +
+                    '<td>' + (i.description || '--') + '</td>' +
+                    '<td><span class="urgency-tag ' + urgencyClass + '">' + (normUrgency || '--') + '</span></td>' +
+                    '<td><span class="status-tag ' + statusClass + '">' + (i.status || '--') + '</span></td>' +
+                    '<td>' + (i.handler || '--') + '</td>' +
+                    '<td>' + (i.createTime ? new Date(i.createTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                    '<td>' + (i.resolveTime ? new Date(i.resolveTime).toLocaleDateString('zh-CN') : '--') + '</td>' +
+                    '<td class="progress-cell">' + (hasProgress ? escapeHtml(i.progress) : '--') + '</td>' +
+                    '<td>' + solutionDisplay + '</td>' +
+                    '</tr>';
+            }).join('');
+            renderPagination(totalPages, display.length);
+            updateFilterBar();
+        }
+
+        function renderPagination(totalPages, totalCount) {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) { container.innerHTML = ''; return; }
+            let html = '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(1)">« 首页</button>';
+            html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage - 1) + ')">‹ 上一页</button>';
+            const maxBtns = 5;
+            let startP = Math.max(1, currentPage - Math.floor(maxBtns / 2));
+            let endP = Math.min(totalPages, startP + maxBtns - 1);
+            startP = Math.max(1, endP - maxBtns + 1);
+            for (let p = startP; p <= endP; p++) {
+                html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="goToPage(' + p + ')">' + p + '</button>';
+            }
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + (currentPage + 1) + ')">下一页 ›</button>';
+            html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="goToPage(' + totalPages + ')">末页 »</button>';
+            html += '<span class="page-info">第 ' + currentPage + ' / ' + totalPages + ' 页，共 ' + totalCount + ' 条</span>';
+            html += '<span class="page-jump">跳至 <input type="number" min="1" max="' + totalPages + '" id="jumpInput" onkeydown="if(event.key===\'Enter\')doJump(' + totalPages + ')"> 页 <button onclick="doJump(' + totalPages + ')">Go</button></span>';
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1) return;
+            currentPage = page;
+            renderTable(currentIssues);
+        }
+
+        function doJump(totalPages) {
+            const input = document.getElementById('jumpInput');
+            let val = parseInt(input.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > totalPages) val = totalPages;
+            goToPage(val);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
+
+        function showDetail(ticketNo, description, progress, solution) {
+            document.getElementById('modalTicketNo').textContent = ticketNo || '--';
+            document.getElementById('modalDesc').textContent = description || '--';
+            document.getElementById('modalProgress').textContent = progress || '暂无进度记录';
+            document.getElementById('modalSolution').textContent = solution || '暂无解决方案';
+            document.getElementById('solutionModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('solutionModal').classList.remove('active');
+        }
+
+        loadData();
+    </script>
+    <div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+        <div class="modal detail-modal">
+            <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+            <div class="detail-title" id="detailTitle">明细</div>
+            <div class="detail-sub" id="detailSub"></div>
+            <div class="modal-table-wrap">
+                <table id="detailTable">
+                    <thead>
+                        <tr>
+                            <th>问题ID</th>
+                            <th>单号</th>
+                            <th>问题描述</th>
+                            <th>紧急程度</th>
+                            <th>问题状态</th>
+                            <th>处理人</th>
+                            <th>提出时间</th>
+                            <th>解决时间</th>
+                            <th>解决进度</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="solutionModal" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle">问题详情</h3>
+            <div class="field"><div class="label">单号</div><div class="value" id="modalTicketNo"></div></div>
+            <div class="field"><div class="label">问题描述</div><div class="value" id="modalDesc"></div></div>
+            <div class="field"><div class="label">解决进度</div><div class="value" id="modalProgress" style="white-space: pre-wrap;"></div></div>
+            <div class="field"><div class="label">解决方案</div><div class="value" id="modalSolution" style="white-space: pre-wrap;"></div></div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+inline_obj = json.dumps(inline, ensure_ascii=False, indent=2)
+html = HTML.replace("__INLINE_DATA__", inline_obj)
+html = html.replace("__N__", str(len(issues)))
+
+out_path = os.path.join(OUT_DIR, "index.html")
+with open(out_path, "w", encoding="utf-8") as f:
+    f.write(html)
+print("written:", out_path, "bytes:", len(html), "issues:", len(issues))

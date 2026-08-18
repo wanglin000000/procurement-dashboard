@@ -1,0 +1,89 @@
+{
+  "issues": [
+    {
+      "id": "1",
+      "ticketNo": "PR260717000001",
+      "description": "采购系统单据状态与每刻系统状态不一致",
+      "createTime": "2026/7/29 15:29:00",
+      "status": "已完成",
+      "resolveTime": "",
+      "progress": "目前已经提交上工单让曾浩老师去查单据同步的日志。看是什么原因导致的。预计明天会有消息。已反馈解决方案，目前商越那边已处理，但是技术没明确给出产生的原因。发现流程中有个节点的审批用户组变过。再咨询技术是否和这个有关。技术排查后发现与这个没关系",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "吴川"
+    },
+    {
+      "id": "2",
+      "ticketNo": "CON20260528000002",
+      "description": "合同做了采购员变更导致推送每刻失败",
+      "createTime": "2026/7/30 16:50:15",
+      "status": "已完成",
+      "resolveTime": "",
+      "progress": "已提交工单让产研那边的技术老师排查接口逻辑中。技术那边排查发现是01011440工号的员工没有合同变更的权限。这种情况的解决方法是：1、先在每刻中把合同的经办人更改后再进行推送。2、调用接口时先调用合同变更责任人接口：/api/openapi/receive/contract/modifyresponsibleuser变更责任人后再调用合同变更接口：/api/openapi/receive/contract/change推送单据。",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "3",
+      "ticketNo": "PACR260812000001",
+      "description": "采购付款申请单推送每刻失败",
+      "createTime": "2026/8/12 18:04:32",
+      "status": "已完成",
+      "resolveTime": "",
+      "progress": "昨晚已经配合商越在紧急排查中。目前发现是关联的结算单推送每刻有问题。每刻接口这边报系统异常。昨晚已经让技术那边去紧急排查修复中。排查出是合同单的问题，目前商越那边尝试再推送一下该合同单。已和商越那边协调处理完毕，目前该单据已推送。",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "4",
+      "ticketNo": "",
+      "description": "系统登录以及加载时间特别长，预计一分钟左右才能加载渲染完成",
+      "createTime": "2026/8/13 12:10:52",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "技术在持续优化中。需要录下是操作那个模块时导致系统缓慢。",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "5",
+      "ticketNo": "PACR260723000008-89628162",
+      "description": "附件的文件名称与采购系统的不一致，导致单据被驳回",
+      "createTime": "2026/8/18 14:58:03",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "6",
+      "ticketNo": "PACR260609000006-94352497",
+      "description": "审批在打印的时候无法直接打印附件",
+      "createTime": "2026/8/18 15:17:17",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P1",
+      "handler": "吴川"
+    },
+    {
+      "id": "7",
+      "ticketNo": "PACR260716000006-25764027",
+      "description": "业务误操作点击了提交和召回，需要修改一下状态",
+      "createTime": "2026/8/18 15:32:27",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    }
+  ],
+  "fetchTime": "2026-08-18T17:10:00"
+}
