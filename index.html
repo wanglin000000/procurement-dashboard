@@ -8,12 +8,18 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <script>
-    // 强制绕过浏览器/CDN 缓存：每次打开都追加全新时间戳，保证 URL 永远唯一
+    // 强制绕过浏览器/CDN 缓存：仅在无 __r 或 __r 过期时重定向，避免无限 reload 循环
     (function(){
       var loc = window.location;
       if (loc.hostname !== 'wanglin000000.github.io') return;
-      var base = loc.pathname;  // 不带查询参数的基础路径
-      loc.replace(base + '?__r=' + Date.now());
+      var params = new URLSearchParams(loc.search);
+      var r = params.get('__r');
+      var now = Date.now();
+      // 无 __r，或 __r 距当前超过 2 秒（说明是上一次手动刷新留下的旧值）→ 重定向拿新时间戳
+      // 重定向后本页 __r≈now，差值<2秒，不再触发，彻底杜绝死循环
+      if (!r || (now - parseInt(r, 10)) > 2000) {
+        loc.replace(loc.pathname + '?__r=' + now);
+      }
     })();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=20260817a"></script>
