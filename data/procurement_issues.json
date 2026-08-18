@@ -131,7 +131,19 @@
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "12",
+      "ticketNo": "PACR260615000010",
+      "description": "付款申请单推送每刻失败",
+      "createTime": "2026/8/17 18:48:21",
+      "status": "已解决",
+      "resolveTime": "2026/8/18 14:18:05",
+      "solution": "单据转派问题需转派回去后找周娜重推",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-17T17:04:47"
+  "fetchTime": "2026-08-18T16:55:48"
 }
