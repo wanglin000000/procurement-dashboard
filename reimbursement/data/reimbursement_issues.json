@@ -55,7 +55,7 @@
       "createTime": "2026/8/18 14:58:03",
       "status": "解决中",
       "resolveTime": "",
-      "progress": "",
+      "progress": "与商越那边一起协调排查日志中",
       "solution": "",
       "urgency": "P0",
       "handler": "吴川"
@@ -65,9 +65,9 @@
       "ticketNo": "PACR260609000006-94352497",
       "description": "审批在打印的时候无法直接打印附件",
       "createTime": "2026/8/18 15:17:17",
-      "status": "解决中",
+      "status": "已完成",
       "resolveTime": "",
-      "progress": "",
+      "progress": "目前该问题已经提交给费控产品那边的技术排查中。目前已经可以在单据打印中打印附件",
       "solution": "",
       "urgency": "P1",
       "handler": "吴川"
@@ -79,11 +79,11 @@
       "createTime": "2026/8/18 15:32:27",
       "status": "解决中",
       "resolveTime": "",
-      "progress": "",
+      "progress": "流程记录一但产生就无法消除。审批人员驳回直达后员工提交后是会直接到驳回直达的审批节点上的。但是再召回的话只能重新走流程了。已提交技术工单让产品那边看有没有办法挽救，把状态改回到已提交或者驳回状态",
       "solution": "",
       "urgency": "P0",
       "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-08-18T17:25:36"
+  "fetchTime": "2026-08-19T17:28:10"
 }
