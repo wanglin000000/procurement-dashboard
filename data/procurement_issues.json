@@ -143,7 +143,19 @@
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "13",
+      "ticketNo": "PR260818000004",
+      "description": "采购申请单涉及驳回，导致与报销系统状态不一致",
+      "createTime": "2026/8/20 10:57:16",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-19T16:55:35"
+  "fetchTime": "2026-08-20T16:55:27"
 }
