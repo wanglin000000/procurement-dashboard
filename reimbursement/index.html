@@ -132,7 +132,7 @@
             <button class="refresh-btn" onclick="window.location.href=window.location.href.split('?')[0]+'?__r='+Date.now()">⟳ 刷新最新</button>
             <span id="updateTime">--</span>
             <span id="dataSource">数据来源：钉钉文档</span>
-            <span id="versionTag" style="color:#4da3ff;font-weight:700;">Build 260819 | 数据:7条</span>
+            <span id="versionTag" style="color:#4da3ff;font-weight:700;">Build 260820 | 数据:7条</span>
         </div>
     </div>
 
@@ -245,9 +245,9 @@
       "description": "采购系统单据状态与每刻系统状态不一致",
       "createTime": "2026/7/29 15:29:00",
       "status": "已完成",
-      "resolveTime": "",
-      "progress": "目前已经提交上工单让曾浩老师去查单据同步的日志。看是什么原因导致的。预计明天会有消息。已反馈解决方案，目前商越那边已处理，但是技术没明确给出产生的原因。发现流程中有个节点的审批用户组变过。再咨询技术是否和这个有关。技术排查后发现与这个没关系",
-      "solution": "",
+      "resolveTime": "2026/7/31 14:33:22",
+      "progress": "目前已经提交上工单让曾浩老师去查单据同步的日志。看是什么原因导致的。预计明天会有消息。已反馈解决方案，目前商越那边已处理，但是技术没明确给出产生的原因。发现流程中有个节点的审批用户组变过。再咨询技术是否和这个有关。技术排查后发现与这个没关系。",
+      "solution": "目前的解决方案是让商越那边重新同步一下状态能够解决。如果需要从每刻这边查找具体问题的话需要提需求开发一个流程功能，可能会涉及到费用。",
       "urgency": "P1",
       "handler": "吴川"
     },
@@ -257,9 +257,9 @@
       "description": "合同做了采购员变更导致推送每刻失败",
       "createTime": "2026/7/30 16:50:15",
       "status": "已完成",
-      "resolveTime": "",
-      "progress": "已提交工单让产研那边的技术老师排查接口逻辑中。技术那边排查发现是01011440工号的员工没有合同变更的权限。这种情况的解决方法是：1、先在每刻中把合同的经办人更改后再进行推送。2、调用接口时先调用合同变更责任人接口：/api/openapi/receive/contract/modifyresponsibleuser变更责任人后再调用合同变更接口：/api/openapi/receive/contract/change推送单据。",
-      "solution": "",
+      "resolveTime": "2026/7/31 14:48:50",
+      "progress": "已提交工单让产研那边的技术老师排查接口逻辑中。技术那边排查发现是01011440工号的员工没有合同变更的权限。",
+      "solution": "这种情况的解决方法是：1、先在每刻中把合同的经办人更改后再进行推送。2、调用接口时先调用合同变更责任人接口：/api/openapi/receive/contract/modifyresponsibleuser变更责任人后再调用合同变更接口：/api/openapi/receive/contract/change推送单据。",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -269,9 +269,9 @@
       "description": "采购付款申请单推送每刻失败",
       "createTime": "2026/8/12 18:04:32",
       "status": "已完成",
-      "resolveTime": "",
+      "resolveTime": "2026/8/13 14:52:32",
       "progress": "昨晚已经配合商越在紧急排查中。目前发现是关联的结算单推送每刻有问题。每刻接口这边报系统异常。昨晚已经让技术那边去紧急排查修复中。排查出是合同单的问题，目前商越那边尝试再推送一下该合同单。已和商越那边协调处理完毕，目前该单据已推送。",
-      "solution": "",
+      "solution": "解决方法是商越那边重新推送一下合同单。",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -283,7 +283,7 @@
       "status": "解决中",
       "resolveTime": "",
       "progress": "技术在持续优化中。需要录下是操作那个模块时导致系统缓慢。",
-      "solution": "",
+      "solution": "已由产品那边排查修复中",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -295,7 +295,7 @@
       "status": "解决中",
       "resolveTime": "",
       "progress": "与商越那边一起协调排查日志中",
-      "solution": "",
+      "solution": "已提交给技术那边排查中",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -305,9 +305,9 @@
       "description": "审批在打印的时候无法直接打印附件",
       "createTime": "2026/8/18 15:17:17",
       "status": "已完成",
-      "resolveTime": "",
+      "resolveTime": "2026/8/19 14:53:46",
       "progress": "目前该问题已经提交给费控产品那边的技术排查中。目前已经可以在单据打印中打印附件",
-      "solution": "",
+      "solution": "新增的功能，需要和批量打印一样在【设置】-【控制中心】开启【打印单据时支持打印发票和附件】功能。",
       "urgency": "P1",
       "handler": "吴川"
     },
@@ -319,12 +319,12 @@
       "status": "解决中",
       "resolveTime": "",
       "progress": "流程记录一但产生就无法消除。审批人员驳回直达后员工提交后是会直接到驳回直达的审批节点上的。但是再召回的话只能重新走流程了。已提交技术工单让产品那边看有没有办法挽救，把状态改回到已提交或者驳回状态",
-      "solution": "",
+      "solution": "产品评估中",
       "urgency": "P0",
       "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-08-19T17:28:10"
+  "fetchTime": "2026-08-20T17:25:29"
 };
 
         async function loadData() {
