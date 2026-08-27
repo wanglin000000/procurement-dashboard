@@ -155,7 +155,19 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "14",
+      "ticketNo": "PR260127000002",
+      "description": "付款申请单推送每刻失败（单据已经转派回去）",
+      "createTime": "2026/8/27 9:38:21",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "单据转派问题需转派回去后找周娜重推",
+      "urgency": "P1",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-26T16:55:25"
+  "fetchTime": "2026-08-27T16:55:43"
 }
