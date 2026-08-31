@@ -179,7 +179,31 @@
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "16",
+      "ticketNo": "PACR260826000001",
+      "description": "付款申请单驳回后，采购系统状态没有变更",
+      "createTime": "2026/8/31 12:19:53",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "17",
+      "ticketNo": "PACR260831000015",
+      "description": "付款申请单推送每刻系统失败（采购申请单已经转回去，需要重新推送）",
+      "createTime": "2026/8/31 12:28:02",
+      "status": "已解决",
+      "resolveTime": "2026/8/31 13:37:30",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-30T17:23:16"
+  "fetchTime": "2026-08-31T16:57:43"
 }
