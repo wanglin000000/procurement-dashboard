@@ -175,7 +175,7 @@
       "createTime": "2026/8/28 14:56:59",
       "status": "解决中",
       "resolveTime": "2026/8/28 15:18:00",
-      "solution": "",
+      "solution": "无需处理",
       "urgency": "P1",
       "handler": "周娜",
       "type": "BUG"
@@ -185,9 +185,9 @@
       "ticketNo": "PACR260826000001",
       "description": "付款申请单驳回后，采购系统状态没有变更",
       "createTime": "2026/8/31 12:19:53",
-      "status": "解决中",
-      "resolveTime": "",
-      "solution": "",
+      "status": "已解决",
+      "resolveTime": "2026/9/1 15:40:20",
+      "solution": "已驳回",
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
@@ -203,7 +203,19 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "18",
+      "ticketNo": "PACR260831000019",
+      "description": "付款申请单推送每刻系统失败（采购申请单已经转回去，需要重新推送）",
+      "createTime": "2026/9/1 15:19:02",
+      "status": "已解决",
+      "resolveTime": "2026/9/1 15:30:36",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-08-31T16:57:43"
+  "fetchTime": "2026-09-01T16:55:30"
 }
