@@ -215,7 +215,19 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "19",
+      "ticketNo": "PACR260907000004",
+      "description": "付款申请单推送每刻系统失败（采购申请单已经转回去，需要重新推送）",
+      "createTime": "2026/9/7 14:58:53",
+      "status": "已解决",
+      "resolveTime": "2026/9/7 15:01:46",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-09-06T17:12:18"
+  "fetchTime": "2026-09-07T17:05:27"
 }
