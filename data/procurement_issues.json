@@ -227,7 +227,43 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "20",
+      "ticketNo": "PACR250409000002",
+      "description": "付款申请单状态与每刻状态不一致",
+      "createTime": "2026/9/8 10:34:50",
+      "status": "已解决",
+      "resolveTime": "2026/9/8 14:22:09",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "21",
+      "ticketNo": "PACR250812000003",
+      "description": "付款申请单状态与每刻状态不一致",
+      "createTime": "2026/9/8 10:34:50",
+      "status": "已解决",
+      "resolveTime": "2026/9/8 14:22:09",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "22",
+      "ticketNo": "CON20260902000004",
+      "description": "合同单状态与每刻状态不一致",
+      "createTime": "2026/9/8 11:49:07",
+      "status": "已解决",
+      "resolveTime": "2026/9/8 16:42:38",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-09-07T17:05:27"
+  "fetchTime": "2026-09-08T16:57:16"
 }
