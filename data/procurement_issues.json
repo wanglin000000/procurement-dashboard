@@ -347,7 +347,19 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "30",
+      "ticketNo": "CON20260824000002",
+      "description": "合同单状态与每刻状态不一致",
+      "createTime": "2026/9/16 16:05:12",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-09-15T16:55:23"
+  "fetchTime": "2026-09-16T16:55:34"
 }
