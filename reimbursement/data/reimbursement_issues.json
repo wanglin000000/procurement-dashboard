@@ -41,10 +41,10 @@
       "ticketNo": "",
       "description": "系统登录以及加载时间特别长，预计一分钟左右才能加载渲染完成",
       "createTime": "2026/8/13 12:10:52",
-      "status": "解决中",
-      "resolveTime": "",
+      "status": "已完成",
+      "resolveTime": "2026/8/27 10:12:04",
       "progress": "技术在持续优化中。需要录下是操作那个模块时导致系统缓慢。",
-      "solution": "已由产品那边排查修复中",
+      "solution": "在上次的发版中已进行了优化",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -53,10 +53,10 @@
       "ticketNo": "PACR260723000008-89628162",
       "description": "附件的文件名称与采购系统的不一致，导致单据被驳回",
       "createTime": "2026/8/18 14:58:03",
-      "status": "解决中",
-      "resolveTime": "",
+      "status": "已完成",
+      "resolveTime": "2026/9/25 10:12:29",
       "progress": "与商越那边一起协调排查日志中",
-      "solution": "已提交给技术那边排查中",
+      "solution": "该类问题技术已经修复，后续不会再发生",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -101,10 +101,10 @@
       "ticketNo": "PACR260824000003-43864541",
       "description": "点击附件的时候无法加载完成，且还会自动的下载一个未知文件",
       "createTime": "2026/8/31 19:05:55",
-      "status": "未反馈",
-      "resolveTime": "",
-      "progress": "",
-      "solution": "",
+      "status": "已完成",
+      "resolveTime": "2026/9/4 10:30:30",
+      "progress": "该问题为附件的一个缺陷，目前技术那边已经修复。后续不会出现该问题",
+      "solution": "由技术修复。目前附件功能已经恢复正常",
       "urgency": "P0",
       "handler": "吴川"
     },
@@ -113,13 +113,25 @@
       "ticketNo": "PR260909000002",
       "description": "商越正常推送，但是每刻系统页面不显示单据",
       "createTime": "2026/9/14 11:19:53",
+      "status": "已完成",
+      "resolveTime": "2026/9/14 18:30:31",
+      "progress": "该单原来是推送到每刻系统里了，但是中间被删掉了导致每刻中查不到这个单据",
+      "solution": "商越那边重新换一个formcode再推送一下这比单据过来。",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "11",
+      "ticketNo": "CON20260915000001-195520",
+      "description": "业务反馈审批流和提交的时候不一致",
+      "createTime": "2026/9/16 10:09:36",
       "status": "解决中",
       "resolveTime": "",
       "progress": "",
       "solution": "",
-      "urgency": "",
-      "handler": ""
+      "urgency": "P0",
+      "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-09-15T17:28:27"
+  "fetchTime": "2026-09-16T17:26:30"
 }
