@@ -353,13 +353,25 @@
       "ticketNo": "CON20260824000002",
       "description": "合同单状态与每刻状态不一致",
       "createTime": "2026/9/16 16:05:12",
+      "status": "已解决",
+      "resolveTime": "2026/9/16 18:03:28",
+      "solution": "由每刻重推审批结果",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "31",
+      "ticketNo": "PACR260915000007",
+      "description": "采购系统付款申请推送每刻失败",
+      "createTime": "2026/9/16 17:12:57",
       "status": "解决中",
       "resolveTime": "",
-      "solution": "",
+      "solution": "待合同CON20260826000001-075708处理完成，才可重推结算单和付款单",
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
     }
   ],
-  "fetchTime": "2026-09-16T16:55:34"
+  "fetchTime": "2026-09-17T16:55:40"
 }
