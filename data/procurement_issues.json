@@ -365,8 +365,8 @@
       "ticketNo": "PACR260915000007",
       "description": "采购系统付款申请推送每刻失败",
       "createTime": "2026/9/16 17:12:57",
-      "status": "解决中",
-      "resolveTime": "",
+      "status": "已解决",
+      "resolveTime": "2026/9/18 18:03:28",
       "solution": "待合同CON20260826000001-075708处理完成，才可重推结算单和付款单",
       "urgency": "P0",
       "handler": "周娜",
@@ -383,7 +383,43 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "33",
+      "ticketNo": "PACR260916000009",
+      "description": "付款单据推送每刻失败",
+      "createTime": "2026/9/21 9:29:49",
+      "status": "已解决",
+      "resolveTime": "2026/9/21 10:20:16",
+      "solution": "单据已经转派完成",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "34",
+      "ticketNo": "PACR260916000008",
+      "description": "付款单据推送每刻失败",
+      "createTime": "2026/9/21 9:30:50",
+      "status": "已解决",
+      "resolveTime": "2026/9/21 10:20:16",
+      "solution": "单据已经转派完成",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "35",
+      "ticketNo": "PACR260916000007",
+      "description": "付款单据推送每刻失败",
+      "createTime": "2026/9/21 9:30:50",
+      "status": "已解决",
+      "resolveTime": "2026/9/21 10:20:16",
+      "solution": "单据已经转派完成",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-09-20T16:59:20"
+  "fetchTime": "2026-09-21T16:56:39"
 }
