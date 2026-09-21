@@ -125,13 +125,37 @@
       "ticketNo": "CON20260915000001-195520",
       "description": "业务反馈审批流和提交的时候不一致",
       "createTime": "2026/9/16 10:09:36",
-      "status": "解决中",
-      "resolveTime": "",
-      "progress": "",
-      "solution": "",
+      "status": "已完成",
+      "resolveTime": "2026/9/15 10:25:31",
+      "progress": "该单据在多个财务审批节点被驳回直达，所以提交后不是重新走之前的流程，而是直接到达驳回直达节点继续往下走流程。",
+      "solution": "驳回直达的逻辑导致，目前单据已完成",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "12",
+      "ticketNo": "CON20250828000001",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/9/21 9:02:27",
+      "status": "已完成",
+      "resolveTime": "2026/9/21 10:45:31",
+      "progress": "需要重新推送状态给商越",
+      "solution": "在dex中操作单据重新推送",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "13",
+      "ticketNo": "CON20260901000004",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/9/21 9:24:50",
+      "status": "已完成",
+      "resolveTime": "2026/9/21 10:45:31",
+      "progress": "需要重新推送状态给商越",
+      "solution": "在dex中操作单据重新推送",
       "urgency": "P0",
       "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-09-20T17:30:51"
+  "fetchTime": "2026-09-21T17:26:33"
 }
