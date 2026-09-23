@@ -168,11 +168,13 @@
     white-space:normal;
     word-break:normal;overflow-wrap:anywhere;
     padding-left:3px;padding-right:3px;font-size:12px;}
-  /* ★ V21.6：附录「下一步计划」拆成多行后，续行的 row-head 留空，
-     让它与首行视觉连成一条完整色带（不加竖线分隔），表明属同一行组。 */
+  /* ★ V21.6：附录「下一步计划」拆成多行后，续行的 row-head 留空。
+     ★ V21.8：附录宽表不加底色，且续行保留上边框以维持网格连续（见附录区块规则）。 */
   .row-head:empty{background:var(--brand-soft);}
-  table.wide tbody tr + tr td.row-head:empty{border-top:none;}
+  table.wide .row-head:empty{background:transparent!important;}
   tbody tr:nth-child(even) td:not(.row-head){background:#fcfdfe;}
+  /* ★ V21.8：附录宽表关闭斑马纹，整表白净 */
+  table.wide tbody tr:nth-child(even) td{background:transparent!important;}
   .cell-owner{text-align:center;vertical-align:middle;font-weight:600;color:var(--ink-2);
     word-break:normal;overflow-wrap:anywhere;font-size:12px;padding-left:3px;padding-right:3px;}
   .ow{display:block;line-height:1.55;}
@@ -182,54 +184,58 @@
   .cell-date .d{display:block;white-space:nowrap;}
   .cell-date .d small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:normal;line-height:1.35;}
 
-  /* ============ 附录宽表专用（提升规整度与可读性）============
-     ★ V21.5：表格边框一律 1px，不加粗（用户要求） */
+  /* ============ 附录宽表专用 ============
+     ★ V21.5：表格边框一律 1px，不加粗
+     ★ V21.8：附录表一律不加任何底色（用户要求「不要增加任何的底色」）
+       全部改为白底 + 1px 灰线，靠「线条 + 对齐 + 字重」建立层次：
+         · 表头主行：白底 + 底边线 + 加粗字号（不再铺深蓝底）
+         · 表头 slim 行：白底 + 灰字（不再铺浅蓝底）
+         · 板块末列 `.grp-end`：右侧单竖线分隔（不再靠底色区分）
+         · 「项目」列 `.row-head`：白底 + 加粗 + 居中（不再铺淡蓝底）
+         · 正文斑马纹：关闭 */
   /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读 */
-  table.wide td{vertical-align:middle;padding:6px 8px;line-height:1.6;}
+  table.wide td{vertical-align:middle;padding:6px 8px;line-height:1.6;background:transparent;}
   table.wide td.txt{vertical-align:top;text-align:left;line-height:1.62;}
-  /* 2) 表头：主表头深蓝，slim 行浅蓝底 + 底边线，层次分明 */
-  table.wide thead tr:first-child th{background:var(--brand);font-size:12.5px;}
-  table.wide thead tr:last-child th{background:#eef3f8;color:var(--brand);border-bottom:1px solid var(--line-strong);}
-  /* 3) 项目列：竖向标签 */
-  table.wide .row-head{background:var(--brand-soft);font-size:12px;}
-  /* 4) 板块分隔：每组最后一列右侧分隔线（1px，靠底色区分板块） */
+  /* 2) 表头：两行均白底，靠字号/字重/颜色/底线区分层次
+     ★ 必须显式覆盖全局 thead th 的白字，否则白底白字不可见 */
+  table.wide thead th{background:transparent!important;color:var(--brand)!important;}
+  table.wide thead tr:first-child th{
+    font-size:12.5px;font-weight:700;border-bottom:1px solid var(--line-strong);
+  }
+  table.wide thead tr:last-child th{
+    font-size:11.5px;font-weight:600;color:var(--muted)!important;
+    border-bottom:1px solid var(--line-strong);
+  }
+  /* 3) 项目列：竖向标签（白底 + 加粗居中） */
+  table.wide .row-head{background:transparent!important;font-size:12px;font-weight:600;}
+  /* 4) 板块分隔：每组最后一列右侧 1px 竖线 */
   table.wide td.grp-end,table.wide th.grp-end{border-right:1px solid var(--line-strong);}
-  /* ★ V21.7：下一步计划区「一个任务 = 一条」，用视觉锚点补足 13 列宽表的配对感
-     问题：13 列太宽，眼神横穿一行容易串到隔壁板块；任务格与它的 DDL/责任人
-     之间没有视觉关联，读不出「哪个任务 ↔ 哪个时间点 ↔ 谁负责」。
-     解法（结构完全对齐 PDF 的 13 列网格，只加视觉锚点）：
-       a) 任务 + DDL + 责任人 三格统一浅蓝底 → 眼睛跟着色带横走，不会串行；
-       b) 任务格左内沿用 inset 阴影做「起点标记」——★ 用 box-shadow 而非 border，
-          保证「所有表格边框均为 1px」这条铁律不被打破（V21.5 用户要求）；
-       c) 任务格与 DDL 之间去掉竖线，三格读起来是一个整体；
-       d) 责任人格保留 grp-end 右线 → 仍看得出板块边界（与 PDF 一致）；
-       e) 空任务格（PDF 中确实无内容）用斜纹弱化，明确「本行该板块无任务」，
-          而不是漏填/串行。 */
+  /* ★ V21.8：下一步计划区 —— 一行一任务，仅靠左内缩进线做「任务起点」，
+     不使用任何底色/斜纹，保持整表白净。 */
   table.wide td.task-desc{
-    border-left:1px solid var(--line-strong);
     border-right:none;
-    background:#eef4fa;
     vertical-align:top;
-    box-shadow:inset 3px 0 0 0 rgba(31,78,121,.34);
+    box-shadow:inset 2px 0 0 0 rgba(31,78,121,.35);
   }
-  table.wide td.task-desc + td{
-    border-left:none;
-    background:#eef4fa;
-  }
-  table.wide td.task-desc + td + td{background:#eef4fa;}
-  /* 空任务组：斜纹 + 虚线左界，明确「本行此板块无任务」 */
-  table.wide td.task-void{
-    background:#fafbfc;
-    background-image:repeating-linear-gradient(45deg,rgba(31,78,121,.045) 0 5px,transparent 5px 10px);
-    box-shadow:none;
-  }
+  table.wide td.task-desc + td{border-left:none;}
+  /* 空任务组（PDF 中确实无内容）：留白即可，不加任何装饰 */
+  table.wide td.task-void{box-shadow:none;background:transparent!important;}
   /* 5) 目标/进展 整块跨列：顶对齐、行距舒展 */
   table.wide td.span-note{vertical-align:top;line-height:1.62;}
   /* 6) 附录表外框与正文表同规格（1px，不加粗） */
   table.wide{border:1px solid var(--line-strong);}
   table.wide tbody tr:last-child td{border-bottom:none;}
+  /* ★ V21.8：只去掉「表格最外侧」的左右边线，不能连最末板块的 grp-end 分隔线一起砍掉。
+     原写法 `th:last-child,td:last-child{border-right:none}` 会把最后一组的板块竖线
+     也抹掉 → 最后一个板块与前方板块糊在一起，这是「乱」的来源之一。 */
   table.wide th:first-child,table.wide td:first-child{border-left:none;}
   table.wide th:last-child,table.wide td:last-child{border-right:none;}
+  /* 末尾单元格即使属于 grp-end，也只保留外框、不重复画右线；但
+     若它是 grp-end（即该表最后一个板块），由 grp-end 规则补回右线做收口 */
+  table.wide td.grp-end:last-child{border-right:1px solid var(--line-strong);}
+  /* ★ V21.8：下一步计划续行的空 row-head 保留上边框，维持网格连续，
+     否则视觉上会「断层」，看起来像表格被切断。 */
+  table.wide tbody tr + tr td.row-head:empty{border-top:1px solid var(--line-strong)!important;}
   /* 7) 附录表最后一行留白收紧 —— 用 padding-bottom 统一覆盖，
         保持上/右/左三边与常规单元格一致（6px 8px），避免出现「上6下7」的混合规格 */
   table.wide tbody tr:last-child td{padding-bottom:6px;}
