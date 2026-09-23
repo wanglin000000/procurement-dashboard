@@ -209,20 +209,37 @@
          · 板块末列 `.grp-end`：右侧单竖线分隔（不再靠底色区分）
          · 「项目」列 `.row-head`：白底 + 加粗 + 居中（不再铺淡蓝底）
          · 正文斑马纹：关闭 */
-  /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读 */
+  /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读
+     ★ V22.2：行高统一 —— 描述列 1.66 行距，让长文本块更紧凑；
+       所有单元格 padding 统一 7px 9px，消除行高跳变。 */
   table.wide td{vertical-align:middle;padding:7px 9px;line-height:1.62;background:transparent;}
-  table.wide td.txt{vertical-align:top;text-align:left;line-height:1.66;}
+  table.wide td.txt{vertical-align:top;text-align:left;line-height:1.64;}
   /* 2) 表头：两行均白底，靠字号/字重/颜色/底线区分层次
      ★ 必须显式覆盖全局 thead th 的白字，否则白底白字不可见
-     ★ V22.1：主行加深字色并稍增内边距，slim 行改用更浅的灰，层次更分明 */
+     ★ V22.2：表头重构 —— 主行（板块名）与 slim 行（计划描述/DDL/责任人）
+       拉开明显层次：主行深蓝 700 / slim 行浅灰 600 + 缩排，
+       并用 grp-start/grp-end 明确每个板块的边界。 */
   table.wide thead th{background:transparent!important;color:var(--brand)!important;
     padding:8px 9px;letter-spacing:.3px;}
   table.wide thead tr:first-child th{
     font-size:12.5px;font-weight:700;border-bottom:1px solid var(--line-strong);
   }
+  /* 板块名：与上方章节标题同色系，强化「这是一个板块」的认知 */
+  table.wide th.th-grp{
+    font-size:12.5px;font-weight:700;color:var(--brand)!important;
+    letter-spacing:.4px;
+  }
+  /* 「项目」角标：更深的蓝，作为全表左上锚点 */
+  table.wide th.th-proj{color:var(--ink-2)!important;font-size:12px;}
+  /* slim 行：浅灰 + 更小字号，明显区别于板块名 */
   table.wide thead tr:last-child th{
-    font-size:11px;font-weight:600;color:var(--muted)!important;
+    font-size:10.5px;font-weight:600;color:#9aa3ae!important;
+    letter-spacing:.5px;
     border-bottom:1px solid var(--line-strong);
+    padding:5px 9px;
+  }
+  table.wide thead tr:last-child th.grp-end{
+    color:#8b95a1!important;
   }
   /* 3) 项目列：竖向标签（白底 + 加粗居中） */
   table.wide .row-head{background:transparent!important;font-size:12px;font-weight:700;
@@ -237,8 +254,15 @@
     box-shadow:inset 2px 0 0 0 rgba(31,78,121,.35);
   }
   table.wide td.task-desc + td{border-left:none;}
-  /* 空任务组（PDF 中确实无内容）：留白即可，不加任何装饰 */
+  /* 空任务组（PDF 中确实无内容）：留白即可，不加任何装饰
+     ★ V22.2：改为 colspan=3 合并格 + 居中淡字，避免三个空格看起来像「缺数据」 */
   table.wide td.task-void{box-shadow:none;background:transparent!important;}
+  table.wide td.cell-blank{
+    text-align:center; color:#c9ced6; font-size:11px;
+    vertical-align:middle; background:transparent;
+  }
+  /* 责任人格中的 / 分隔（多责任人）：居中显示 */
+  table.wide .ow{color:var(--brand);}
   /* 5) 目标/进展 整块跨列：顶对齐、行距舒展
      ★ V22.1：单元格内的多条内容统一改为 .note-list 分条列点，
        替代原「<br> 硬折行」——每条独立成行，行距均匀，扫读成本大幅下降。 */
@@ -254,6 +278,56 @@
     width:4px; height:4px; border-radius:50%;
     background:var(--brand-2); opacity:.45;
   }
+
+  /* ★★★ V22.2：附录「目标」「进展描述」两行改为跨列卡片区
+     ------------------------------------------------------------------
+     病因：13 列表里每格仅 130px，长文本被压成 5 行，行高跳变严重。
+     方案：该行整体跨 12 列（= 93.5% 表宽 ≈ 984px），内部用 2×2 网格
+           排布四个板块，每个板块获得约 492px（是原来的 2 倍），
+           文字行数从 5 行降到 1~2 行；板块名用 .nb-title 明示归属。
+     约束：边框 1px；不铺底色；「下一步计划」区仍保持 13 列结构不变。 */
+  table.wide tr.note-row > td.note-row-head{
+    vertical-align:middle; text-align:center;
+    font-size:12px; font-weight:700; color:var(--brand);
+    letter-spacing:.3px; padding:8px 4px;
+  }
+  table.wide td.note-wrap{
+    padding:0 !important;
+    vertical-align:top;
+    background:transparent;
+  }
+  .note-grid{
+    /* ★ 用 grid + align-items:start，卡片各自按内容高度排列（不被拉伸）。
+      早期尝试过的两个方案都已排除：
+        · 默认 grid（align-items:stretch）→ 同行卡片强行等高，18 字的卡片
+          被拉到 171px，浪费过半；
+        · multi-column（列优先流式）→ 左右两列高度不均衡，行高反而更大。 */
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    align-items:start;
+    gap:0;
+  }
+  /* 板块卡片：各自独立高度 */
+  .nb-card{
+    padding:9px 12px 10px;
+    min-width:0;
+    border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .nb-card:nth-child(2n){border-right:none;}
+  /* 末两格（最后一行）去底线 */
+  .nb-card:nth-last-child(-n+2){border-bottom:none;}
+  /* 3 板块的表：第 3 个通栏，避免右侧空一大块 */
+  .note-grid > .nb-card:last-child:nth-child(odd){
+    grid-column:1 / -1;
+  }
+  .nb-title{
+    font-size:11px; font-weight:700; color:var(--brand);
+    letter-spacing:.4px; line-height:1.4; margin-bottom:5px;
+    padding-bottom:4px; border-bottom:1px solid var(--line);
+  }
+  .nb-card > .note-list{font-size:12px; line-height:1.66;}
+  .nb-card > .note-list > li + li{margin-top:3px;}
   /* 6) 附录表外框与正文表同规格（1px，不加粗） */
   table.wide{border:1px solid var(--line-strong);}
   table.wide tbody tr:last-child td{border-bottom:none;}
@@ -388,6 +462,29 @@
     font-size:12px;font-weight:700;color:var(--ink-2);
     text-align:center;white-space:nowrap;
     font-variant-numeric:tabular-nums;
+  }
+
+  /* ★ V22.2：卡片内甘特图容器 —— 复用 .gantt 但去掉外框，
+     避免在卡片里再套一层框（框中框会显得杂乱）。 */
+  .proj-gantt{
+    border-top:1px solid var(--line-strong);
+    padding:0;
+  }
+  .proj-gantt > .gantt{
+    border:none;
+    border-radius:0;
+    margin:0;
+  }
+  /* 卡片内甘特图标题条：不用底色，用左竖线锚点与卡片标题呼应 */
+  .proj-gantt .gantt-title{
+    border-bottom:1px solid var(--line);
+    padding:9px 14px;
+    font-size:12px;
+    background:transparent;
+  }
+  .proj-gantt .gantt-legend{
+    border-top:1px solid var(--line);
+    padding:7px 14px;
   }
 
   /* ==================================================================
@@ -831,68 +928,8 @@
           <li><span class="tl-task" contenteditable="true">AI 治理制度项目各部门访谈调研</span><span class="tl-owner" contenteditable="true">王平</span><span class="tl-ddl" contenteditable="true">09/24</span></li>
         </ul>
       </div>
-    </section>
-
-    <section class="proj">
-      <header class="proj-head">
-        <span class="proj-name" contenteditable="true">用户资产项目</span>
-        <span class="proj-owner" contenteditable="true">马佳</span>
-      </header>
-      <div class="proj-body">
-        <div class="proj-block">
-          <div class="pb-label">亮灯状态</div>
-          <div class="pb-text" contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10/16）。</div>
-        </div>
-        <div class="proj-block">
-          <div class="pb-label">进展</div>
-          <ul class="pb-list" contenteditable="true">
-            <li>09/30完成Marketing API 大数据完成OPPO监测日志与收入数据关联</li>
-            <li>09/30完成鸿蒙LTV优化，10/01开始上线新数据</li>
-          </ul>
-        </div>
-      </div>
-      <div class="proj-next">
-        <div class="pn-label">下一步计划</div>
-        <ul class="task-list">
-          <li><span class="tl-task" contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/10</span></li>
-          <li><span class="tl-task" contenteditable="true">补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/16</span></li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="proj">
-      <header class="proj-head">
-        <span class="proj-name" contenteditable="true">数智化转型</span>
-        <span class="proj-owner" contenteditable="true">郭晨阳</span>
-      </header>
-      <div class="proj-body">
-        <div class="proj-block">
-          <div class="pb-label">亮灯状态</div>
-          <div class="pb-text" contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成</div>
-        </div>
-        <div class="proj-block">
-          <div class="pb-label">进展</div>
-          <ul class="pb-list" contenteditable="true">
-            <li>埋点治理认责映射逻辑已打通</li>
-            <li>集团化公司治理方案评审完成</li>
-            <li>人力系统对接OA消息推送测试环境测试完成</li>
-          </ul>
-        </div>
-      </div>
-      <div class="proj-next">
-        <div class="pn-label">下一步计划</div>
-        <ul class="task-list">
-          <li><span class="tl-task" contenteditable="true">启动400个埋点的认责执行</span><span class="tl-owner" contenteditable="true">何洲</span><span class="tl-ddl" contenteditable="true">09/20</span></li>
-          <li><span class="tl-task" contenteditable="true">联名会员改造端内/端外模式继续按计划推进测试</span><span class="tl-owner" contenteditable="true">庞盛耀</span><span class="tl-ddl" contenteditable="true">09/18</span></li>
-          <li><span class="tl-task" contenteditable="true">集团化公司治理下周启动开发工作</span><span class="tl-owner" contenteditable="true">张秋侠、王林</span><span class="tl-ddl" contenteditable="true">10/30</span></li>
-        </ul>
-      </div>
-    </section>
-
-  </div>
-
-  <!-- ★★★ V22.0：甘特图 1 —— AI化转型（任务 / 时间轴 / 负责人 / 里程碑） -->
-  <div class="gantt-scroll">
+      <!-- ★ V22.2：甘特图并入卡片内部（紧接「下一步计划」，把计划可视化） -->
+      <div class="proj-gantt">
 <div class="gantt">
   <div class="gantt-title">
     <span contenteditable="true">AI化转型 · 任务甘特图</span>
@@ -1013,198 +1050,35 @@
     <span class="lg"><span class="ln"></span>今日</span>
   </div>
 </div>
-  </div>
+      </div>
+    </section>
 
-  <h2 class="sec-title">三、【决策事项 &amp; Action 跟进】</h2>
-  <h3 class="sec-title sub">【决策事项】</h3>
-  <!-- ★ V22.0：无决策事项时不显示空表格，直接写「无」 -->
-  <p class="empty-note" contenteditable="true">无。<b>本周期无需上会决策的事项。</b>（如有，可将本行替换为决策事项表：决策事项 / 内容说明 / 提出人 / 状态 / 下一步）</p>
-
-  <h3 class="sec-title sub sub-gap">【Action 跟进】</h3>
-  <table>
-    <colgroup>
-      <col style="width:6%"><col style="width:44%"><col style="width:11%"><col style="width:10%"><col style="width:16%"><col style="width:13%">
-    </colgroup>
-    <thead>
-      <tr><th>级别</th><th>Action</th><th>Owner</th><th>DDL</th><th>交付依据 / 方式</th><th>来源</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
-        <td contenteditable="true">完成 Marketing API 与渠道 company ID、广告计划/推广位/content 和墨迹 UID 的关联、落表与治理；为老金和晋取各开通 3 家渠道的正式只读权限，并完成数据回传。</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
-        <td class="cell-date" contenteditable="true"><span class="d">09/28</span></td>
-        <td contenteditable="true">09/22 20:30完成邮件发送</td>
-        <td contenteditable="true">09/21广告周报</td>
-      </tr>
-      <tr>
-        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
-        <td contenteditable="true">围绕算法能力提升项目重新梳理考核口径：黄耀海、苏毅向 HR/海叔提交意见，明确成本下降但价值不降、不可抗力和技术浪潮等情形的计分规则，形成汇总结果提交本周会议讨论。</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">黄耀海</span><span class="ow">/ 苏毅</span></td>
-        <td class="cell-date" contenteditable="true"><span class="d">09/28</span></td>
-        <td contenteditable="true">&nbsp;</td>
-        <td contenteditable="true">09/21广告周报</td>
-      </tr>
-      <tr>
-        <td class="cell-lvl lvl-p1" contenteditable="true">P1</td>
-        <td contenteditable="true">&nbsp;</td><td class="cell-owner" contenteditable="true">&nbsp;</td>
-        <td class="cell-date" contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="paper">
-  <h2 class="sec-title">四、附录</h2>
-  <h3 class="sec-title sub">1、AI化转型</h3>
-
-  <table class="wide">
-    <colgroup>
-      <col style="width:7%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th rowspan="2">项目</th>
-        <th colspan="3">AI生活指数（迭代优化）</th>
-        <th colspan="3">AI广告素材识别</th>
-        <th colspan="3">AI研发提效</th>
-        <th colspan="3">AI安全</th>
-      </tr>
-      <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>数据治理2.0</li><li>AI友好性治理</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%</li><li>提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。</li><li>借助自动化系统，提效新业务的业务处理工作，减少人工误差。</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>AI治理制度项目，安全规范与流程闭环。</li><li>AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</li></ul></td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true" class="span-note">本周进行 token hub 模型测试<br>结论：共评测7个模型，均存在明显短板，无法直接替换<br>AI 指数替换模型测试</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；</td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证</li><li>第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>AI治理制度项目启动会召开完毕；</li><li>AI治理制度项目书面调研4/14，10个部门未反馈调研报告；</li><li>AI治理制度项目项目技术研发部访谈6/8；</li><li>高权限终端云端 XDLP 安全评估工作已完成；</li><li>AI安全工具部署，目前已部署146/243；</li></ul></td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true" rowspan="2">下一步计划</td>
-        <td contenteditable="true" class="txt task-desc">1、当前测试有其余p0事项，测试排期未定，气象测试待办项目排期表（2026）</td>
-        <td class="cell-date" contenteditable="true">未定</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张志远</span></td>
-        <td contenteditable="true" class="txt task-desc">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%</td>
-        <td class="cell-date" contenteditable="true">10/10</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
-        <td contenteditable="true" class="txt task-desc">目前正在进行基于openclaw产研智能体持续优化。</td>
-        <td class="cell-date" contenteditable="true">10/10</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
-        <td contenteditable="true" class="txt task-desc">AI治理制度项目差距分析报告编写</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王平</span></td>
-      </tr>
-      <tr>
-        <td contenteditable="true" class="txt task-desc">2、测试deepseekv4.1-flash效果；同步测试私有化部署模型GLM5.2的效果</td>
-        <td class="cell-date" contenteditable="true">未定</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张志远</span></td>
-        <td contenteditable="true" class="txt task-desc task-void"></td>
-        <td class="cell-date task-void" contenteditable="true"></td>
-        <td class="cell-owner grp-end task-void" contenteditable="true"></td>
-        <td contenteditable="true" class="txt task-desc">针对墨迹真实需求-主版天气服务加速优化需求</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
-        <td contenteditable="true" class="txt task-desc">AI安全工具部署达到95%（磁盘权限与录屏权限开放）</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王平</span></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="paper">
-  <h2 class="sec-title">四、附录（续）</h2>
-  <h3 class="sec-title sub">2、用户资产项目</h3>
-
-  <table class="wide">
-    <colgroup>
-      <col style="width:7%">
-      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
-      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
-      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th rowspan="2">项目</th>
-        <th colspan="3">Marketing API</th>
-        <th colspan="3">项目验收 &amp; 数据治理</th>
-        <th colspan="3">价值兑现</th>
-      </tr>
-      <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true" class="span-note">厂商及新媒体渠道付费新增精细化运营，包括投放下钻至创意/素材粒度效果</td>
-        <td colspan="3" contenteditable="true" class="span-note">用户资产底层任务及算法迁移及后续验收交付</td>
-        <td colspan="3" contenteditable="true" class="span-note">用户资产渠道投放计划POC中</td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）</li><li>事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）</li><li>事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：系统底层任务及表从老IDC需要完整迁移至京东云</li><li>事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中</li><li>事项2：OPPO高价值人群包策略上线</li><li>事项3：德勤价值兑现需结合整体DAU下降进行补充说明</li></ul></td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true" rowspan="3">下一步计划</td>
-        <td contenteditable="true" class="txt task-desc">事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中</td>
-        <td class="cell-date" contenteditable="true">09/24</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
-        <td contenteditable="true" class="txt task-desc">事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期。</td>
-        <td class="cell-date" contenteditable="true">10/31</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">何洲</span></td>
-        <td contenteditable="true" class="txt task-desc">事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整</td>
-        <td class="cell-date" contenteditable="true">09/18</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">马佳</span></td>
-      </tr>
-      <tr>
-        <td contenteditable="true" class="txt task-desc">事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据</td>
-        <td class="cell-date" contenteditable="true">09/24</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
-        <td contenteditable="true" class="txt task-desc">事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议</td>
-        <td class="cell-date" contenteditable="true">09/18</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">何洲、郭师光</span></td>
-        <td contenteditable="true" class="txt task-desc">事项2：OPPO高价值人群包上线验证中</td>
-        <td class="cell-date" contenteditable="true"><span class="d">09/20</span><small>数据价值评估</small></td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">马佳</span></td>
-      </tr>
-      <tr>
-        <td contenteditable="true" class="txt task-desc">事项3：需求梳理中</td>
-        <td class="cell-date" contenteditable="true">09/24</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
-        <td contenteditable="true" class="txt task-desc">事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
-        <td class="cell-date" contenteditable="true">09/17</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">德勤</span></td>
-        <td contenteditable="true" class="txt task-desc">事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
-        <td class="cell-date" contenteditable="true">09/18</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">德勤</span></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- ★★★ V22.0：甘特图 2 —— 用户资产项目 -->
-  <div class="gantt-scroll">
+    <section class="proj">
+      <header class="proj-head">
+        <span class="proj-name" contenteditable="true">用户资产项目</span>
+        <span class="proj-owner" contenteditable="true">马佳</span>
+      </header>
+      <div class="proj-body">
+        <div class="proj-block">
+          <div class="pb-label">亮灯状态</div>
+          <div class="pb-text" contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10/16）。</div>
+        </div>
+        <div class="proj-block">
+          <div class="pb-label">进展</div>
+          <ul class="pb-list" contenteditable="true">
+            <li>09/30完成Marketing API 大数据完成OPPO监测日志与收入数据关联</li>
+            <li>09/30完成鸿蒙LTV优化，10/01开始上线新数据</li>
+          </ul>
+        </div>
+      </div>
+      <div class="proj-next">
+        <div class="pn-label">下一步计划</div>
+        <ul class="task-list">
+          <li><span class="tl-task" contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/10</span></li>
+          <li><span class="tl-task" contenteditable="true">补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/16</span></li>
+        </ul>
+      </div>
+      <div class="proj-gantt">
 <div class="gantt">
   <div class="gantt-title">
     <span contenteditable="true">用户资产项目 · 任务甘特图</span>
@@ -1350,85 +1224,37 @@
     <span class="lg"><span class="ln"></span>今日</span>
   </div>
 </div>
-  </div>
-</div>
+      </div>
+    </section>
 
-<div class="paper">
-  <h2 class="sec-title">四、附录（续）</h2>
-  <h3 class="sec-title sub">3、数智化转型</h3>
-
-  <table class="wide">
-    <colgroup>
-      <col style="width:7%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th rowspan="2">项目</th>
-        <th colspan="3">帆软BI &amp; CEO一眼报应用</th>
-        <th colspan="3">集团化公司治理项目</th>
-        <th colspan="3">会员鸿蒙TOB/TOC、联名会员和实体卡业务</th>
-        <th colspan="3">人资培训系统 E-Learning应用</th>
-      </tr>
-      <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true" class="span-note">数据治理2.0按规范治理完成（数据治理认责工作有五个步骤：包括BDO、TDO、DO、指标定义和口径定义）；数据治理2.0涉及的看板完成指标溯源</td>
-        <td colspan="3" contenteditable="true" class="span-note">优化业务的端到端流程，实现关联交易的在线化与自动合并报表处理</td>
-        <td colspan="3" contenteditable="true" class="span-note">支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行；借助自动化系统，提效新业务的业务处理工作，减少人工误差</td>
-        <td colspan="3" contenteditable="true" class="span-note">围绕公司人才发展与组织能力建设需求，实现培训过程线上化、学习资源体系化、培训管理数据化，提升员工学习覆盖率、培训执行效率及培训效果追踪能力，逐步形成可沉淀、可复用的人才培养体系</td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责</li><li>推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库</li><li>埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计09/18结束</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note">本周供应商针对需求内容完成方案的产出</td>
-        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>方案评审：完成联名卡（端内/端外）第三轮评审：通过；</li><li>开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间09/18；报表定义模块开发未开始，预计完成时间09/20</li><li>测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间09/24</li><li>整体完成进度：70%</li></ul></td>
-        <td colspan="3" contenteditable="true" class="span-note">培训系统与OA的对接的需求目前在测试环境调试完成</td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true" rowspan="2">下一步计划</td>
-        <td contenteditable="true" class="txt task-desc">完成运维合同的签订</td>
-        <td class="cell-date" contenteditable="true">09/24</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
-        <td contenteditable="true" class="txt task-desc">完成集团化公司治理方案工作量评审</td>
-        <td class="cell-date" contenteditable="true">09/29</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张秋侠、王林</span></td>
-        <td contenteditable="true" class="txt task-desc">UAT测试验收</td>
-        <td class="cell-date" contenteditable="true">09/28</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">庞盛耀</span></td>
-        <td contenteditable="true" class="txt task-desc">未回款催收看板UI通过财务部以及设计部评审</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">陈涵思、王林</span></td>
-      </tr>
-      <tr>
-        <td contenteditable="true" class="txt task-desc">制定数据溯源计划的产出</td>
-        <td class="cell-date" contenteditable="true">09/20</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
-        <td contenteditable="true" class="txt task-desc">集团化公司治理组织进行排期开发</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
-        <td contenteditable="true" class="txt task-desc">联名会员卡需求完成上线方案评审并在生产环境发布上线</td>
-        <td class="cell-date" contenteditable="true">09/29</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">庞盛耀</span></td>
-        <td contenteditable="true" class="txt task-desc">未回款催收看板启动数据对接</td>
-        <td class="cell-date" contenteditable="true">09/30</td>
-        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- ★★★ V22.0：甘特图 3 —— 数智化转型 -->
-  <div class="gantt-scroll">
+    <section class="proj">
+      <header class="proj-head">
+        <span class="proj-name" contenteditable="true">数智化转型</span>
+        <span class="proj-owner" contenteditable="true">郭晨阳</span>
+      </header>
+      <div class="proj-body">
+        <div class="proj-block">
+          <div class="pb-label">亮灯状态</div>
+          <div class="pb-text" contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成</div>
+        </div>
+        <div class="proj-block">
+          <div class="pb-label">进展</div>
+          <ul class="pb-list" contenteditable="true">
+            <li>埋点治理认责映射逻辑已打通</li>
+            <li>集团化公司治理方案评审完成</li>
+            <li>人力系统对接OA消息推送测试环境测试完成</li>
+          </ul>
+        </div>
+      </div>
+      <div class="proj-next">
+        <div class="pn-label">下一步计划</div>
+        <ul class="task-list">
+          <li><span class="tl-task" contenteditable="true">启动400个埋点的认责执行</span><span class="tl-owner" contenteditable="true">何洲</span><span class="tl-ddl" contenteditable="true">09/20</span></li>
+          <li><span class="tl-task" contenteditable="true">联名会员改造端内/端外模式继续按计划推进测试</span><span class="tl-owner" contenteditable="true">庞盛耀</span><span class="tl-ddl" contenteditable="true">09/18</span></li>
+          <li><span class="tl-task" contenteditable="true">集团化公司治理下周启动开发工作</span><span class="tl-owner" contenteditable="true">张秋侠、王林</span><span class="tl-ddl" contenteditable="true">10/30</span></li>
+        </ul>
+      </div>
+      <div class="proj-gantt">
 <div class="gantt">
   <div class="gantt-title">
     <span contenteditable="true">数智化转型 · 任务甘特图</span>
@@ -1561,7 +1387,282 @@
     <span class="lg"><span class="ln"></span>今日</span>
   </div>
 </div>
+      </div>
+    </section>
+
   </div>
+
+  <h2 class="sec-title">三、【决策事项 &amp; Action 跟进】</h2>
+  <h3 class="sec-title sub">【决策事项】</h3>
+  <!-- ★ V22.0：无决策事项时不显示空表格，直接写「无」 -->
+  <p class="empty-note" contenteditable="true">无。<b>本周期无需上会决策的事项。</b>（如有，可将本行替换为决策事项表：决策事项 / 内容说明 / 提出人 / 状态 / 下一步）</p>
+
+  <h3 class="sec-title sub sub-gap">【Action 跟进】</h3>
+  <table>
+    <colgroup>
+      <col style="width:6%"><col style="width:44%"><col style="width:11%"><col style="width:10%"><col style="width:16%"><col style="width:13%">
+    </colgroup>
+    <thead>
+      <tr><th>级别</th><th>Action</th><th>Owner</th><th>DDL</th><th>交付依据 / 方式</th><th>来源</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
+        <td contenteditable="true">完成 Marketing API 与渠道 company ID、广告计划/推广位/content 和墨迹 UID 的关联、落表与治理；为老金和晋取各开通 3 家渠道的正式只读权限，并完成数据回传。</td>
+        <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
+        <td class="cell-date" contenteditable="true"><span class="d">09/28</span></td>
+        <td contenteditable="true">09/22 20:30完成邮件发送</td>
+        <td contenteditable="true">09/21广告周报</td>
+      </tr>
+      <tr>
+        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
+        <td contenteditable="true">围绕算法能力提升项目重新梳理考核口径：黄耀海、苏毅向 HR/海叔提交意见，明确成本下降但价值不降、不可抗力和技术浪潮等情形的计分规则，形成汇总结果提交本周会议讨论。</td>
+        <td class="cell-owner" contenteditable="true"><span class="ow">黄耀海</span><span class="ow">/ 苏毅</span></td>
+        <td class="cell-date" contenteditable="true"><span class="d">09/28</span></td>
+        <td contenteditable="true">&nbsp;</td>
+        <td contenteditable="true">09/21广告周报</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录</h2>
+  <h3 class="sec-title sub">1、AI化转型</h3>
+
+  <table class="wide">
+    <colgroup>
+      <col style="width:6.5%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2" class="th-proj">项目</th>
+        <th colspan="3" class="th-grp">AI生活指数（迭代优化）</th>
+        <th colspan="3" class="th-grp">AI广告素材识别</th>
+        <th colspan="3" class="th-grp">AI研发提效</th>
+        <th colspan="3" class="th-grp">AI安全</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">目标</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI广告素材识别</div><ul class="note-list" contenteditable="true"><li>通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%</li><li>提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI研发提效</div><ul class="note-list" contenteditable="true"><li>支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。</li><li>借助自动化系统，提效新业务的业务处理工作，减少人工误差。</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI生活指数（迭代优化）</div><ul class="note-list" contenteditable="true"><li>数据治理2.0</li><li>AI友好性治理</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI安全</div><ul class="note-list" contenteditable="true"><li>AI治理制度项目，安全规范与流程闭环。</li><li>AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</li></ul></div>
+        </div></td></tr>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">进展描述</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI研发提效</div><ul class="note-list" contenteditable="true"><li>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证</li><li>第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI安全</div><ul class="note-list" contenteditable="true"><li>AI治理制度项目启动会召开完毕；</li><li>AI治理制度项目书面调研4/14，10个部门未反馈调研报告；</li><li>AI治理制度项目项目技术研发部访谈6/8；</li><li>高权限终端云端 XDLP 安全评估工作已完成；</li><li>AI安全工具部署，目前已部署146/243；</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI生活指数（迭代优化）</div><ul class="note-list" contenteditable="true"><li>本周进行 token hub 模型测试</li><li>结论：共评测7个模型，均存在明显短板，无法直接替换</li><li>AI 指数替换模型测试</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">AI广告素材识别</div><ul class="note-list" contenteditable="true"><li>对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线</li></ul></div>
+        </div></td></tr>
+      <tr>
+        <td class="row-head" contenteditable="true" rowspan="2">下一步计划</td>
+        <td contenteditable="true" class="txt task-desc">1、当前测试有其余p0事项，测试排期未定，气象测试待办项目排期表（2026）</td>
+        <td class="cell-date" contenteditable="true">未定</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张志远</span></td>
+        <td contenteditable="true" class="txt task-desc">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%</td>
+        <td class="cell-date" contenteditable="true">10/10</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
+        <td contenteditable="true" class="txt task-desc">目前正在进行基于openclaw产研智能体持续优化。</td>
+        <td class="cell-date" contenteditable="true">10/10</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
+        <td contenteditable="true" class="txt task-desc">AI治理制度项目差距分析报告编写</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王平</span></td>
+      </tr>
+      <tr>
+        <td contenteditable="true" class="txt task-desc">2、测试deepseekv4.1-flash效果；同步测试私有化部署模型GLM5.2的效果</td>
+        <td class="cell-date" contenteditable="true">未定</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张志远</span></td>
+        <td colspan="3" class="cell-blank grp-end" contenteditable="true">&nbsp;</td>
+        <td contenteditable="true" class="txt task-desc">针对墨迹真实需求-主版天气服务加速优化需求</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
+        <td contenteditable="true" class="txt task-desc">AI安全工具部署达到95%（磁盘权限与录屏权限开放）</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王平</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录（续）</h2>
+  <h3 class="sec-title sub">2、用户资产项目</h3>
+
+  <table class="wide">
+        <colgroup>
+      <col style="width:6.5%">
+      <col style="width:19.16667%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:19.16667%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:19.16667%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2" class="th-proj">项目</th>
+        <th colspan="3" class="th-grp">Marketing API</th>
+        <th colspan="3" class="th-grp">项目验收 &amp; 数据治理</th>
+        <th colspan="3" class="th-grp">价值兑现</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">目标</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">Marketing API</div><ul class="note-list" contenteditable="true"><li>厂商及新媒体渠道付费新增精细化运营，包括投放下钻至创意/素材粒度效果</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">项目验收 &amp; 数据治理</div><ul class="note-list" contenteditable="true"><li>用户资产底层任务及算法迁移及后续验收交付</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">价值兑现</div><ul class="note-list" contenteditable="true"><li>用户资产渠道投放计划POC中</li></ul></div>
+        </div></td></tr>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">进展描述</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">项目验收 &amp; 数据治理</div><ul class="note-list" contenteditable="true"><li>事项1：系统底层任务及表从老IDC需要完整迁移至京东云</li><li>事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">价值兑现</div><ul class="note-list" contenteditable="true"><li>事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中</li><li>事项2：OPPO高价值人群包策略上线</li><li>事项3：德勤价值兑现需结合整体DAU下降进行补充说明</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">Marketing API</div><ul class="note-list" contenteditable="true"><li>事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）</li><li>事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）</li><li>事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</li></ul></div>
+        </div></td></tr>
+      <tr>
+        <td class="row-head" contenteditable="true" rowspan="3">下一步计划</td>
+        <td contenteditable="true" class="txt task-desc">事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中</td>
+        <td class="cell-date" contenteditable="true">09/24</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
+        <td contenteditable="true" class="txt task-desc">事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期。</td>
+        <td class="cell-date" contenteditable="true">10/31</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">何洲</span></td>
+        <td contenteditable="true" class="txt task-desc">事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整</td>
+        <td class="cell-date" contenteditable="true">09/18</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">马佳</span></td>
+      </tr>
+      <tr>
+        <td contenteditable="true" class="txt task-desc">事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据</td>
+        <td class="cell-date" contenteditable="true">09/24</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
+        <td contenteditable="true" class="txt task-desc">事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议</td>
+        <td class="cell-date" contenteditable="true">09/18</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">何洲、郭师光</span></td>
+        <td contenteditable="true" class="txt task-desc">事项2：OPPO高价值人群包上线验证中</td>
+        <td class="cell-date" contenteditable="true"><span class="d">09/20</span><small>数据价值评估</small></td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">马佳</span></td>
+      </tr>
+      <tr>
+        <td contenteditable="true" class="txt task-desc">事项3：需求梳理中</td>
+        <td class="cell-date" contenteditable="true">09/24</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
+        <td contenteditable="true" class="txt task-desc">事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
+        <td class="cell-date" contenteditable="true">09/17</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">德勤</span></td>
+        <td contenteditable="true" class="txt task-desc">事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
+        <td class="cell-date" contenteditable="true">09/18</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">德勤</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录（续）</h2>
+  <h3 class="sec-title sub">3、数智化转型</h3>
+
+  <table class="wide">
+        <colgroup>
+      <col style="width:6.5%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+      <col style="width:11.375%">
+      <col style="width:6.0%">
+      <col style="width:6.0%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2" class="th-proj">项目</th>
+        <th colspan="3" class="th-grp">帆软BI &amp; CEO一眼报应用</th>
+        <th colspan="3" class="th-grp">集团化公司治理项目</th>
+        <th colspan="3" class="th-grp">会员鸿蒙TOB/TOC、联名会员和实体卡业务</th>
+        <th colspan="3" class="th-grp">人资培训系统 E-Learning应用</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">目标</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">人资培训系统 E-Learning应用</div><ul class="note-list" contenteditable="true"><li>围绕公司人才发展与组织能力建设需求，实现培训过程线上化、学习资源体系化、培训管理数据化，提升员工学习覆盖率、培训执行效率及培训效果追踪能力，逐步形成可沉淀、可复用的人才培养体系</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">帆软BI &amp; CEO一眼报应用</div><ul class="note-list" contenteditable="true"><li>数据治理2.0按规范治理完成（数据治理认责工作有五个步骤：包括BDO、TDO、DO、指标定义和口径定义）；数据治理2.0涉及的看板完成指标溯源</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">集团化公司治理项目</div><ul class="note-list" contenteditable="true"><li>优化业务的端到端流程，实现关联交易的在线化与自动合并报表处理</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">会员鸿蒙TOB/TOC、联名会员和实体卡业务</div><ul class="note-list" contenteditable="true"><li>支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行；借助自动化系统，提效新业务的业务处理工作，减少人工误差</li></ul></div>
+        </div></td></tr>
+      <tr class="note-row"><td class="row-head note-row-head" contenteditable="true">进展描述</td><td colspan="12" class="note-wrap"><div class="note-grid">
+          <div class="nb-card"><div class="nb-title" contenteditable="true">会员鸿蒙TOB/TOC、联名会员和实体卡业务</div><ul class="note-list" contenteditable="true"><li>方案评审：完成联名卡（端内/端外）第三轮评审：通过；</li><li>开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间09/18；报表定义模块开发未开始，预计完成时间09/20</li><li>测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间09/24</li><li>整体完成进度：70%</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">帆软BI &amp; CEO一眼报应用</div><ul class="note-list" contenteditable="true"><li>用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责</li><li>推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库</li><li>埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计09/18结束</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">集团化公司治理项目</div><ul class="note-list" contenteditable="true"><li>本周供应商针对需求内容完成方案的产出</li></ul></div>
+          <div class="nb-card"><div class="nb-title" contenteditable="true">人资培训系统 E-Learning应用</div><ul class="note-list" contenteditable="true"><li>培训系统与OA的对接的需求目前在测试环境调试完成</li></ul></div>
+        </div></td></tr>
+      <tr>
+        <td class="row-head" contenteditable="true" rowspan="2">下一步计划</td>
+        <td contenteditable="true" class="txt task-desc">完成运维合同的签订</td>
+        <td class="cell-date" contenteditable="true">09/24</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
+        <td contenteditable="true" class="txt task-desc">完成集团化公司治理方案工作量评审</td>
+        <td class="cell-date" contenteditable="true">09/29</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张秋侠、王林</span></td>
+        <td contenteditable="true" class="txt task-desc">UAT测试验收</td>
+        <td class="cell-date" contenteditable="true">09/28</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">庞盛耀</span></td>
+        <td contenteditable="true" class="txt task-desc">未回款催收看板UI通过财务部以及设计部评审</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">陈涵思、王林</span></td>
+      </tr>
+      <tr>
+        <td contenteditable="true" class="txt task-desc">制定数据溯源计划的产出</td>
+        <td class="cell-date" contenteditable="true">09/20</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
+        <td contenteditable="true" class="txt task-desc">集团化公司治理组织进行排期开发</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
+        <td contenteditable="true" class="txt task-desc">联名会员卡需求完成上线方案评审并在生产环境发布上线</td>
+        <td class="cell-date" contenteditable="true">09/29</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">庞盛耀</span></td>
+        <td contenteditable="true" class="txt task-desc">未回款催收看板启动数据对接</td>
+        <td class="cell-date" contenteditable="true">09/30</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span></td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 
 </div>
