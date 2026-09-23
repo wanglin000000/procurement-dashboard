@@ -94,21 +94,29 @@
     word-break:normal;
     overflow-wrap:break-word;
     line-break:strict;
+    hyphens:none;
     text-wrap:pretty;
   }
+  /* 单元格正文里的「完整词组」不可拆开（中英混排专有名词，如 测试QA Agent） */
+  th,td{text-autospace:normal;}
+  .nw{white-space:nowrap;}
   thead th{background:var(--brand);color:#fff;font-weight:600;text-align:center;font-size:12.5px;vertical-align:middle;
     word-break:keep-all;overflow-wrap:normal;line-height:1.5;}
   .th-slim{background:var(--brand-2);text-align:center;word-break:keep-all;overflow-wrap:normal;}
   .row-head{background:var(--brand-soft);font-weight:600;text-align:center;color:var(--brand);vertical-align:middle;
-    word-break:normal;overflow-wrap:break-word;line-height:1.45;letter-spacing:0;}
+    line-height:1.45;letter-spacing:0;
+    /* 短标签优先单行；若列宽不足，允许在字间断行但不溢出 */
+    white-space:normal;
+    word-break:normal;overflow-wrap:anywhere;
+    padding-left:3px;padding-right:3px;font-size:12px;}
   tbody tr:nth-child(even) td:not(.row-head){background:#fcfdfe;}
   .cell-owner{text-align:center;vertical-align:middle;font-weight:600;color:var(--ink-2);
-    word-break:normal;overflow-wrap:break-word;font-size:12px;}
-  /* 责任人/日期内部多条目：整块换行，绝不拆字 */
-  .ow{display:block;white-space:nowrap;line-height:1.55;}
+    word-break:normal;overflow-wrap:anywhere;font-size:12px;padding-left:3px;padding-right:3px;}
+  /* 责任人/日期内部多条目：整块换行，绝不拆字；超长条目允许在顿号后断行 */
+  .ow{display:block;line-height:1.55;}
   .ow+.ow{margin-top:1px;}
-  .cell-date{text-align:center;vertical-align:middle;word-break:normal;overflow-wrap:break-word;
-    font-size:12px;line-height:1.45;padding-left:4px;padding-right:4px;}
+  .cell-date{text-align:center;vertical-align:middle;word-break:normal;overflow-wrap:anywhere;
+    font-size:12px;line-height:1.45;padding-left:3px;padding-right:3px;}
   .cell-date .d{display:block;white-space:nowrap;}
   .cell-date .d small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:normal;line-height:1.35;}
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
@@ -190,13 +198,19 @@
     font-size:12px;padding:7px 16px;border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:99;opacity:.95;}
   .flag.show{display:block;}
 
+  @page{size:A4 portrait;margin:12mm 10mm;}
   @media print{
-    body{background:#fff;}
+    html,body{background:#fff;width:auto;overflow:visible;}
     .flag,.edit-hint,.edit-toggle,.bubble,.rowcol-tools{display:none!important;}
-    .page-wrap{max-width:none;padding:0;}
-    .paper{box-shadow:none;border-radius:0;padding:0 0 16px;margin:0;page-break-after:always;}
+    .page-wrap{max-width:none;width:auto;margin:0;padding:0;}
+    .paper{box-shadow:none;border-radius:0;padding:0 0 14px;margin:0;page-break-after:always;
+      width:auto;max-width:none;overflow:visible;}
+    /* 打印时表格严格贴合内容区，杜绝 1px 溢出触发的横卷 */
+    table{width:100%!important;max-width:100%;}
     thead th,.row-head,.lvl-p0,.lvl-p1,.lvl-p2,.g-head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     tr{page-break-inside:avoid;}
+    /* 正文允许在窄列中断行，但绝不把词劈开 */
+    th,td{word-break:normal!important;overflow-wrap:break-word!important;}
   }
   @media (max-width:820px){
     .paper{padding:22px 16px 28px;}
@@ -292,28 +306,28 @@
   <h2 class="sec-title">二、【项目总结】</h2>
   <table>
     <colgroup>
-      <col style="width:8%"><col style="width:24%"><col style="width:7%"><col style="width:34%"><col style="width:27%">
+      <col style="width:10%"><col style="width:23%"><col style="width:7%"><col style="width:33%"><col style="width:27%">
     </colgroup>
     <thead>
       <tr><th>项目</th><th>亮灯状态（一句话总结）</th><th>负责人</th><th>进展</th><th>下一步计划</th></tr>
     </thead>
     <tbody>
       <tr>
-        <td class="row-head" contenteditable="true">AI化<br>转型</td>
+        <td class="row-head" contenteditable="true">AI化转型</td>
         <td contenteditable="true">AI化依据2026年AI化规划 V2.0 第十版 进行任务推进交付；重新盘点AI化项目价值</td>
         <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
         <td contenteditable="true">使用Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；<br>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>AI 安全治理制度项目，书面调研4/14，10个部门未反馈调研报告；</td>
         <td contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>责任人：郭师光 DDL：10月10日<br>针对墨迹真实需求-主版天气服务加速优化需求<br>责任人：郭师光 DDL：9月30日<br>AI 治理制度项目各部门访谈调研<br>责任人：王平 DDL：9月24日</td>
       </tr>
       <tr>
-        <td class="row-head" contenteditable="true">用户<br>资产<br>项目</td>
+        <td class="row-head" contenteditable="true">用户资产项目</td>
         <td contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：<br>短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）<br>中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10月16日）。</td>
         <td class="cell-owner" contenteditable="true"><span class="ow">马佳</span></td>
         <td contenteditable="true">9月30日完成Marketing API 大数据完成OPPO监测日志与收入数据关联<br>9月30日完成鸿蒙LTV优化，10月1日开始上线新数据</td>
         <td contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联；（10月10日）<br>补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10月16日）。</td>
       </tr>
       <tr>
-        <td class="row-head" contenteditable="true">数智<br>化转<br>型</td>
+        <td class="row-head" contenteditable="true">数智化转型</td>
         <td contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成；</td>
         <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
         <td contenteditable="true">埋点治理认责映射逻辑已打通<br>集团化公司治理方案评审完成<br>人力系统对接OA消息推送测试环境测试完成</td>
@@ -376,11 +390,11 @@
 
   <table>
     <colgroup>
-      <col style="width:5.6%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
+      <col style="width:7.4%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
     </colgroup>
     <thead>
       <tr>
@@ -437,10 +451,10 @@
 
   <table>
     <colgroup>
-      <col style="width:7.4%">
-      <col style="width:14.6%"><col style="width:6.4%"><col style="width:10.6%">
-      <col style="width:14.6%"><col style="width:6.4%"><col style="width:10.6%">
-      <col style="width:14.6%"><col style="width:6.4%"><col style="width:10.6%">
+      <col style="width:8.6%">
+      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
+      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
+      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
     </colgroup>
     <thead>
       <tr>
@@ -490,11 +504,11 @@
 
   <table>
     <colgroup>
-      <col style="width:5.6%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
-      <col style="width:13.2%"><col style="width:6.6%"><col style="width:9.8%">
+      <col style="width:7.4%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
     </colgroup>
     <thead>
       <tr>
