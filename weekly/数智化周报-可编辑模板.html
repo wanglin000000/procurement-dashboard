@@ -48,7 +48,9 @@
   .report-head{border-bottom:2.5px solid var(--brand);padding-bottom:14px;margin-bottom:18px;}
   .report-title{font-size:26px;font-weight:700;color:var(--brand);letter-spacing:.5px;margin:0;line-height:1.3;}
   .title-row{display:flex;align-items:center;justify-content:center;position:relative;gap:10px;}
-  /* 编辑开关按钮 */
+  /* ============ 编辑开关按钮（位于报头标题行右侧）============
+     注：按钮虽在 #root 内，但事件用「委托」绑在 document 上，
+     因此草稿恢复导致的 DOM 重建不会使其失效（见 _script.js）。 */
   .edit-toggle{
     position:absolute; right:0; top:50%; transform:translateY(-50%);
     appearance:none; border:1px solid var(--brand); background:#fff; color:var(--brand);
@@ -60,18 +62,75 @@
   .edit-toggle:hover{background:var(--brand-soft); box-shadow:0 3px 10px rgba(31,78,121,.22);}
   .edit-toggle:active{transform:translateY(-50%) scale(.97);}
   .edit-toggle .ic{font-size:14px;line-height:1;}
-  body.editing .edit-toggle{background:var(--brand); color:#fff; border-color:var(--brand);}
-  body.editing .edit-toggle:hover{background:var(--brand-2);}
+  /* 编辑态：按钮变实心 + 呼吸动画，明确「正在编辑」 */
+  body.editing .edit-toggle{
+    background:var(--brand); color:#fff; border-color:var(--brand);
+    box-shadow:0 0 0 3px rgba(31,78,121,.16), 0 2px 8px rgba(31,78,121,.3);
+    animation:editPulse 2s ease-in-out infinite;
+  }
+  body.editing .edit-toggle:hover{background:var(--brand-2); animation:none;}
+  @keyframes editPulse{
+    0%,100%{box-shadow:0 0 0 3px rgba(31,78,121,.16), 0 2px 8px rgba(31,78,121,.3);}
+    50%    {box-shadow:0 0 0 7px rgba(31,78,121,.06), 0 2px 10px rgba(31,78,121,.34);}
+  }
+  /* ===== 编辑态顶部横幅：一眼确认已进入编辑，并实时显示保存状态 ===== */
+  .edit-banner{
+    display:none; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap;
+    background:linear-gradient(90deg,#1F4E79,#2f6ea8); color:#fff;
+    font-size:12.5px; font-weight:600; letter-spacing:.2px;
+    padding:7px 16px; position:sticky; top:0; z-index:40;
+    box-shadow:0 1px 6px rgba(16,24,40,.16);
+  }
+  body.editing .edit-banner{display:flex;}
+  .edit-banner .dot{
+    width:7px; height:7px; border-radius:50%; background:#7ee787; flex:none;
+    box-shadow:0 0 0 0 rgba(126,231,135,.7); animation:dotPulse 1.6s infinite;
+  }
+  @keyframes dotPulse{
+    0%{box-shadow:0 0 0 0 rgba(126,231,135,.7);}
+    70%{box-shadow:0 0 0 8px rgba(126,231,135,0);}
+    100%{box-shadow:0 0 0 0 rgba(126,231,135,0);}
+  }
+  .edit-banner .sep{opacity:.4;margin:0 1px;}
+  .edit-banner .tip{font-weight:400;opacity:.9;}
+  /* 保存状态徽标：已保存 / 保存中 / 有改动未保存 */
+  .save-chip{
+    display:inline-flex; align-items:center; gap:5px; flex:none;
+    background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+    padding:2px 10px; border-radius:20px; font-size:11.5px; font-weight:600;
+    letter-spacing:.2px; transition:background .2s ease;
+  }
+  .save-chip .sdot{width:6px;height:6px;border-radius:50%;background:#7ee787;flex:none;transition:background .2s ease;}
+  .save-chip.is-dirty{background:rgba(255,192,72,.22); border-color:rgba(255,208,120,.5);}
+  .save-chip.is-dirty .sdot{background:#ffcf5c;}
+  .save-chip.is-saving{opacity:.75;}
+  .save-chip.is-saving .sdot{background:#9fd0ff;}
 
-  /* 编辑态右上角小提示（极轻量，不占版面） */
+  /* 编辑态右下角小提示（可折叠，不长期遮挡内容） */
   .edit-hint{
-    display:none; position:fixed; right:18px; bottom:18px; z-index:70;
-    background:rgba(31,78,121,.94); color:#fff; font-size:12px; line-height:1.6;
-    padding:9px 14px; border-radius:10px; box-shadow:0 6px 20px rgba(16,24,40,.25);
-    max-width:280px;
+    position:fixed; right:16px; bottom:16px; z-index:50;
+    background:rgba(31,78,121,.95); color:#fff; font-size:12px; line-height:1.65;
+    padding:9px 30px 10px 12px; border-radius:10px; box-shadow:0 6px 20px rgba(16,24,40,.25);
+    max-width:260px; display:none;
   }
   body.editing .edit-hint{display:block;}
+  body.editing.edit-hint-folded .edit-hint{display:none;}
   .edit-hint b{color:#ffd980;}
+  .edit-hint .hint-x{
+    position:absolute; right:6px; top:6px; width:18px; height:18px; border:none;
+    background:transparent; color:rgba(255,255,255,.72); cursor:pointer; font-size:13px;
+    line-height:1; padding:0; border-radius:4px; font-family:inherit;
+  }
+  .edit-hint .hint-x:hover{background:rgba(255,255,255,.18);color:#fff;}
+  /* 折叠后的圆形唤起按钮 */
+  .hint-open{
+    display:none; position:fixed; right:16px; bottom:16px; z-index:50;
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--brand-2);
+    background:#fff; color:var(--brand); cursor:pointer; font-size:15px; font-weight:700;
+    box-shadow:0 4px 14px rgba(16,24,40,.2); align-items:center; justify-content:center;
+    font-family:inherit; padding:0;
+  }
+  body.editing.edit-hint-folded .hint-open{display:flex;}
 
   .meta-row{display:flex;flex-wrap:wrap;gap:6px 34px;font-size:13px;color:var(--ink-2);margin-top:12px;}
   .meta-item{display:flex;align-items:baseline;gap:6px;}
@@ -138,8 +197,19 @@
   table.wide tbody tr:last-child td{border-bottom:none;}
   table.wide th:first-child,table.wide td:first-child{border-left:none;}
   table.wide th:last-child,table.wide td:last-child{border-right:none;}
-  /* 7) 附录表最后一行留白收紧 */
-  table.wide tbody tr:last-child td{padding-bottom:7px;}
+  /* 7) 附录表最后一行留白收紧 —— 用 padding-bottom 统一覆盖，
+        保持上/右/左三边与常规单元格一致（6px 8px），避免出现「上6下7」的混合规格 */
+  table.wide tbody tr:last-child td{padding-bottom:6px;}
+
+  /* ============ 首列对齐统一（普通表）============
+     表1「异常汇报」是空行模板，首列没有 .row-head 类，
+     默认 text-align:start 会与其余 6 张表的居中首列不一致。
+     这里统一居中 + 与 .row-head 相同的紧凑左右 padding；
+     用 :not(.wide) 排除附录宽表，避免覆盖宽表的 6px 8px 规格。 */
+  table:not(.wide) tbody td:first-child{
+    text-align:center; vertical-align:middle;
+    padding-left:3px; padding-right:3px; font-size:12px;
+  }
 
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
@@ -152,11 +222,41 @@
   /* ============ 编辑态 ============ */
   [contenteditable]{outline:none;}
   body:not(.editing) [data-ce="1"]{cursor:default;}
-  body.editing [data-ce="1"]{cursor:text;}
-  body.editing [data-ce="1"]:hover{background:rgba(31,78,121,.055);}
-  body.editing [data-ce="1"]:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--brand-2);border-radius:3px;}
-  body.editing td:focus-within,body.editing th:focus-within{background:#fff!important;}
-  body.editing table td[data-ce="1"]:hover{background:var(--brand-soft)!important;}
+  /* ===== 编辑态：只做轻量描边提示，避免整页铺满底色造成视觉噪点 ===== */
+  body.editing [data-ce="1"]{
+    cursor:text;
+    border-radius:3px;
+    box-shadow:inset 0 0 0 1px rgba(31,78,121,.14);
+    transition:background .12s ease, box-shadow .12s ease;
+  }
+  body.editing [data-ce="1"]:hover{
+    background:rgba(31,78,121,.08);
+    box-shadow:inset 0 0 0 1px rgba(31,78,121,.4);
+  }
+  body.editing [data-ce="1"]:focus{
+    background:#fff!important;
+    box-shadow:inset 0 0 0 2px var(--brand)!important;
+    border-radius:3px;
+  }
+  /* 表格单元格：不铺底色，仅悬停/聚焦时高亮，保持表体清爽 */
+  body.editing table td[data-ce="1"],
+  body.editing table th[data-ce="1"]{
+    box-shadow:none;
+  }
+  body.editing table td[data-ce="1"]:hover,
+  body.editing table th[data-ce="1"]:hover{
+    background:var(--brand-soft)!important;
+    box-shadow:inset 0 0 0 2px rgba(31,78,121,.4);
+  }
+  body.editing table td[data-ce="1"]:focus,
+  body.editing table th[data-ce="1"]:focus,
+  body.editing td:focus-within,
+  body.editing th:focus-within{
+    background:#fff!important;
+    box-shadow:inset 0 0 0 2px var(--brand)!important;
+  }
+  /* 表头（th）在编辑态沿用原深蓝样式，只加悬停反馈 */
+  body.editing table thead th[data-ce="1"]{box-shadow:none;}
   /* 选区高亮 */
   body.editing ::selection{background:#cfe3f7;}
 
@@ -223,7 +323,7 @@
   @page{size:A4 portrait;margin:12mm 10mm;}
   @media print{
     html,body{background:#fff;width:auto;overflow:visible;}
-    .flag,.edit-hint,.edit-toggle,.bubble,.rowcol-tools{display:none!important;}
+    .flag,.edit-hint,.hint-open,.edit-toggle,.edit-banner,.bubble,.rowcol-tools{display:none!important;}
     .page-wrap{max-width:none;width:auto;margin:0;padding:0;}
     .paper{box-shadow:none;border-radius:0;padding:0 0 14px;margin:0;page-break-after:always;
       width:auto;max-width:none;overflow:visible;}
@@ -233,17 +333,58 @@
     tr{page-break-inside:avoid;}
     /* 正文允许在窄列中断行，但绝不把词劈开 */
     th,td{word-break:normal!important;overflow-wrap:break-word!important;}
+    /* 编辑态残留样式一律清除，保证打印输出与只读态一致 */
+    body.editing [data-ce="1"]{background:none!important;box-shadow:none!important;}
   }
   @media (max-width:820px){
     .paper{padding:22px 16px 28px;}
     .report-title{font-size:19px;}
-    .title-row{flex-direction:column;}
-    .edit-toggle{position:static;transform:none;margin-top:8px;}
+    .title-row{flex-direction:column;gap:8px;}
+    .edit-toggle{position:static;transform:none;height:30px;padding:0 13px;font-size:12px;}
     body.editing .edit-toggle{transform:none;}
+    /* 小屏：工具栏与提示卡都收窄，避免遮挡正文 */
+    .rowcol-tools{left:8px;right:8px;bottom:8px;justify-content:center;flex-wrap:wrap;padding:6px;}
+    .edit-hint{right:8px;bottom:56px;max-width:min(240px,72vw);font-size:11.5px;}
+    .hint-open{right:8px;bottom:8px;}
+    .edit-banner{padding:6px 10px;font-size:11.5px;gap:6px;}
+    .edit-banner .tip{display:none;}
+    .edit-banner .tip:first-of-type{display:inline;}
+  }
+  @media (max-width:520px){
+    .page-wrap{padding:14px 8px 90px;}
+    .paper{padding:18px 12px 22px;}
+    .sec-title{font-size:14px;}
+    th,td{padding:5px 6px;font-size:11.5px;}
+    .edit-toggle{height:28px;padding:0 11px;font-size:11.5px;}
+  }
+  /* ============ 窄屏（手机）图表兜底 ============
+     附录宽表有 10~13 列，在 390px 级宽度下单个汉字列会被压到
+     不足一个字宽，导致内容外溢 2~20px 并撑出页面横向滚动条。
+     这里给宽表加「容器内横向滚动」：页面本身不横滚，
+     表格保持可读列宽，用户左右滑动查看。打印媒体已重置为 width:auto。*/
+  @media (max-width:700px){
+    .paper{overflow-x:hidden;}
+    .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
+      margin:0 -12px; padding:0 12px 2px;}
+    .table-scroll > table{min-width:640px;}
+    .table-scroll table.wide{min-width:760px;}
   }
 </style>
 </head>
 <body>
+
+<div class="edit-banner" id="editBanner">
+  <span class="dot"></span>
+  <span>正在编辑</span>
+  <span class="sep">·</span>
+  <span class="tip">页面上所有文字与表头均可直接点击修改</span>
+  <span class="sep">·</span>
+  <span class="tip">选中文字可调格式</span>
+  <span class="sep">·</span>
+  <span class="tip">按 Esc 或点右上角「编辑中」按钮保存退出</span>
+  <span class="save-chip" id="saveChip"><span class="sdot"></span><span id="saveChipText">已保存</span></span>
+</div>
+
 
 <!-- ============ 选区浮出格式工具条 ============ -->
 <div class="bubble" id="bubble">
@@ -282,10 +423,13 @@
 </div>
 
 <div class="edit-hint" id="editHint">
+  <button class="hint-x" id="hintClose" title="收起提示">&#10005;</button>
   <b>编辑模式</b><br>
-  点击文字直接修改；<b>选中文字</b>会浮出格式工具条。<br>
-  右侧下方可增删行列、保存或导出。按 <b>Esc</b> 退出。
+  点击任意文字直接修改；<b>选中文字</b>会浮出格式工具条。<br>
+  左下角可增删行列，右下角小条可保存 / 导出 / 打印。<br>
+  按 <b>Esc</b> 保存并退出。
 </div>
+<button class="hint-open" id="hintOpen" title="显示编辑提示">?</button>
 
 <div class="page-wrap" id="root">
 
@@ -592,13 +736,62 @@
   var root = document.getElementById('root');
   var flag = document.getElementById('flag');
   var bubble = document.getElementById('bubble');
-  var toggle = document.getElementById('editToggle');
-  var editIcon = document.getElementById('editIcon');
-  var editLabel = document.getElementById('editLabel');
   var editing = false;
   var saveTimer = null;
   var savedRange = null;
   var silent = true;
+  var dirty = false;                 // 有未落盘的改动
+  var chip = document.getElementById('saveChip');
+  var chipText = document.getElementById('saveChipText');
+
+  /* ============ UI 引用：动态获取（草稿恢复会重建 DOM）============
+     ★ 编辑按钮位于 #root 内的报头里，恢复草稿时会被重建。
+     因此这里一律用 getter 动态取节点，绝不缓存引用；
+     点击事件用「委托」绑在 document 上（见 bindToggle），
+     这样无论按钮被重建多少次，点击都始终有效。 */
+  function getToggle(){ return document.getElementById('editToggle'); }
+  function getIcon(){ return document.getElementById('editIcon'); }
+  function getLabel(){ return document.getElementById('editLabel'); }
+
+  /* 切换编辑态 */
+  function toggleEditing(){ setEditing(!editing); }
+
+  /* 按钮自愈：若按钮缺失（草稿损坏 / 被误删），就地重建到报头标题行 */
+  function ensureEditButton(){
+    var btn = getToggle();
+    if(btn) return btn;
+    btn = document.createElement('button');
+    btn.className = 'edit-toggle';
+    btn.id = 'editToggle';
+    btn.type = 'button';
+    btn.title = '开启/关闭编辑模式';
+    btn.innerHTML = '<span class="ic" id="editIcon">&#9998;</span><span id="editLabel">编辑</span>';
+    var row = document.querySelector('.title-row');
+    if(row) row.appendChild(btn);
+    else document.body.appendChild(btn);   // 兜底：连报头都没了
+    applyEditingUI();
+    return btn;
+  }
+
+  /* 统一刷新按钮外观（文案/图标/标题），任何时机调用都安全 */
+  function applyEditingUI(){
+    var icon = getIcon(), label = getLabel(), btn = getToggle();
+    if(icon)  icon.innerHTML = editing ? '&#10003;' : '&#9998;';
+    if(label) label.textContent = editing ? '编辑中 · 点此保存退出' : '编辑';
+    if(btn)   btn.title = editing ? '当前处于编辑模式，点击保存并退出' : '开启编辑模式';
+  }
+
+  /* ============ 保存状态反馈：让「写的东西存没存」一目了然 ============ */
+  function setSaveState(state){
+    if(!chip) return;
+    chip.classList.toggle('is-dirty',  state === 'dirty');
+    chip.classList.toggle('is-saving', state === 'saving');
+    if(chipText){
+      chipText.textContent = state === 'dirty'  ? '有改动 · 自动保存中'
+                           : state === 'saving' ? '保存中…'
+                           : '已自动保存';
+    }
+  }
 
   function toast(msg, ms){
     flag.textContent = msg;
@@ -740,6 +933,19 @@
   });
 
   /* ============ 编辑模式开关 ============ */
+  function flushDraft(){
+    try {
+      localStorage.setItem(LS_KEY, root.innerHTML);
+      dirty = false;
+      setSaveState('saved');
+      return true;
+    } catch(e){
+      toast('草稿保存失败（本机存储不可用），请用「保存」按钮下载文件');
+      setSaveState('dirty');
+      return false;
+    }
+  }
+
   function setEditing(on){
     editing = !!on;
     document.body.classList.toggle('editing', editing);
@@ -747,23 +953,60 @@
       if(editing){ el.setAttribute('contenteditable','true'); }
       else { el.removeAttribute('contenteditable'); }
     });
+    applyEditingUI();
     if(editing){
-      editIcon.innerHTML = '&#10003;';
-      editLabel.textContent = '完成编辑';
-      toggle.title = '退出编辑模式';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if(!silent) toast('已进入编辑模式 · 点击文字修改，选中文字调格式', 2400);
+      setSaveState('saved');
+      document.body.classList.remove('edit-hint-folded');
+      var y = window.pageYOffset;
+      window.scrollTo({ top: Math.max(0, y - 60), behavior: 'smooth' });
+      toast('✓ 已进入编辑模式 · 所有文字均可点击修改', 2600);
     } else {
       hideBubble();
-      editIcon.innerHTML = '&#9998;';
-      editLabel.textContent = '编辑';
-      toggle.title = '开启编辑模式';
+      document.body.classList.remove('edit-hint-folded');
       window.getSelection().removeAllRanges();
-      localStorage.setItem(LS_KEY, root.innerHTML);
-      if(!silent) toast('已退出编辑模式 · 内容已自动暂存', 1800);
+      flushDraft();
+      toast('已保存并退出编辑模式', 2000);
     }
   }
-  toggle.addEventListener('click', function(){ setEditing(!editing); });
+
+  /* ★事件委托：把点击监听绑在稳定的 document 上，而不是按钮本身。
+     原因：编辑按钮位于 #root 内（报头标题行右侧），恢复草稿时
+     `root.innerHTML = saved` 会销毁重建整棵子树；
+     若监听绑在按钮节点上，重建后新按钮没有任何监听器 → 点击毫无反应且不报错。
+     委托到 document 后，无论按钮被重建/自愈多少次，点击始终有效。 */
+  var toggleDelegated = false;
+  function bindToggle(){
+    if(toggleDelegated) return;      // 只绑一次
+    toggleDelegated = true;
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      // 兼容点击到按钮内的 <span class="ic"> / <span id="editLabel">
+      var btn = (t && t.closest) ? t.closest('#editToggle') : null;
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      toggleEditing();
+    }, true);                        // 捕获阶段：先于 #root 内其他冒泡逻辑
+  }
+
+  /* 提示卡折叠 / 展开 */
+  var hintClose = document.getElementById('hintClose');
+  var hintOpen  = document.getElementById('hintOpen');
+  if(hintClose) hintClose.addEventListener('click', function(){
+    document.body.classList.add('edit-hint-folded');
+  });
+  if(hintOpen) hintOpen.addEventListener('click', function(){
+    document.body.classList.remove('edit-hint-folded');
+  });
+
+  /* 离开页面前兜底保存 + 提醒，避免辛苦改的内容静默丢失 */
+  window.addEventListener('beforeunload', function(e){
+    if(!editing || !dirty) return;
+    flushDraft();
+    e.preventDefault();
+    e.returnValue = '当前有内容尚未保存，确定要离开吗？';
+    return e.returnValue;
+  });
 
   /* ============ 增删行列 ============ */
   function freeTd(cls){
@@ -820,8 +1063,10 @@
 
   /* ============ 保存 / 导出 / 打印 ============ */
   function markDirty(){
+    dirty = true;
+    setSaveState('dirty');
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(function(){ localStorage.setItem(LS_KEY, root.innerHTML); }, 800);
+    saveTimer = setTimeout(function(){ setSaveState('saving'); flushDraft(); }, 800);
   }
 
   function download(content, filename, mime){
@@ -838,6 +1083,7 @@
     var d = new Date();
     var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
     download(html, '数智化周报-' + stamp + '.html', 'text/html;charset=utf-8');
+    flushDraft();
     toast('已下载 HTML 文件（双击打开可继续编辑）');
   });
 
@@ -874,12 +1120,19 @@
   /* ============ 快捷键 ============ */
   document.addEventListener('keydown', function(e){
     var meta = e.metaKey || e.ctrlKey;
-    if(meta && e.key === 's'){ e.preventDefault(); document.getElementById('btnSave').click(); return; }
+    // Ctrl/Cmd+S：仅编辑态拦截为「保存草稿」，避免非编辑态误触下载
+    if(meta && (e.key === 's' || e.key === 'S')){
+      if(!editing) return;
+      e.preventDefault();
+      flushDraft();
+      toast('草稿已保存（点「保存」按钮可下载 HTML 文件）', 2200);
+      return;
+    }
     if(!editing) return;
     if(meta && e.key === 'b'){ e.preventDefault(); exec('bold'); }
     if(meta && e.key === 'i'){ e.preventDefault(); exec('italic'); }
     if(meta && e.key === 'u'){ e.preventDefault(); exec('underline'); }
-    if(e.key === 'Escape'){ setEditing(false); }
+    if(e.key === 'Escape'){ toggleEditing(); }
     if(e.key === 'Tab'){
       var cell = activeCell();
       if(cell && isEditable(cell)){
@@ -890,29 +1143,119 @@
         if(next) next.focus();
       }
     }
+    // Enter 在单元格内换行（Shift+Enter 插入 <br>），避免默认行为破坏表格结构
+    if(e.key === 'Enter' && !meta){
+      var c2 = activeCell();
+      if(c2 && isEditable(c2)){
+        e.preventDefault();
+        document.execCommand('insertHTML', false, '<br>');
+        markDirty();
+      }
+    }
   });
 
   document.addEventListener('input', function(e){ if(editing && isEditable(e.target)) markDirty(); });
+  /* 行内格式命令（加粗/改色等）不触发 input，需单独标记 */
+  document.addEventListener('keyup', function(e){
+    if(!editing) return;
+    var meta = e.metaKey || e.ctrlKey;
+    if(meta && 'biu'.indexOf((e.key||'').toLowerCase()) >= 0) markDirty();
+  });
   document.addEventListener('paste', function(e){
     if(!editing || !isEditable(e.target)) return;
     e.preventDefault();
     var text = (e.clipboardData || window.clipboardData).getData('text/plain');
     document.execCommand('insertText', false, text);
+    markDirty();
   });
 
   /* ============ 启动 ============ */
-  root.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('data-ce','1'); });
+  /* 自动标记可编辑元素：
+     a) HTML 里显式声明 contenteditable 的元素
+     b) 所有「展示型文字元素」自动补齐（标题/表头/字段标签等）
+     排除：交互控件、脚本样式、UI 控件区、纯空白节点 */
+  var SKIP_TAGS = {SCRIPT:1, STYLE:1, BUTTON:1, INPUT:1, SELECT:1, TEXTAREA:1, BR:1, HR:1,
+                   IMG:1, SVG:1, PATH:1, A:1, VIDEO:1, AUDIO:1, CANVAS:1, IFRAME:1};
+  function markEditable(){
+    root.querySelectorAll('[contenteditable="true"]').forEach(function(el){
+      el.setAttribute('data-ce','1');
+    });
+
+    var candidates = root.querySelectorAll(
+      'h1,h2,h3,h4,h5,h6,p,span,div,td,th,li,strong,em,b,i,u,small,label,dd,dt,caption,figcaption'
+    );
+    candidates.forEach(function(el){
+      if(el.hasAttribute('data-ce')) return;            // 已标记
+      if(el.querySelector('[data-ce="1"]')) return;     // 含已标记子元素 → 交给子元素
+      if(SKIP_TAGS[el.tagName]) return;
+      if(el.closest('.rowcol-tools, .edit-hint, .edit-banner, .bubble, .hint-open, .edit-toggle')) return;  // UI 控件区
+      if(el.isContentEditable) return;
+      // 必须有直接可见文字（或非空子元素文本）
+      var direct = '';
+      for(var i=0;i<el.childNodes.length;i++){
+        var n = el.childNodes[i];
+        if(n.nodeType === 3) direct += n.textContent;
+      }
+      var hasElemChild = el.children.length > 0;
+      var txt = direct.replace(/[\s\u00a0]/g,'');
+      if(!txt && !hasElemChild) return;                 // 完全空白
+      if(!txt && hasElemChild && el.querySelector('[data-ce="1"]')) return;
+      // 行内元素（span/small/strong 等）若父级已可编辑则跳过，避免嵌套
+      if(['SPAN','SMALL','STRONG','EM','B','I','U','LABEL'].indexOf(el.tagName) >= 0
+         && el.parentElement && el.parentElement.hasAttribute('data-ce')) return;
+      el.setAttribute('data-ce','1');
+    });
+  }
+
+  /* ============ 窄屏兜底：宽表加横向滚动容器 ============
+     附录宽表 10~13 列，在手机宽度下汉字列会被压到不足一字宽，
+     内容外溢并撑出页面横向滚动条。这里把每张表包进 .table-scroll，
+     让表格在「容器内」横向滚动，页面本身不横滚。
+     ★ 只在窄屏生效（CSS 媒体查询控制样式），宽屏下包装层不影响布局。
+     ★ 必须在草稿恢复之后执行 —— 草稿会重建 #root 子树，包装层随之丢失。 */
+  function wrapTablesForNarrow(){
+    root.querySelectorAll('table').forEach(function(t){
+      var p = t.parentNode;
+      if(p && p.classList && p.classList.contains('table-scroll')) return;  // 已包装
+      var box = document.createElement('div');
+      box.className = 'table-scroll';
+      p.insertBefore(box, t);
+      box.appendChild(t);
+    });
+  }
+
+  /* ★顺序很关键：先把委托监听绑好（与按钮是否存在无关），再恢复草稿 */
+  bindToggle();
 
   var saved = localStorage.getItem(LS_KEY);
   if(saved){
-    if(window.confirm('检测到本机存在未保存的草稿，是否恢复？\n（点「取消」加载原始模板）')){
+    // 校验草稿有效性：必须含 #root 结构，否则视为损坏草稿并丢弃
+    var valid = /class="paper"/.test(saved) || /report-title/.test(saved);
+    if(!valid){
+      localStorage.removeItem(LS_KEY);
+      toast('检测到损坏的草稿，已自动清除并加载原始模板', 3000);
+    } else if(window.confirm('检测到本机存在上次编辑的草稿，是否恢复？\n\n· 点「确定」→ 加载草稿继续编辑\n· 点「取消」→ 加载原始模板（草稿将被清除）')){
       root.innerHTML = saved;
     } else {
       localStorage.removeItem(LS_KEY);
     }
   }
 
-  setEditing(false);
+  // 草稿可能带来新的 DOM 节点，标记必须在恢复之后执行
+  markEditable();
+  wrapTablesForNarrow();            // ★ 宽表横向滚动兜底（草稿恢复后重建包装层）
+
+  /* 初始化：静默进入只读态（不弹提示、不写草稿）
+     注意：HTML 里硬编码的 contenteditable="true" 必须物理移除，
+     否则只读态下这些单元格依然可点击输入 */
+  document.body.classList.remove('editing');
+  document.body.classList.remove('edit-hint-folded');
+  root.querySelectorAll('[data-ce="1"]').forEach(function(el){
+    el.removeAttribute('contenteditable');
+  });
+  applyEditingUI();                 // 刷新按钮文案（只读态）
+  ensureEditButton();               // 双保险：确保按钮存在（草稿损坏被丢弃时仍需按钮）
+  setSaveState('saved');
   flag.classList.remove('show');
 })();
 </script>
