@@ -140,11 +140,27 @@
   .pill.done{background:var(--ok-soft);color:var(--ok);}
   .pill.pending{background:var(--warn-soft);color:var(--warn);}
 
-  /* ============ 章节标题 ============ */
-  .sec-title{font-size:15.5px;font-weight:700;color:var(--brand);margin:26px 0 10px;padding-left:11px;
-    border-left:4px solid var(--brand);line-height:1.4;}
-  .sec-title.sub{font-size:13.5px;border-left-width:3px;}
-  .sec-title.sub-gap{margin-top:18px;}
+  /* ============ 章节标题 ============
+     ★ V22.1：统一标题节奏 —— 大章节之间留白更大，形成清晰的信息分组。
+       用「上间距 > 下间距」的经典排版比例，标题更贴近其所辖内容。 */
+  .sec-title{
+    font-size:15px;font-weight:700;color:var(--brand);
+    margin:30px 0 12px;padding-left:10px;
+    border-left:3px solid var(--brand);line-height:1.45;
+    letter-spacing:.2px;
+  }
+  .sec-title:first-of-type{margin-top:8px;}
+  .sec-title.sub{font-size:13px;border-left-width:2px;margin:20px 0 9px;}
+  .sec-title.sub-gap{margin-top:20px;}
+  /* ★ V22.1：附录分节标题（1、xxx / 2、xxx）—— 加编号徽标强化秩序感。
+     「四、附录」为父级大标题，其下的分节用 .sub 规格但更收敛。 */
+  .sec-title.sub{
+    border-left:none; padding-left:0;
+    display:flex; align-items:center; gap:8px;
+  }
+  .sec-title.sub::after{
+    content:''; flex:1 1 auto; height:1px; background:var(--line);
+  }
 
   /* ============ 表格 ============ */
   table{border-collapse:collapse;width:100%;table-layout:fixed;}
@@ -194,20 +210,23 @@
          · 「项目」列 `.row-head`：白底 + 加粗 + 居中（不再铺淡蓝底）
          · 正文斑马纹：关闭 */
   /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读 */
-  table.wide td{vertical-align:middle;padding:6px 8px;line-height:1.6;background:transparent;}
-  table.wide td.txt{vertical-align:top;text-align:left;line-height:1.62;}
+  table.wide td{vertical-align:middle;padding:7px 9px;line-height:1.62;background:transparent;}
+  table.wide td.txt{vertical-align:top;text-align:left;line-height:1.66;}
   /* 2) 表头：两行均白底，靠字号/字重/颜色/底线区分层次
-     ★ 必须显式覆盖全局 thead th 的白字，否则白底白字不可见 */
-  table.wide thead th{background:transparent!important;color:var(--brand)!important;}
+     ★ 必须显式覆盖全局 thead th 的白字，否则白底白字不可见
+     ★ V22.1：主行加深字色并稍增内边距，slim 行改用更浅的灰，层次更分明 */
+  table.wide thead th{background:transparent!important;color:var(--brand)!important;
+    padding:8px 9px;letter-spacing:.3px;}
   table.wide thead tr:first-child th{
     font-size:12.5px;font-weight:700;border-bottom:1px solid var(--line-strong);
   }
   table.wide thead tr:last-child th{
-    font-size:11.5px;font-weight:600;color:var(--muted)!important;
+    font-size:11px;font-weight:600;color:var(--muted)!important;
     border-bottom:1px solid var(--line-strong);
   }
   /* 3) 项目列：竖向标签（白底 + 加粗居中） */
-  table.wide .row-head{background:transparent!important;font-size:12px;font-weight:600;}
+  table.wide .row-head{background:transparent!important;font-size:12px;font-weight:700;
+    color:var(--brand);letter-spacing:.2px;}
   /* 4) 板块分隔：每组最后一列右侧 1px 竖线 */
   table.wide td.grp-end,table.wide th.grp-end{border-right:1px solid var(--line-strong);}
   /* ★ V21.8：下一步计划区 —— 一行一任务，仅靠左内缩进线做「任务起点」，
@@ -220,8 +239,21 @@
   table.wide td.task-desc + td{border-left:none;}
   /* 空任务组（PDF 中确实无内容）：留白即可，不加任何装饰 */
   table.wide td.task-void{box-shadow:none;background:transparent!important;}
-  /* 5) 目标/进展 整块跨列：顶对齐、行距舒展 */
-  table.wide td.span-note{vertical-align:top;line-height:1.62;}
+  /* 5) 目标/进展 整块跨列：顶对齐、行距舒展
+     ★ V22.1：单元格内的多条内容统一改为 .note-list 分条列点，
+       替代原「<br> 硬折行」——每条独立成行，行距均匀，扫读成本大幅下降。 */
+  table.wide td.span-note{vertical-align:top;line-height:1.62;padding-top:8px;padding-bottom:8px;}
+  .note-list{
+    margin:0; padding:0; list-style:none;
+    font-size:12px; line-height:1.68; color:var(--ink-2);
+  }
+  .note-list > li{position:relative;padding-left:12px;}
+  .note-list > li + li{margin-top:4px;}
+  .note-list > li::before{
+    content:''; position:absolute; left:2px; top:.64em;
+    width:4px; height:4px; border-radius:50%;
+    background:var(--brand-2); opacity:.45;
+  }
   /* 6) 附录表外框与正文表同规格（1px，不加粗） */
   table.wide{border:1px solid var(--line-strong);}
   table.wide tbody tr:last-child td{border-bottom:none;}
@@ -242,13 +274,267 @@
 
   /* ============ 首列对齐统一（普通表）============
      表1「异常汇报」是空行模板，首列没有 .row-head 类，
-     默认 text-align:start 会与其余 6 张表的居中首列不一致。
+     默认 text-align:start 会与其余 6 张表的居 中首列不一致。
      这里统一居中 + 与 .row-head 相同的紧凑左右 padding；
      用 :not(.wide) 排除附录宽表，避免覆盖宽表的 6px 8px 规格。 */
   table:not(.wide) tbody td:first-child{
     text-align:center; vertical-align:middle;
     padding-left:3px; padding-right:3px; font-size:12px;
   }
+
+  /* ★★★ V22.1：空区块占位条 —— 无内容时不显示空表格，改为一句话 */
+  .empty-note{
+    border:1px solid var(--line-strong); border-radius:var(--radius);
+    padding:11px 14px; font-size:12.5px; color:var(--muted);
+    background:transparent; line-height:1.6; margin:0;
+  }
+  .empty-note b{color:var(--ink-2);font-weight:600;}
+
+  /* ==================================================================
+     ★★★ V22.1：项目总结卡片组
+     ------------------------------------------------------------------
+     病因（重构前）：「二、项目总结」是一张 5 列密排表，3 行却高达
+       157~218px。单元格里塞了 5~8 行文字，「责任人：XXX DDL：XXX」
+       靠 <br> 堆叠，扫读时人/时间/任务三者无法一眼对应 —— 这是
+       用户所说「乱、丑」的主要来源。
+     方案：每个项目独立成一张卡片，信息分三层：
+       ① .proj-head   项目名 + 负责人（一行，深蓝标签区）
+       ② .proj-body   亮灯状态 / 进展（两栏，进度用分条列点）
+       ③ .proj-next   下一步计划（任务｜责任人｜DDL 三格并排对齐）
+     约束：边框 1px；不铺大面积底色；文字逐字保留。
+     ================================================================== */
+  .proj-list{display:flex;flex-direction:column;gap:14px;}
+
+  .proj{
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    overflow:hidden;
+    background:#fff;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+
+  /* ① 卡片标题行 */
+  .proj-head{
+    display:flex; align-items:center; gap:10px;
+    padding:9px 14px;
+    background:var(--brand);
+    color:#fff;
+  }
+  .proj-name{font-size:13.5px;font-weight:700;letter-spacing:.3px;line-height:1.4;}
+  .proj-owner{
+    margin-left:auto; font-size:12px; font-weight:600;
+    color:#fff; opacity:.92; white-space:nowrap;
+  }
+  .proj-owner::before{content:'负责人 ';font-weight:400;opacity:.75;}
+
+  /* ② 卡片主体：两栏（亮灯状态 | 进展） */
+  .proj-body{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);}
+  .proj-block{padding:11px 14px 12px;min-width:0;}
+  .proj-block + .proj-block{border-left:1px solid var(--line);}
+
+  .pb-label{
+    font-size:11px; font-weight:700; color:var(--brand);
+    letter-spacing:.6px; margin-bottom:6px; line-height:1.4;
+  }
+  .pb-text{font-size:12.5px;color:var(--ink-2);line-height:1.72;
+    word-break:normal;overflow-wrap:break-word;line-break:strict;text-wrap:pretty;}
+
+  /* 进展：分条列点（替代原来的 <br> 堆叠） */
+  .pb-list{
+    margin:0; padding:0; list-style:none;
+    font-size:12.5px; color:var(--ink-2); line-height:1.7;
+  }
+  .pb-list > li{position:relative;padding-left:13px;}
+  .pb-list > li + li{margin-top:3px;}
+  .pb-list > li::before{
+    content:''; position:absolute; left:2px; top:.66em;
+    width:4px; height:4px; border-radius:50%;
+    background:var(--brand-2); opacity:.55;
+  }
+
+  /* ③ 下一步计划：任务 / 责任人 / DDL 三格严格对齐 */
+  .proj-next{border-top:1px solid var(--line-strong);padding:11px 14px 12px;}
+  .pn-label{
+    font-size:11px; font-weight:700; color:var(--brand);
+    letter-spacing:.6px; margin-bottom:7px; line-height:1.4;
+  }
+  .task-list{margin:0;padding:0;list-style:none;}
+
+  /* 任务行：左竖线做「起」的视觉锚点，三格定宽保证跨行对齐 */
+  .task-list > li{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 96px 62px;
+    align-items:start;
+    gap:8px;
+    padding:6px 0 6px 11px;
+    position:relative;
+    font-size:12.5px; line-height:1.62;
+  }
+  .task-list > li::before{
+    content:''; position:absolute; left:0; top:8px; bottom:8px;
+    width:2px; border-radius:1px;
+    background:rgba(31,78,121,.35);
+  }
+  .task-list > li + li{border-top:1px dashed var(--line);}
+
+  .tl-task{color:var(--ink-2);word-break:normal;overflow-wrap:break-word;
+    line-break:strict;text-wrap:pretty;min-width:0;}
+  .tl-owner{
+    font-size:12px;font-weight:600;color:var(--brand);
+    text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .tl-ddl{
+    font-size:12px;font-weight:700;color:var(--ink-2);
+    text-align:center;white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ==================================================================
+     ★★★ V22.0：甘特图组件（纯 CSS Grid，零依赖、可打印、可编辑）
+     ------------------------------------------------------------------
+     设计约束（继承全项目铁律）：
+       · 边框一律 1px；不用 2px/3px 粗线
+       · 不铺底色，仅任务条自身着色（进度一眼可辨）
+       · 任务文字 contenteditable，与全页编辑体系统一
+       · 打印时禁止整图被切断（page-break-inside:avoid）
+     结构：
+       .gantt
+         .g-head-title   标题行（可编辑）
+         .gantt-grid     网格容器
+           .g-row        每一行（display:contents 让子格直接参与外层 grid）
+             .g-label    左侧任务名
+             .g-cells    右侧周格子（内含 .g-bar / .g-ms）
+             .g-owner    负责人
+         .gantt-legend   图例
+     ================================================================== */
+  .gantt{
+    margin:0 0 20px;
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    overflow:hidden;                /* 圆角内裁切 */
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .gantt-title{
+    display:flex; align-items:baseline; gap:8px;
+    padding:8px 12px; border-bottom:1px solid var(--line-strong);
+    font-size:13px; font-weight:700; color:var(--brand);
+    line-height:1.5;
+  }
+  .gantt-title .gt-sub{
+    font-size:11.5px; font-weight:400; color:var(--muted); margin-left:auto;
+    white-space:nowrap;
+  }
+  /* 网格：6 周 × [任务名 27% | 周格 1fr×6 | 负责人 11%]
+     周格宽度彼此完全相等，保证条形与刻度的坐标一致（不用 % 硬算） */
+  .gantt-grid{
+    display:grid;
+    grid-template-columns:27% repeat(6, minmax(0,1fr)) 11%;
+    font-size:11.5px;
+  }
+  .g-row{display:contents;}
+  /* 月份轴（首行） */
+  .g-month{
+    grid-row:1;
+    text-align:center; font-weight:700; font-size:11.5px; color:var(--brand);
+    padding:5px 0; line-height:1.4;
+    border-bottom:1px solid var(--line-strong);
+    background:transparent;
+  }
+  .g-month.g-label{text-align:left;padding-left:12px;}
+  /* 周刻度（次行） */
+  .g-scale{
+    text-align:center; color:var(--muted); font-weight:600; font-size:10.5px;
+    padding:3px 0; line-height:1.4;
+    border-bottom:1px solid var(--line-strong);
+  }
+  .g-scale.g-label{text-align:left;padding-left:12px;font-weight:400;}
+  /* 任务名（左侧） */
+  .g-label{
+    padding:5px 10px 5px 12px; line-height:1.5;
+    text-align:left; vertical-align:middle;
+    display:flex; align-items:center; gap:6px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink-2);
+  }
+  .g-label .g-dot{
+    flex:0 0 auto; width:6px; height:6px; border-radius:50%;
+    background:var(--brand-2); opacity:.85;
+  }
+  .g-label .g-txt{flex:1 1 auto; min-width:0;}
+  /* 周格子：每条任务一个格子，内部放条/菱形 */
+  .g-cells{
+    grid-column:2 / span 6;
+    position:relative;                 /* 作为条形绝对定位的参照 */
+    display:grid; grid-template-columns:repeat(6, minmax(0,1fr));
+    align-items:center; min-height:30px;
+    border-bottom:1px solid var(--line);
+  }
+  .g-cells > .g-cell{height:100%;border-left:1px solid var(--line);}
+  .g-cells > .g-cell:first-child{border-left:none;}
+  /* 周格背景参考线：用 inset 阴影画「今天」竖线，避免额外边框 */
+  .g-cells .g-today{position:relative;}
+  .g-cells .g-today::after{
+    content:''; position:absolute; top:0; bottom:0; left:50%;
+    width:1px; background:rgba(214,69,69,.55);
+  }
+  /* ★ 任务条：只允许这一处着色（进度一眼可辨），尺寸与内部网格对齐 */
+  .g-bar{
+    position:absolute; top:50%; transform:translateY(-50%);
+    height:15px; border-radius:8px;
+    background:rgba(31,78,121,.16);
+    border:1px solid rgba(31,78,121,.42);
+    display:flex; align-items:center;
+    padding:0 7px; overflow:hidden;
+  }
+  .g-bar > .g-pct{
+    font-size:10px; font-weight:700; color:var(--brand);
+    white-space:nowrap; line-height:1;
+  }
+  /* 已完成：实心条（唯一允许的填充，用于区分进度） */
+  .g-bar.done{background:var(--brand);border-color:var(--brand);}
+  .g-bar.done > .g-pct{color:#fff;}
+  /* 预警/延期：改用暖色条，仍为 1px 描边 */
+  .g-bar.warn{background:rgba(198,138,26,.20);border-color:rgba(198,138,26,.62);}
+  .g-bar.warn > .g-pct{color:#8a5d0a;}
+  /* 进行中：左实右虚的「已完成部分」用内层填充表达 */
+  .g-bar > .g-fill{
+    position:absolute; left:0; top:0; bottom:0;
+    background:rgba(31,78,121,.42);
+  }
+  .g-bar > .g-pct{position:relative;z-index:1;}
+  /* ★ 里程碑：菱形（用 rotate 45° 的方块，保持 1px 描边） */
+  .g-ms{
+    position:absolute; top:50%; left:50%;
+    width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+    background:#fff; border:1px solid var(--brand);
+    rotate:45deg;
+  }
+  .g-ms.filled{background:var(--brand);}
+  /* 负责人列 */
+  .g-owner{
+    padding:5px 6px; text-align:center; font-weight:600; color:var(--ink-2);
+    line-height:1.45; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* 网格收口：最后一行不画下边框 */
+  .gantt-grid .g-label:last-of-type,
+  .gantt-grid .g-owner:last-of-type{border-bottom:none;}
+  /* 图例 */
+  .gantt-legend{
+    display:flex; flex-wrap:wrap; gap:6px 18px;
+    padding:7px 12px; border-top:1px solid var(--line-strong);
+    font-size:11px; color:var(--muted); line-height:1.5;
+  }
+  .gantt-legend .lg{display:inline-flex;align-items:center;gap:6px;}
+  .gantt-legend .sw{width:22px;height:9px;border-radius:5px;
+    background:rgba(31,78,121,.16);border:1px solid rgba(31,78,121,.42);}
+  .gantt-legend .sw.done{background:var(--brand);border-color:var(--brand);}
+  .gantt-legend .sw.warn{background:rgba(198,138,26,.20);border-color:rgba(198,138,26,.62);}
+  .gantt-legend .dm{width:10px;height:10px;background:#fff;border:1px solid var(--brand);rotate:45deg;}
+  .gantt-legend .dm.filled{background:var(--brand);}
+  .gantt-legend .ln{width:1px;height:13px;background:rgba(214,69,69,.55);}
 
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
@@ -374,6 +660,13 @@
     th,td{word-break:normal!important;overflow-wrap:break-word!important;}
     /* 编辑态残留样式一律清除，保证打印输出与只读态一致 */
     body.editing [data-ce="1"]{background:none!important;box-shadow:none!important;}
+    /* ★ V22.0 甘特图：打印时保持色块（进度靠色区分），且整图不被切断 */
+    .gantt{-webkit-print-color-adjust:exact;print-color-adjust:exact;
+      page-break-inside:avoid;break-inside:avoid;}
+    .g-bar,.g-bar.done,.g-bar.warn,.g-ms,.g-ms.filled,
+    .gantt-legend .sw,.gantt-legend .dm{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .gantt-grid{font-size:10.5px;}
+    .g-bar{height:13px;}
   }
   @media (max-width:820px){
     .paper{padding:22px 16px 28px;}
@@ -407,6 +700,11 @@
       margin:0 -12px; padding:0 12px 2px;}
     .table-scroll > table{min-width:640px;}
     .table-scroll table.wide{min-width:760px;}
+    /* ★ V22.0 甘特图：窄屏改为「任务名 + 条形」两列，隐藏负责人与周格背景，
+       并保留最小宽度由外层容器横向滚动，避免条形被压成一条线 */
+    .gantt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;
+      margin:0 -12px; padding:0 12px 2px;}
+    .gantt-scroll > .gantt{min-width:560px;}
   }
 </style>
 </head>
@@ -493,69 +791,234 @@
   </div>
 
   <h2 class="sec-title">一、【异常汇报】</h2>
-  <table>
-    <colgroup>
-      <col style="width:14%"><col style="width:12%"><col style="width:12%">
-      <col style="width:8%"><col style="width:30%"><col style="width:24%">
-    </colgroup>
-    <thead>
-      <tr><th>异常事项</th><th>预期</th><th>实际</th><th>GAP</th><th>根因及改进计划</th><th>下一步计划</th></tr>
-    </thead>
-    <tbody>
-      <tr><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
-          <td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td></tr>
-      <tr><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
-          <td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td></tr>
-    </tbody>
-  </table>
-  <p class="table-note">如本周无异常，可保留空行或直接删除该表。</p>
+  <!-- ★ V22.0：无异常时不显示空表格，直接写「无」 -->
+  <p class="empty-note" contenteditable="true">无。<b>本周期未出现需上报的异常事项。</b>（如后续出现异常，可将本行替换为异常明细表）</p>
 
   <h2 class="sec-title">二、【项目总结】</h2>
-  <table>
-    <colgroup>
-      <col style="width:10%"><col style="width:23%"><col style="width:7%"><col style="width:33%"><col style="width:27%">
-    </colgroup>
-    <thead>
-      <tr><th>项目</th><th>亮灯状态（一句话总结）</th><th>负责人</th><th>进展</th><th>下一步计划</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td class="row-head" contenteditable="true">AI化转型</td>
-        <td contenteditable="true">AI化依据2026年AI化规划 V2.0 第十版 进行任务推进交付；重新盘点AI化项目价值</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
-        <td contenteditable="true">使用Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；<br>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>AI 安全治理制度项目，书面调研4/14，10个部门未反馈调研报告；</td>
-        <td contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>责任人：郭师光 DDL：10/10<br>针对墨迹真实需求-主版天气服务加速优化需求<br>责任人：郭师光 DDL：09/30<br>AI 治理制度项目各部门访谈调研<br>责任人：王平 DDL：09/24</td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true">用户资产项目</td>
-        <td contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：<br>短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）<br>中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10/16）。</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">马佳</span></td>
-        <td contenteditable="true">09/30完成Marketing API 大数据完成OPPO监测日志与收入数据关联<br>09/30完成鸿蒙LTV优化，10/01开始上线新数据</td>
-        <td contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联；（10/10）<br>补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10/16）。</td>
-      </tr>
-      <tr>
-        <td class="row-head" contenteditable="true">数智化转型</td>
-        <td contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成；</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">郭晨阳</span></td>
-        <td contenteditable="true">埋点治理认责映射逻辑已打通<br>集团化公司治理方案评审完成<br>人力系统对接OA消息推送测试环境测试完成</td>
-        <td contenteditable="true">09/18启动400个埋点的认责执行<br>责任人：何洲 DDL：09/20<br>联名会员改造端内/端外模式继续按计划推进测试<br>责任人：庞盛耀 DDL：09/18<br>集团化公司治理下周启动开发工作<br>责任人：张秋侠、王林 DDL：10/30</td>
-      </tr>
-    </tbody>
-  </table>
+
+  <!-- ★★★ V22.1：项目总结由「5 列密排表」重构为「三个独立项目卡片」
+       病因：原表 3 行却高达 157~218px，单元格内塞 5~8 行文字，
+             且「责任人：XXX DDL：XXX」靠 <br> 堆叠，扫读时无法一眼对应。
+       方案：每个项目 = 一张卡片（标题行 + 亮灯/进展两栏 + 下一步任务行），
+             下一步计划拆成「任务｜责任人｜DDL」三格并排，一一对应。
+       ⚠️ 文字内容逐字保留，仅改变呈现结构。 -->
+  <div class="proj-list">
+
+    <section class="proj">
+      <header class="proj-head">
+        <span class="proj-name" contenteditable="true">AI化转型</span>
+        <span class="proj-owner" contenteditable="true">郭晨阳</span>
+      </header>
+      <div class="proj-body">
+        <div class="proj-block">
+          <div class="pb-label">亮灯状态</div>
+          <div class="pb-text" contenteditable="true">AI化依据2026年AI化规划 V2.0 第十版 进行任务推进交付；重新盘点AI化项目价值</div>
+        </div>
+        <div class="proj-block">
+          <div class="pb-label">进展</div>
+          <ul class="pb-list" contenteditable="true">
+            <li>使用Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线</li>
+            <li>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证</li>
+            <li>AI 安全治理制度项目，书面调研4/14，10个部门未反馈调研报告</li>
+          </ul>
+        </div>
+      </div>
+      <div class="proj-next">
+        <div class="pn-label">下一步计划</div>
+        <ul class="task-list">
+          <li><span class="tl-task" contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%</span><span class="tl-owner" contenteditable="true">郭师光</span><span class="tl-ddl" contenteditable="true">10/10</span></li>
+          <li><span class="tl-task" contenteditable="true">针对墨迹真实需求-主版天气服务加速优化需求</span><span class="tl-owner" contenteditable="true">郭师光</span><span class="tl-ddl" contenteditable="true">09/30</span></li>
+          <li><span class="tl-task" contenteditable="true">AI 治理制度项目各部门访谈调研</span><span class="tl-owner" contenteditable="true">王平</span><span class="tl-ddl" contenteditable="true">09/24</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="proj">
+      <header class="proj-head">
+        <span class="proj-name" contenteditable="true">用户资产项目</span>
+        <span class="proj-owner" contenteditable="true">马佳</span>
+      </header>
+      <div class="proj-body">
+        <div class="proj-block">
+          <div class="pb-label">亮灯状态</div>
+          <div class="pb-text" contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10/16）。</div>
+        </div>
+        <div class="proj-block">
+          <div class="pb-label">进展</div>
+          <ul class="pb-list" contenteditable="true">
+            <li>09/30完成Marketing API 大数据完成OPPO监测日志与收入数据关联</li>
+            <li>09/30完成鸿蒙LTV优化，10/01开始上线新数据</li>
+          </ul>
+        </div>
+      </div>
+      <div class="proj-next">
+        <div class="pn-label">下一步计划</div>
+        <ul class="task-list">
+          <li><span class="tl-task" contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/10</span></li>
+          <li><span class="tl-task" contenteditable="true">补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/16</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="proj">
+      <header class="proj-head">
+        <span class="proj-name" contenteditable="true">数智化转型</span>
+        <span class="proj-owner" contenteditable="true">郭晨阳</span>
+      </header>
+      <div class="proj-body">
+        <div class="proj-block">
+          <div class="pb-label">亮灯状态</div>
+          <div class="pb-text" contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成</div>
+        </div>
+        <div class="proj-block">
+          <div class="pb-label">进展</div>
+          <ul class="pb-list" contenteditable="true">
+            <li>埋点治理认责映射逻辑已打通</li>
+            <li>集团化公司治理方案评审完成</li>
+            <li>人力系统对接OA消息推送测试环境测试完成</li>
+          </ul>
+        </div>
+      </div>
+      <div class="proj-next">
+        <div class="pn-label">下一步计划</div>
+        <ul class="task-list">
+          <li><span class="tl-task" contenteditable="true">启动400个埋点的认责执行</span><span class="tl-owner" contenteditable="true">何洲</span><span class="tl-ddl" contenteditable="true">09/20</span></li>
+          <li><span class="tl-task" contenteditable="true">联名会员改造端内/端外模式继续按计划推进测试</span><span class="tl-owner" contenteditable="true">庞盛耀</span><span class="tl-ddl" contenteditable="true">09/18</span></li>
+          <li><span class="tl-task" contenteditable="true">集团化公司治理下周启动开发工作</span><span class="tl-owner" contenteditable="true">张秋侠、王林</span><span class="tl-ddl" contenteditable="true">10/30</span></li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ★★★ V22.0：甘特图 1 —— AI化转型（任务 / 时间轴 / 负责人 / 里程碑） -->
+  <div class="gantt-scroll">
+<div class="gantt">
+  <div class="gantt-title">
+    <span contenteditable="true">AI化转型 · 任务甘特图</span>
+    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+  </div>
+  <div class="gantt-grid">
+    <div class="g-month g-label">阶段</div>
+    <div class="g-month" style="grid-column:2 / span 3">2026年9月</div>
+    <div class="g-month" style="grid-column:5 / span 3">2026年10月</div>
+    <div class="g-month">负责人</div>
+    <div class="g-scale g-label">周次</div>
+    <div class="g-scale">09/18–09/21</div>
+    <div class="g-scale">09/22–09/26</div>
+    <div class="g-scale">09/27–10/01</div>
+    <div class="g-scale">10/02–10/05</div>
+    <div class="g-scale">10/06–10/09</div>
+    <div class="g-scale">10/10–10/14</div>
+    <div class="g-scale">(Owner)</div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">气象测试待办项目排期表（2026）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:60%"></span><span class="g-pct">60%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">测试 deepseek-v4.1-flash / GLM5.2 效果</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:40%"></span><span class="g-pct">40%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">广告 oCPX 模型优化（转化率 +5%）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:55%"></span><span class="g-pct">55%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">openclaw 产研智能体持续优化</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:70%"></span><span class="g-pct">70%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">主版天气服务加速优化需求</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:0.0%;width:48.15%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 治理制度差距分析报告编写</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:45%"></span><span class="g-pct">45%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王平</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 安全工具部署达 95%</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-ms" style="left:44.44%"></div>
+        <div class="g-bar warn" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:30%"></span><span class="g-pct">30%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王平</span></div>
+    </div>
+  </div>
+  <div class="gantt-legend">
+    <span class="lg"><span class="sw done"></span>已完成</span>
+    <span class="lg"><span class="sw"></span>进行中</span>
+    <span class="lg"><span class="sw warn"></span>风险 / 待定</span>
+    <span class="lg"><span class="dm"></span>里程碑</span>
+    <span class="lg"><span class="dm filled"></span>里程碑（已达成）</span>
+    <span class="lg"><span class="ln"></span>今日</span>
+  </div>
+</div>
+  </div>
 
   <h2 class="sec-title">三、【决策事项 &amp; Action 跟进】</h2>
   <h3 class="sec-title sub">【决策事项】</h3>
-  <table>
-    <colgroup><col style="width:14%"><col style="width:44%"><col style="width:12%"><col style="width:12%"><col style="width:18%"></colgroup>
-    <thead>
-      <tr><th>决策事项</th><th>内容说明</th><th>提出人</th><th>状态</th><th>下一步</th></tr>
-    </thead>
-    <tbody>
-      <tr><td class="cell-owner" contenteditable="true"><span class="ow">暂无</span></td><td contenteditable="true">&nbsp;</td>
-          <td class="cell-owner" contenteditable="true">&nbsp;</td><td class="cell-owner" contenteditable="true">&nbsp;</td>
-          <td contenteditable="true">&nbsp;</td></tr>
-    </tbody>
-  </table>
+  <!-- ★ V22.0：无决策事项时不显示空表格，直接写「无」 -->
+  <p class="empty-note" contenteditable="true">无。<b>本周期无需上会决策的事项。</b>（如有，可将本行替换为决策事项表：决策事项 / 内容说明 / 提出人 / 状态 / 下一步）</p>
 
   <h3 class="sec-title sub sub-gap">【Action 跟进】</h3>
   <table>
@@ -621,17 +1084,17 @@
     <tbody>
       <tr>
         <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 数据治理2.0<br>• AI友好性治理</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%<br>• 提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。<br>• 借助自动化系统，提效新业务的业务处理工作，减少人工误差。</td>
-        <td colspan="3" contenteditable="true" class="span-note">• AI治理制度项目，安全规范与流程闭环。<br>• AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>数据治理2.0</li><li>AI友好性治理</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%</li><li>提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。</li><li>借助自动化系统，提效新业务的业务处理工作，减少人工误差。</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>AI治理制度项目，安全规范与流程闭环。</li><li>AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</li></ul></td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
         <td colspan="3" contenteditable="true" class="span-note">本周进行 token hub 模型测试<br>结论：共评测7个模型，均存在明显短板，无法直接替换<br>AI 指数替换模型测试</td>
         <td colspan="3" contenteditable="true" class="span-note">• 对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>• 第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</td>
-        <td colspan="3" contenteditable="true" class="span-note">• AI治理制度项目启动会召开完毕；<br>• AI治理制度项目书面调研4/14，10个部门未反馈调研报告；<br>• AI治理制度项目项目技术研发部访谈6/8；<br>• 高权限终端云端 XDLP 安全评估工作已完成；<br>• AI安全工具部署，目前已部署146/243；</td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证</li><li>第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>AI治理制度项目启动会召开完毕；</li><li>AI治理制度项目书面调研4/14，10个部门未反馈调研报告；</li><li>AI治理制度项目项目技术研发部访谈6/8；</li><li>高权限终端云端 XDLP 安全评估工作已完成；</li><li>AI安全工具部署，目前已部署146/243；</li></ul></td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true" rowspan="2">下一步计划</td>
@@ -699,9 +1162,9 @@
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）<br>• 事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）<br>• 事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 事项1：系统底层任务及表从老IDC需要完整迁移至京东云<br>• 事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中<br>• 事项2：OPPO高价值人群包策略上线<br>• 事项3：德勤价值兑现需结合整体DAU下降进行补充说明</td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）</li><li>事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）</li><li>事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：系统底层任务及表从老IDC需要完整迁移至京东云</li><li>事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</li></ul></td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中</li><li>事项2：OPPO高价值人群包策略上线</li><li>事项3：德勤价值兑现需结合整体DAU下降进行补充说明</li></ul></td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true" rowspan="3">下一步计划</td>
@@ -739,6 +1202,155 @@
       </tr>
     </tbody>
   </table>
+
+  <!-- ★★★ V22.0：甘特图 2 —— 用户资产项目 -->
+  <div class="gantt-scroll">
+<div class="gantt">
+  <div class="gantt-title">
+    <span contenteditable="true">用户资产项目 · 任务甘特图</span>
+    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+  </div>
+  <div class="gantt-grid">
+    <div class="g-month g-label">阶段</div>
+    <div class="g-month" style="grid-column:2 / span 3">2026年9月</div>
+    <div class="g-month" style="grid-column:5 / span 3">2026年10月</div>
+    <div class="g-month">负责人</div>
+    <div class="g-scale g-label">周次</div>
+    <div class="g-scale">09/18–09/21</div>
+    <div class="g-scale">09/22–09/26</div>
+    <div class="g-scale">09/27–10/01</div>
+    <div class="g-scale">10/02–10/05</div>
+    <div class="g-scale">10/06–10/09</div>
+    <div class="g-scale">10/10–10/14</div>
+    <div class="g-scale">(Owner)</div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项1：11家线上投放渠道监测格式优化</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:65%"></span><span class="g-pct">65%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项2：供应商研发资源远程入场</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:50%"></span><span class="g-pct">50%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项3：需求梳理中</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar warn" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:20%"></span><span class="g-pct">20%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项1：上游依赖任务迁移完成</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:100.0%"><span class="g-fill" style="width:35%"></span><span class="g-pct">35%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">何洲</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项2：项目验收任务及代码规范检查</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">何洲、郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项3：梳理往期测试报告供验收参考</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">德勤</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项1：策略 POC 台账持续跟进</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">马佳</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项2：OPPO 高价值人群包上线验证</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:11.11%"><span class="g-fill" style="width:80%"></span><span class="g-pct">80%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">马佳</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">事项3：价值补充说明（结合 DAU 下降）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar warn" style="left:0.0%;width:5.83%"><span class="g-fill" style="width:40%"></span><span class="g-pct">40%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">德勤</span></div>
+    </div>
+  </div>
+  <div class="gantt-legend">
+    <span class="lg"><span class="sw done"></span>已完成</span>
+    <span class="lg"><span class="sw"></span>进行中</span>
+    <span class="lg"><span class="sw warn"></span>风险 / 待定</span>
+    <span class="lg"><span class="dm"></span>里程碑</span>
+    <span class="lg"><span class="dm filled"></span>里程碑（已达成）</span>
+    <span class="lg"><span class="ln"></span>今日</span>
+  </div>
+</div>
+  </div>
 </div>
 
 <div class="paper">
@@ -778,9 +1390,9 @@
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责<br>• 推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库<br>• 埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计09/18结束</td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责</li><li>推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库</li><li>埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计09/18结束</li></ul></td>
         <td colspan="3" contenteditable="true" class="span-note">本周供应商针对需求内容完成方案的产出</td>
-        <td colspan="3" contenteditable="true" class="span-note">• 方案评审：完成联名卡（端内/端外）第三轮评审：通过；<br>• 开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间09/18；报表定义模块开发未开始，预计完成时间09/20<br>• 测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间09/24<br>• 整体完成进度：70%</td>
+        <td colspan="3" contenteditable="true" class="span-note note-cell"><ul class="note-list"><li>方案评审：完成联名卡（端内/端外）第三轮评审：通过；</li><li>开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间09/18；报表定义模块开发未开始，预计完成时间09/20</li><li>测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间09/24</li><li>整体完成进度：70%</li></ul></td>
         <td colspan="3" contenteditable="true" class="span-note">培训系统与OA的对接的需求目前在测试环境调试完成</td>
       </tr>
       <tr>
@@ -814,6 +1426,142 @@
       </tr>
     </tbody>
   </table>
+
+  <!-- ★★★ V22.0：甘特图 3 —— 数智化转型 -->
+  <div class="gantt-scroll">
+<div class="gantt">
+  <div class="gantt-title">
+    <span contenteditable="true">数智化转型 · 任务甘特图</span>
+    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+  </div>
+  <div class="gantt-grid">
+    <div class="g-month g-label">阶段</div>
+    <div class="g-month" style="grid-column:2 / span 3">2026年9月</div>
+    <div class="g-month" style="grid-column:5 / span 3">2026年10月</div>
+    <div class="g-month">负责人</div>
+    <div class="g-scale g-label">周次</div>
+    <div class="g-scale">09/18–09/21</div>
+    <div class="g-scale">09/22–09/26</div>
+    <div class="g-scale">09/27–10/01</div>
+    <div class="g-scale">10/02–10/05</div>
+    <div class="g-scale">10/06–10/09</div>
+    <div class="g-scale">10/10–10/14</div>
+    <div class="g-scale">(Owner)</div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">完成运维合同的签订</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:90%"></span><span class="g-pct">90%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王林</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">制定数据溯源计划的产出</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:0.0%;width:11.11%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王林</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">完成集团化公司治理方案工作量评审</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:44.44%"><span class="g-fill" style="width:70%"></span><span class="g-pct">70%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">张秋侠、王林</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">集团化公司治理组织排期开发</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar warn" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:25%"></span><span class="g-pct">25%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王林</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">UAT 测试验收</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:40.74%"><span class="g-fill" style="width:60%"></span><span class="g-pct">60%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">庞盛耀</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">联名会员卡上线方案评审并发布上线</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:44.44%"><span class="g-fill" style="width:55%"></span><span class="g-pct">55%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">庞盛耀</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">未回款催收看板 UI 通过财务/设计评审</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:45%"></span><span class="g-pct">45%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">陈涵思、王林</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">未回款催收看板启动数据对接</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:35%"></span><span class="g-pct">35%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">王林</span></div>
+    </div>
+  </div>
+  <div class="gantt-legend">
+    <span class="lg"><span class="sw done"></span>已完成</span>
+    <span class="lg"><span class="sw"></span>进行中</span>
+    <span class="lg"><span class="sw warn"></span>风险 / 待定</span>
+    <span class="lg"><span class="dm"></span>里程碑</span>
+    <span class="lg"><span class="dm filled"></span>里程碑（已达成）</span>
+    <span class="lg"><span class="ln"></span>今日</span>
+  </div>
+</div>
+  </div>
 </div>
 
 </div>
@@ -1319,6 +2067,16 @@
       box.className = 'table-scroll';
       p.insertBefore(box, t);
       box.appendChild(t);
+    });
+    /* ★ V22.0：甘特图同样需要窄屏横向滚动兜底。
+       HTML 里已写好 .gantt-scroll 外层，草稿恢复会重建子树 → 需重新补齐。 */
+    root.querySelectorAll('.gantt').forEach(function(g){
+      var p = g.parentNode;
+      if(p && p.classList && p.classList.contains('gantt-scroll')) return;
+      var box = document.createElement('div');
+      box.className = 'gantt-scroll';
+      p.insertBefore(box, g);
+      box.appendChild(g);
     });
   }
 
