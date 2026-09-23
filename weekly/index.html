@@ -168,6 +168,10 @@
     white-space:normal;
     word-break:normal;overflow-wrap:anywhere;
     padding-left:3px;padding-right:3px;font-size:12px;}
+  /* ★ V21.6：附录「下一步计划」拆成多行后，续行的 row-head 留空，
+     让它与首行视觉连成一条完整色带（不加竖线分隔），表明属同一行组。 */
+  .row-head:empty{background:var(--brand-soft);}
+  table.wide tbody tr + tr td.row-head:empty{border-top:none;}
   tbody tr:nth-child(even) td:not(.row-head){background:#fcfdfe;}
   .cell-owner{text-align:center;vertical-align:middle;font-weight:600;color:var(--ink-2);
     word-break:normal;overflow-wrap:anywhere;font-size:12px;padding-left:3px;padding-right:3px;}
