@@ -178,22 +178,22 @@
   .cell-date .d{display:block;white-space:nowrap;}
   .cell-date .d small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:normal;line-height:1.35;}
 
-  /* ============ 附录宽表专用（提升规整度与可读性）============ */
+  /* ============ 附录宽表专用（提升规整度与可读性）============
+     ★ V21.5：表格边框一律 1px，不加粗（用户要求） */
   /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读 */
   table.wide td{vertical-align:middle;padding:6px 8px;line-height:1.6;}
   table.wide td.txt{vertical-align:top;text-align:left;line-height:1.62;}
   /* 2) 表头：主表头深蓝，slim 行浅蓝底 + 底边线，层次分明 */
   table.wide thead tr:first-child th{background:var(--brand);font-size:12.5px;}
-  table.wide thead tr:last-child th{background:#eef3f8;color:var(--brand);border-bottom:2px solid var(--brand);}
+  table.wide thead tr:last-child th{background:#eef3f8;color:var(--brand);border-bottom:1px solid var(--line-strong);}
   /* 3) 项目列：竖向标签 */
   table.wide .row-head{background:var(--brand-soft);font-size:12px;}
-  /* 4) 板块分隔：每组最后一列右侧加粗线，一眼分清各板块 */
-  table.wide td.grp-end,table.wide th.grp-end{border-right:2px solid var(--brand);}
+  /* 4) 板块分隔：每组最后一列右侧分隔线（1px，靠底色区分板块） */
+  table.wide td.grp-end,table.wide th.grp-end{border-right:1px solid var(--line-strong);}
   /* 5) 目标/进展 整块跨列：顶对齐、行距舒展 */
   table.wide td.span-note{vertical-align:top;line-height:1.62;}
-  /* 6) 附录表整体外框加粗，与正文表拉开层次 */
-  table.wide{border:2px solid var(--brand);}
-  table.wide thead tr:first-child th{border-top:none;}
+  /* 6) 附录表外框与正文表同规格（1px，不加粗） */
+  table.wide{border:1px solid var(--line-strong);}
   table.wide tbody tr:last-child td{border-bottom:none;}
   table.wide th:first-child,table.wide td:first-child{border-left:none;}
   table.wide th:last-child,table.wide td:last-child{border-right:none;}
