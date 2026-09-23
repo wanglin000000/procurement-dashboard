@@ -195,8 +195,19 @@
   table.wide tbody tr:last-child td{border-bottom:none;}
   table.wide th:first-child,table.wide td:first-child{border-left:none;}
   table.wide th:last-child,table.wide td:last-child{border-right:none;}
-  /* 7) 附录表最后一行留白收紧 */
-  table.wide tbody tr:last-child td{padding-bottom:7px;}
+  /* 7) 附录表最后一行留白收紧 —— 用 padding-bottom 统一覆盖，
+        保持上/右/左三边与常规单元格一致（6px 8px），避免出现「上6下7」的混合规格 */
+  table.wide tbody tr:last-child td{padding-bottom:6px;}
+
+  /* ============ 首列对齐统一（普通表）============
+     表1「异常汇报」是空行模板，首列没有 .row-head 类，
+     默认 text-align:start 会与其余 6 张表的居中首列不一致。
+     这里统一居中 + 与 .row-head 相同的紧凑左右 padding；
+     用 :not(.wide) 排除附录宽表，避免覆盖宽表的 6px 8px 规格。 */
+  table:not(.wide) tbody td:first-child{
+    text-align:center; vertical-align:middle;
+    padding-left:3px; padding-right:3px; font-size:12px;
+  }
 
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
