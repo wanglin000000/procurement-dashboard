@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数智化周报 20260928 · 可编辑</title>
+<style>
+  :root{
+    --ink:#1f2328; --ink-2:#3d4450; --muted:#6b7280;
+    --line:#dfe3e8; --line-strong:#c3c9d2;
+    --brand:#1F4E79; --brand-2:#2c6699;
+    --brand-soft:#eef4fa; --brand-soft-2:#dbe8f5;
+    --warn:#b45309; --warn-soft:#fef3e2;
+    --ok:#15803d; --ok-soft:#e8f5ee;
+    --danger:#b91c1c; --danger-soft:#fdecec;
+    --paper:#ffffff; --canvas:#eef1f5;
+    --radius:8px;
+    --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas); color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Helvetica Neue",Arial,sans-serif;
+    font-size:13px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ 页面纸张 ============ */
+  .page-wrap{max-width:1180px;margin:0 auto;padding:22px 20px 80px;}
+  .paper{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:38px 44px 46px;margin-bottom:20px;position:relative;}
+
+  /* ============ 报头 ============ */
+  .report-head{border-bottom:2.5px solid var(--brand);padding-bottom:14px;margin-bottom:18px;}
+  .report-title{font-size:26px;font-weight:700;color:var(--brand);letter-spacing:.5px;margin:0;line-height:1.3;}
+  .title-row{display:flex;align-items:center;justify-content:center;position:relative;gap:10px;}
+  /* 编辑开关按钮 */
+  .edit-toggle{
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
+    appearance:none; border:1px solid var(--brand); background:#fff; color:var(--brand);
+    height:32px; padding:0 16px; border-radius:18px; cursor:pointer;
+    font-size:13px; font-weight:600; font-family:inherit; letter-spacing:.3px;
+    display:inline-flex; align-items:center; gap:6px;
+    transition:all .16s ease; white-space:nowrap; box-shadow:0 1px 3px rgba(31,78,121,.14);
+  }
+  .edit-toggle:hover{background:var(--brand-soft); box-shadow:0 3px 10px rgba(31,78,121,.22);}
+  .edit-toggle:active{transform:translateY(-50%) scale(.97);}
+  .edit-toggle .ic{font-size:14px;line-height:1;}
+  body.editing .edit-toggle{background:var(--brand); color:#fff; border-color:var(--brand);}
+  body.editing .edit-toggle:hover{background:var(--brand-2);}
+
+  /* 编辑态右上角小提示（极轻量，不占版面） */
+  .edit-hint{
+    display:none; position:fixed; right:18px; bottom:18px; z-index:70;
+    background:rgba(31,78,121,.94); color:#fff; font-size:12px; line-height:1.6;
+    padding:9px 14px; border-radius:10px; box-shadow:0 6px 20px rgba(16,24,40,.25);
+    max-width:280px;
+  }
+  body.editing .edit-hint{display:block;}
+  .edit-hint b{color:#ffd980;}
+
+  .meta-row{display:flex;flex-wrap:wrap;gap:6px 34px;font-size:13px;color:var(--ink-2);margin-top:12px;}
+  .meta-item{display:flex;align-items:baseline;gap:6px;}
+  .meta-item .k{color:var(--muted);}
+  .meta-item .v{font-weight:600;}
+  .pill{display:inline-block;padding:1px 9px;border-radius:20px;font-size:12px;font-weight:600;line-height:1.6;}
+  .pill.done{background:var(--ok-soft);color:var(--ok);}
+  .pill.pending{background:var(--warn-soft);color:var(--warn);}
+
+  /* ============ 章节标题 ============ */
+  .sec-title{font-size:15.5px;font-weight:700;color:var(--brand);margin:26px 0 10px;padding-left:11px;
+    border-left:4px solid var(--brand);line-height:1.4;}
+  .sec-title.sub{font-size:13.5px;border-left-width:3px;}
+  .sec-title.sub-gap{margin-top:18px;}
+
+  /* ============ 表格 ============ */
+  table{border-collapse:collapse;width:100%;table-layout:fixed;}
+  th,td{border:1px solid var(--line-strong);padding:7px 9px;vertical-align:top;font-size:12.5px;line-height:1.62;
+    word-break:break-word;overflow-wrap:anywhere;}
+  thead th{background:var(--brand);color:#fff;font-weight:600;text-align:center;font-size:12.5px;vertical-align:middle;}
+  .th-slim{background:var(--brand-2);text-align:center;}
+  .row-head{background:var(--brand-soft);font-weight:600;text-align:center;color:var(--brand);vertical-align:middle;}
+  tbody tr:nth-child(even) td:not(.row-head){background:#fcfdfe;}
+  .cell-owner{text-align:center;vertical-align:middle;font-weight:600;color:var(--ink-2);}
+  .cell-date{text-align:center;vertical-align:middle;}
+  .cell-date .d{display:block;white-space:nowrap;}
+  .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
+  .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
+  .lvl-p1{color:var(--warn);background:var(--warn-soft)!important;}
+  .lvl-p2{color:var(--brand);background:var(--brand-soft)!important;}
+  .table-note{font-size:11.5px;color:var(--muted);margin:6px 0 0;}
+  .g-head{background:var(--brand-soft);padding:8px 14px;font-weight:700;color:var(--brand);font-size:13.5px;
+    border:1px solid var(--line-strong);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;}
+
+  /* ============ 编辑态 ============ */
+  [contenteditable]{outline:none;}
+  body:not(.editing) [data-ce="1"]{cursor:default;}
+  body.editing [data-ce="1"]{cursor:text;}
+  body.editing [data-ce="1"]:hover{background:rgba(31,78,121,.055);}
+  body.editing [data-ce="1"]:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--brand-2);border-radius:3px;}
+  body.editing td:focus-within,body.editing th:focus-within{background:#fff!important;}
+  body.editing table td[data-ce="1"]:hover{background:var(--brand-soft)!important;}
+  /* 选区高亮 */
+  body.editing ::selection{background:#cfe3f7;}
+
+  /* ============ 选区浮出工具条 ============ */
+  .bubble{
+    position:absolute; z-index:80; display:none;
+    background:#fff; border:1px solid var(--line-strong); border-radius:10px;
+    box-shadow:0 8px 28px rgba(16,24,40,.20);
+    padding:5px 7px; gap:3px; align-items:center;
+    user-select:none; -webkit-user-select:none;
+    transform:translate(-50%,0); opacity:0;
+    transition:opacity .13s ease;
+  }
+  .bubble.show{display:flex; opacity:1;}
+  .bubble::after{ /* 小箭头 */
+    content:''; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    width:10px; height:10px; background:#fff; border-right:1px solid var(--line-strong);
+    border-bottom:1px solid var(--line-strong); rotate:45deg;
+  }
+  .bubble.below::after{bottom:auto; top:-6px; border:none; border-left:1px solid var(--line-strong); border-top:1px solid var(--line-strong);}
+  .b-sep{width:1px; height:20px; background:var(--line); margin:0 3px; flex:0 0 auto;}
+  .b-btn{
+    appearance:none; border:1px solid transparent; background:transparent; color:var(--ink-2);
+    min-width:28px; height:28px; padding:0 6px; border-radius:6px; cursor:pointer;
+    font-size:13px; line-height:1; font-family:inherit;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:background .12s ease, color .12s ease;
+  }
+  .b-btn:hover{background:var(--brand-soft); color:var(--brand);}
+  .b-btn.on{background:var(--brand); color:#fff;}
+  .b-btn.bold{font-weight:800;}
+  .b-btn.italic{font-style:italic;font-family:Georgia,serif;}
+  .b-btn.under{text-decoration:underline;}
+  .b-btn.strike{text-decoration:line-through;}
+  .b-swatch{width:20px;height:20px;border-radius:4px;border:1px solid var(--line-strong);cursor:pointer;
+    padding:0;overflow:hidden;position:relative;background:#fff;}
+  .b-swatch input{position:absolute;inset:-6px;width:200%;height:200%;border:none;background:none;cursor:pointer;padding:0;}
+  .b-select{
+    height:28px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink-2);
+    font-size:12px;padding:0 2px;cursor:pointer;font-family:inherit;max-width:62px;
+  }
+  .b-select:focus{outline:2px solid var(--brand-soft-2);border-color:var(--brand-2);}
+
+  /* 编辑态专用：表格行列工具（收纳在右下角浮动小面板） */
+  .rowcol-tools{
+    display:none; position:fixed; left:18px; bottom:18px; z-index:70;
+    background:#fff; border:1px solid var(--line-strong); border-radius:10px;
+    box-shadow:0 8px 24px rgba(16,24,40,.16); padding:6px 8px; gap:4px; align-items:center;
+  }
+  body.editing .rowcol-tools{display:flex;}
+  .rc-btn{
+    appearance:none;border:1px solid var(--line-strong);background:#fff;color:var(--ink-2);
+    height:27px;padding:0 9px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;
+    display:inline-flex;align-items:center;gap:3px;transition:all .12s ease;white-space:nowrap;
+  }
+  .rc-btn:hover{background:var(--brand-soft);border-color:var(--brand-2);color:var(--brand);}
+  .rc-btn.del:hover{background:var(--danger-soft);border-color:var(--danger);color:var(--danger);}
+  .rc-sep{width:1px;height:18px;background:var(--line);margin:0 3px;}
+
+  .flag{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2328;color:#fff;
+    font-size:12px;padding:7px 16px;border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:99;opacity:.95;}
+  .flag.show{display:block;}
+
+  @media print{
+    body{background:#fff;}
+    .flag,.edit-hint,.edit-toggle,.bubble,.rowcol-tools{display:none!important;}
+    .page-wrap{max-width:none;padding:0;}
+    .paper{box-shadow:none;border-radius:0;padding:0 0 16px;margin:0;page-break-after:always;}
+    thead th,.row-head,.lvl-p0,.lvl-p1,.lvl-p2,.g-head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    tr{page-break-inside:avoid;}
+  }
+  @media (max-width:820px){
+    .paper{padding:22px 16px 28px;}
+    .report-title{font-size:19px;}
+    .title-row{flex-direction:column;}
+    .edit-toggle{position:static;transform:none;margin-top:8px;}
+    body.editing .edit-toggle{transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 选区浮出格式工具条 ============ -->
+<div class="bubble" id="bubble">
+  <button class="b-btn bold" data-cmd="bold" title="加粗 (Ctrl+B)">B</button>
+  <button class="b-btn italic" data-cmd="italic" title="斜体 (Ctrl+I)">I</button>
+  <button class="b-btn under" data-cmd="underline" title="下划线 (Ctrl+U)">U</button>
+  <button class="b-btn strike" data-cmd="strikeThrough" title="删除线">S</button>
+  <span class="b-sep"></span>
+  <label class="b-swatch" title="字体颜色"><input type="color" id="colorText" value="#1f2328"></label>
+  <label class="b-swatch" title="文字高亮"><input type="color" id="colorHi" value="#fff2a8"></label>
+  <span class="b-sep"></span>
+  <select class="b-select" id="selSize" title="字号">
+    <option value="">字号</option>
+    <option>10</option><option>11</option><option>12</option><option>12.5</option>
+    <option>13</option><option>14</option><option>15</option><option>16</option>
+    <option>18</option><option>20</option><option>24</option>
+  </select>
+  <span class="b-sep"></span>
+  <button class="b-btn" data-cmd="justifyLeft" title="左对齐">&#11104;</button>
+  <button class="b-btn" data-cmd="justifyCenter" title="居中">&#8801;</button>
+  <button class="b-btn" data-cmd="justifyRight" title="右对齐">&#11106;</button>
+  <span class="b-sep"></span>
+  <button class="b-btn" id="btnClearFmt" title="清除格式">&#9003;</button>
+</div>
+
+<!-- ============ 编辑态右下角：表格行列工具 + 输出 ============ -->
+<div class="rowcol-tools" id="rowcolTools">
+  <button class="rc-btn" id="btnRowAdd" title="在下方插入行">+ 行</button>
+  <button class="rc-btn" id="btnColAdd" title="在右侧插入列">+ 列</button>
+  <button class="rc-btn del" id="btnRowDel" title="删除当前行">- 行</button>
+  <button class="rc-btn del" id="btnColDel" title="删除当前列">- 列</button>
+  <span class="rc-sep"></span>
+  <button class="rc-btn" id="btnPrint" title="打印 / 导出 PDF">打印</button>
+  <button class="rc-btn" id="btnSave" title="保存为 HTML (Ctrl+S)">保存</button>
+  <button class="rc-btn" id="btnExport" title="导出 Excel">导出 Excel</button>
+</div>
+
+<div class="edit-hint" id="editHint">
+  <b>编辑模式</b><br>
+  点击文字直接修改；<b>选中文字</b>会浮出格式工具条。<br>
+  右侧下方可增删行列、保存或导出。按 <b>Esc</b> 退出。
+</div>
+
+<div class="page-wrap" id="root">
+
+<div class="paper">
+
+  <div class="report-head">
+    <div class="title-row">
+      <h1 class="report-title">数智化周报 <span contenteditable="true">20260928</span></h1>
+      <button class="edit-toggle" id="editToggle" title="开启/关闭编辑模式">
+        <span class="ic" id="editIcon">&#9998;</span><span id="editLabel">编辑</span>
+      </button>
+    </div>
+    <div class="meta-row">
+      <div class="meta-item"><span class="k">作者：</span><span class="v" contenteditable="true">马佳、王林</span></div>
+      <div class="meta-item"><span class="k">审核：</span><span class="v" contenteditable="true">郭晨阳</span></div>
+      <div class="meta-item"><span class="k">操盘会预审：</span><span class="v" contenteditable="true">&nbsp;</span></div>
+      <div class="meta-item"><span class="k">负责人自检：</span><span class="pill done" contenteditable="true">已完成</span></div>
+      <div class="meta-item"><span class="k">Agent 终审：</span><span class="pill pending" contenteditable="true">待进行</span></div>
+    </div>
+  </div>
+
+  <h2 class="sec-title">一、【异常汇报】</h2>
+  <table>
+    <colgroup>
+      <col style="width:14%"><col style="width:12%"><col style="width:12%">
+      <col style="width:8%"><col style="width:30%"><col style="width:24%">
+    </colgroup>
+    <thead>
+      <tr><th>异常事项</th><th>预期</th><th>实际</th><th>GAP</th><th>根因及改进计划</th><th>下一步计划</th></tr>
+    </thead>
+    <tbody>
+      <tr><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
+          <td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td></tr>
+      <tr><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
+          <td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td></tr>
+    </tbody>
+  </table>
+  <p class="table-note">如本周无异常，可保留空行或直接删除该表。</p>
+
+  <h2 class="sec-title">二、【项目总结】</h2>
+  <table>
+    <colgroup>
+      <col style="width:8%"><col style="width:24%"><col style="width:7%"><col style="width:34%"><col style="width:27%">
+    </colgroup>
+    <thead>
+      <tr><th>项目</th><th>亮灯状态（一句话总结）</th><th>负责人</th><th>进展</th><th>下一步计划</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-head" contenteditable="true">AI化<br>转型</td>
+        <td contenteditable="true">AI化依据2026年AI化规划 V2.0 第十版 进行任务推进交付；重新盘点AI化项目价值</td>
+        <td class="cell-owner" contenteditable="true">郭晨阳</td>
+        <td contenteditable="true">使用Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；<br>内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>AI 安全治理制度项目，书面调研4/14，10个部门未反馈调研报告；</td>
+        <td contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>责任人：郭师光 DDL：10月10日<br>针对墨迹真实需求-主版天气服务加速优化需求<br>责任人：郭师光 DDL：9月30日<br>AI 治理制度项目各部门访谈调研<br>责任人：王平 DDL：9月24日</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">用户<br>资产<br>项目</td>
+        <td contenteditable="true">本周3项任务推进：1）Marketing API 大数据完成OPPO监测日志与收入数据关联；2）德勤关于鸿蒙LTV过低优化：<br>短期方案：将模型切换成华为模型，同时将未来广告增长系数外放，作为冷启动调节系数，并由经分负责管理及输出。（9月底）<br>中期方案：补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10月16日）。</td>
+        <td class="cell-owner" contenteditable="true">马佳</td>
+        <td contenteditable="true">9月30日完成Marketing API 大数据完成OPPO监测日志与收入数据关联<br>9月30日完成鸿蒙LTV优化，10月1日开始上线新数据</td>
+        <td contenteditable="true">Marketing API完成7大厂商对接，同时大数据完成用户收入关联；（10月10日）<br>补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数（10月16日）。</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">数智<br>化转<br>型</td>
+        <td contenteditable="true">本周4项任务均正常推进，埋点治理认责映射逻辑已打通，集团化公司治理方案已经产出待决策；人力系统对接OA消息推送测试环境测试完成；</td>
+        <td class="cell-owner" contenteditable="true">郭晨阳</td>
+        <td contenteditable="true">埋点治理认责映射逻辑已打通<br>集团化公司治理方案评审完成<br>人力系统对接OA消息推送测试环境测试完成</td>
+        <td contenteditable="true">9月18日启动400个埋点的认责执行<br>责任人：何洲 DDL：9月20日<br>联名会员改造端内/端外模式继续按计划推进测试<br>责任人：庞盛耀 DDL：9月18日<br>集团化公司治理下周启动开发工作<br>责任人：张秋侠、王林 DDL：10月30日</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec-title">三、【决策事项 &amp; Action 跟进】</h2>
+  <h3 class="sec-title sub">【决策事项】</h3>
+  <table>
+    <colgroup><col style="width:14%"><col style="width:44%"><col style="width:12%"><col style="width:12%"><col style="width:18%"></colgroup>
+    <thead>
+      <tr><th>决策事项</th><th>内容说明</th><th>提出人</th><th>状态</th><th>下一步</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="cell-owner" contenteditable="true">暂无</td><td contenteditable="true">&nbsp;</td>
+          <td class="cell-owner" contenteditable="true">&nbsp;</td><td class="cell-owner" contenteditable="true">&nbsp;</td>
+          <td contenteditable="true">&nbsp;</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sec-title sub sub-gap">【Action 跟进】</h3>
+  <table>
+    <colgroup>
+      <col style="width:6%"><col style="width:44%"><col style="width:11%"><col style="width:10%"><col style="width:16%"><col style="width:13%">
+    </colgroup>
+    <thead>
+      <tr><th>级别</th><th>Action</th><th>Owner</th><th>DDL</th><th>交付依据 / 方式</th><th>来源</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
+        <td contenteditable="true">完成 Marketing API 与渠道 company ID、广告计划/推广位/content 和墨迹 UID 的关联、落表与治理；为老金和晋取各开通 3 家渠道的正式只读权限，并完成数据回传。</td>
+        <td class="cell-owner" contenteditable="true">郭晨阳</td>
+        <td class="cell-date" contenteditable="true">9月28日</td>
+        <td contenteditable="true">9月22日20:30完成邮件发送</td>
+        <td contenteditable="true">9/21日广告周报</td>
+      </tr>
+      <tr>
+        <td class="cell-lvl lvl-p0" contenteditable="true">P0</td>
+        <td contenteditable="true">围绕算法能力提升项目重新梳理考核口径：黄耀海、苏毅向 HR/海叔提交意见，明确成本下降但价值不降、不可抗力和技术浪潮等情形的计分规则，形成汇总结果提交本周会议讨论。</td>
+        <td class="cell-owner" contenteditable="true">黄耀海<br>/ 苏毅</td>
+        <td class="cell-date" contenteditable="true">9月28日</td>
+        <td contenteditable="true">&nbsp;</td>
+        <td contenteditable="true">9/21日广告周报</td>
+      </tr>
+      <tr>
+        <td class="cell-lvl lvl-p1" contenteditable="true">P1</td>
+        <td contenteditable="true">&nbsp;</td><td class="cell-owner" contenteditable="true">&nbsp;</td>
+        <td class="cell-date" contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td><td contenteditable="true">&nbsp;</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录</h2>
+  <h3 class="sec-title sub">1、AI化转型</h3>
+
+  <table>
+    <colgroup>
+      <col style="width:8%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">项目</th>
+        <th colspan="3">AI生活指数（迭代优化）</th>
+        <th colspan="3">AI广告素材识别</th>
+        <th colspan="3">AI研发提效</th>
+        <th colspan="3">AI安全</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-head" contenteditable="true">目标</td>
+        <td colspan="3" contenteditable="true">• 数据治理2.0<br>• AI友好性治理</td>
+        <td colspan="3" contenteditable="true">• 通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%<br>• 提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</td>
+        <td colspan="3" contenteditable="true">• 支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。<br>• 借助自动化系统，提效新业务的业务处理工作，减少人工误差。</td>
+        <td colspan="3" contenteditable="true">• AI治理制度项目，安全规范与流程闭环。<br>• AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">进展描述</td>
+        <td colspan="3" contenteditable="true">本周进行 token hub 模型测试<br>结论：共评测7个模型，均存在明显短板，无法直接替换<br>AI 指数替换模型测试</td>
+        <td colspan="3" contenteditable="true">• 对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；</td>
+        <td colspan="3" contenteditable="true">• 内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>• 第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</td>
+        <td colspan="3" contenteditable="true">• AI治理制度项目启动会召开完毕；<br>• AI治理制度项目书面调研4/14，10个部门未反馈调研报告；<br>• AI治理制度项目项目技术研发部访谈6/8；<br>• 高权限终端云端 XDLP 安全评估工作已完成；<br>• AI安全工具部署，目前已部署146/243；</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">下一步计划</td>
+        <td contenteditable="true">当前测试有其余p0事项，测试排期未定<br>气象测试待办项目排期表（2026）</td>
+        <td class="cell-date" contenteditable="true">未定</td>
+        <td class="cell-owner" contenteditable="true">张志远</td>
+        <td contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>针对墨迹真实需求-主版天气服务加速优化需求</td>
+        <td class="cell-date" contenteditable="true"><span class="d">10月10日</span><span class="d">9月30日</span></td>
+        <td class="cell-owner" contenteditable="true">郭师光</td>
+        <td contenteditable="true">目前正在进行基于openclaw产研智能体持续优化。</td>
+        <td class="cell-date" contenteditable="true">10月10日</td>
+        <td class="cell-owner" contenteditable="true">郭师光</td>
+        <td contenteditable="true">AI治理制度项目各部门访谈调研<br>AI安全工具部署达到95%</td>
+        <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月22日</span></td>
+        <td class="cell-owner" contenteditable="true">王平</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录（续）</h2>
+  <h3 class="sec-title sub">2、用户资产项目</h3>
+
+  <table>
+    <colgroup>
+      <col style="width:8%">
+      <col style="width:15.3%"><col style="width:6.1%"><col style="width:9.2%">
+      <col style="width:15.3%"><col style="width:6.1%"><col style="width:9.2%">
+      <col style="width:15.3%"><col style="width:6.1%"><col style="width:9.2%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">项目</th>
+        <th colspan="3">Marketing API</th>
+        <th colspan="3">项目验收 &amp; 数据治理</th>
+        <th colspan="3">价值兑现</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-head" contenteditable="true">目标</td>
+        <td colspan="3" contenteditable="true">厂商及新媒体渠道付费新增精细化运营，包括投放下钻至创意/素材粒度效果</td>
+        <td colspan="3" contenteditable="true">用户资产底层任务及算法迁移及后续验收交付</td>
+        <td colspan="3" contenteditable="true">用户资产渠道投放计划POC中</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">进展描述</td>
+        <td colspan="3" contenteditable="true">• 事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）<br>• 事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）<br>• 事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</td>
+        <td colspan="3" contenteditable="true">• 事项1：系统底层任务及表从老IDC需要完整迁移至京东云<br>• 事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</td>
+        <td colspan="3" contenteditable="true">• 事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中<br>• 事项2：OPPO高价值人群包策略上线<br>• 事项3：德勤价值兑现需结合整体DAU下降进行补充说明</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">下一步计划</td>
+        <td contenteditable="true">• 事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中<br>• 事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据<br>• 事项3：需求梳理中</td>
+        <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月24日</span><span class="d">9月24日</span></td>
+        <td class="cell-owner" contenteditable="true">齐金桐</td>
+        <td contenteditable="true">• 事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期<br>• 事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议<br>• 事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
+        <td class="cell-date" contenteditable="true"><span class="d">10月31日</span><span class="d">9月18日</span><span class="d">9月17日</span></td>
+        <td class="cell-owner" contenteditable="true">何洲<br>何洲、郭师光<br>德勤</td>
+        <td contenteditable="true">• 事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整<br>• 事项2：OPPO高价值人群包上线验证中<br>• 事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
+        <td class="cell-date" contenteditable="true"><span class="d">9月18日</span><span class="d">9月20日<br>数据价值评估</span><span class="d">9月18日</span></td>
+        <td class="cell-owner" contenteditable="true">马佳<br>马佳<br>德勤</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="paper">
+  <h2 class="sec-title">四、附录（续）</h2>
+  <h3 class="sec-title sub">3、数智化转型</h3>
+
+  <table>
+    <colgroup>
+      <col style="width:8%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+      <col style="width:11.5%"><col style="width:4.6%"><col style="width:6.9%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">项目</th>
+        <th colspan="3">帆软BI &amp; CEO一眼报应用</th>
+        <th colspan="3">集团化公司治理项目</th>
+        <th colspan="3">会员鸿蒙TOB/TOC、联名会员和实体卡业务</th>
+        <th colspan="3">人资培训系统 E-Learning应用</th>
+      </tr>
+      <tr>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="row-head" contenteditable="true">目标</td>
+        <td colspan="3" contenteditable="true">数据治理2.0按规范治理完成（数据治理认责工作有五个步骤：包括BDO、TDO、DO、指标定义和口径定义）；数据治理2.0涉及的看板完成指标溯源</td>
+        <td colspan="3" contenteditable="true">优化业务的端到端流程，实现关联交易的在线化与自动合并报表处理</td>
+        <td colspan="3" contenteditable="true">支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行；借助自动化系统，提效新业务的业务处理工作，减少人工误差</td>
+        <td colspan="3" contenteditable="true">围绕公司人才发展与组织能力建设需求，实现培训过程线上化、学习资源体系化、培训管理数据化，提升员工学习覆盖率、培训执行效率及培训效果追踪能力，逐步形成可沉淀、可复用的人才培养体系</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">进展描述</td>
+        <td colspan="3" contenteditable="true">• 用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责<br>• 推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库<br>• 埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计9月18日结束</td>
+        <td colspan="3" contenteditable="true">本周供应商针对需求内容完成方案的产出</td>
+        <td colspan="3" contenteditable="true">• 方案评审：完成联名卡（端内/端外）第三轮评审：通过；<br>• 开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间9/18；报表定义模块开发未开始，预计完成时间9/20<br>• 测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间9/24<br>• 整体完成进度：70%</td>
+        <td colspan="3" contenteditable="true">培训系统与OA的对接的需求目前在测试环境调试完成</td>
+      </tr>
+      <tr>
+        <td class="row-head" contenteditable="true">下一步计划</td>
+        <td contenteditable="true">完成运维合同的签订<br>制定数据溯源计划的产出<br>9月18日启动400个埋点的认责执行。按当前埋点总量2000+测算，执行完成后认责率从13.3%提升至30%以上</td>
+        <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月20日</span><span class="d">9月20日</span></td>
+        <td class="cell-owner" contenteditable="true">王林<br>王林<br>何洲</td>
+        <td contenteditable="true">针对税筹方案完成与财务部进行方案的确认</td>
+        <td class="cell-date" contenteditable="true">9月20日</td>
+        <td class="cell-owner" contenteditable="true">张秋侠、王林</td>
+        <td contenteditable="true">测试：完成端内/端外数据集成测试<br>完成端内/端外结算方式开发<br>场景一（端内）和场景二（端外）开发完成并通过测试</td>
+        <td class="cell-date" contenteditable="true"><span class="d">9月18日</span><span class="d">9月18日</span><span class="d">9月29日</span></td>
+        <td class="cell-owner" contenteditable="true">庞盛耀</td>
+        <td contenteditable="true">培训系统与OA的对接的需求计划在9月24日完成生产环境的发布上线</td>
+        <td class="cell-date" contenteditable="true">9月24日</td>
+        <td class="cell-owner" contenteditable="true">刘超楠、王林</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<div class="flag" id="flag"></div>
+
+<script>
+(function(){
+  'use strict';
+  var LS_KEY = 'mozhi_digital_weekly_report_draft_v2';
+  var root = document.getElementById('root');
+  var flag = document.getElementById('flag');
+  var bubble = document.getElementById('bubble');
+  var toggle = document.getElementById('editToggle');
+  var editIcon = document.getElementById('editIcon');
+  var editLabel = document.getElementById('editLabel');
+  var editing = false;
+  var saveTimer = null;
+  var savedRange = null;
+  var silent = true;
+
+  function toast(msg, ms){
+    flag.textContent = msg;
+    flag.classList.add('show');
+    clearTimeout(flag._t);
+    flag._t = setTimeout(function(){ flag.classList.remove('show'); }, ms || 1800);
+  }
+  function isEditable(node){
+    if(!node) return false;
+    if(node.nodeType === 3) node = node.parentNode;
+    if(!node || !node.closest) return false;
+    return !!node.closest('[data-ce="1"]');
+  }
+  function activeCell(){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return null;
+    var node = sel.anchorNode;
+    if(node && node.nodeType === 3) node = node.parentNode;
+    if(!node || !node.closest) return null;
+    return node.closest('td,th');
+  }
+
+  /* ============ 选区浮条：显示 / 定位 / 隐藏 ============ */
+  function hideBubble(){ bubble.classList.remove('show'); }
+
+  function showBubbleForSelection(){
+    if(!editing){ hideBubble(); return; }
+    var sel = window.getSelection();
+    if(!sel || sel.rangeCount === 0 || sel.isCollapsed){ hideBubble(); return; }
+    var range = sel.getRangeAt(0);
+    if(!isEditable(range.commonAncestorContainer)){ hideBubble(); return; }
+    var rect = range.getBoundingClientRect();
+    if(!rect || (rect.width === 0 && rect.height === 0)){ hideBubble(); return; }
+    savedRange = range.cloneRange();
+
+    // 先显示以测量尺寸
+    bubble.style.visibility = 'hidden';
+    bubble.classList.add('show');
+    var bw = bubble.offsetWidth, bh = bubble.offsetHeight;
+    var cx = rect.left + rect.width/2 + window.scrollX;
+    var top = rect.top + window.scrollY - bh - 10;
+    var below = false;
+    if(rect.top - bh - 10 < 4){ // 空间不足则显示在下方
+      top = rect.bottom + window.scrollY + 10;
+      below = true;
+    }
+    // 左右边界收拢
+    var half = bw/2;
+    var minX = window.scrollX + half + 8;
+    var maxX = window.scrollX + document.documentElement.clientWidth - half - 8;
+    if(cx < minX) cx = minX;
+    if(cx > maxX) cx = maxX;
+
+    bubble.style.left = cx + 'px';
+    bubble.style.top = top + 'px';
+    bubble.classList.toggle('below', below);
+    bubble.style.visibility = '';
+  }
+
+  /* 执行格式命令（基于已保存的选区） */
+  function exec(cmd, val){
+    if(!editing) return;
+    if(!savedRange){ toast('请先选中要设置的文字'); return; }
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand(cmd, false, val || null);
+    markDirty();
+    updateBubbleState();
+    // 选区仍在，重新定位浮条
+    setTimeout(showBubbleForSelection, 0);
+  }
+
+  /* 按钮激活态：光标处格式是否已生效 */
+  function updateBubbleState(){
+    bubble.querySelectorAll('.b-btn[data-cmd]').forEach(function(b){
+      var cmd = b.getAttribute('data-cmd');
+      if(cmd === 'justifyLeft' || cmd === 'justifyCenter' || cmd === 'justifyRight'){ b.classList.remove('on'); return; }
+      try { b.classList.toggle('on', document.queryCommandState(cmd)); } catch(e){}
+    });
+  }
+
+  bubble.querySelectorAll('[data-cmd]').forEach(function(b){
+    b.addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); });
+    b.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      exec(b.getAttribute('data-cmd'));
+    });
+  });
+  bubble.addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); });
+
+  document.getElementById('colorText').addEventListener('mousedown', function(e){ e.stopPropagation(); });
+  document.getElementById('colorText').addEventListener('input', function(){ exec('foreColor', this.value); });
+  document.getElementById('colorHi').addEventListener('mousedown', function(e){ e.stopPropagation(); });
+  document.getElementById('colorHi').addEventListener('input', function(){ exec('hiliteColor', this.value); });
+
+  var selSize = document.getElementById('selSize');
+  selSize.addEventListener('mousedown', function(e){ e.stopPropagation(); });
+  selSize.addEventListener('change', function(){
+    var v = selSize.value;
+    if(!v) return;
+    if(!savedRange){ toast('请先选中文字'); return; }
+    var sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(savedRange);
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('fontSize', false, '7');
+    document.querySelectorAll('font[size="7"]').forEach(function(f){
+      f.removeAttribute('size'); f.style.fontSize = v + 'px';
+    });
+    selSize.value = '';
+    markDirty();
+    setTimeout(showBubbleForSelection, 0);
+  });
+
+  document.getElementById('btnClearFmt').addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); });
+  document.getElementById('btnClearFmt').addEventListener('click', function(e){
+    e.preventDefault(); e.stopPropagation();
+    exec('removeFormat');
+    toast('已清除选中文字的格式');
+  });
+
+  /* 选区变化监听 */
+  document.addEventListener('selectionchange', function(){
+    if(!editing){ hideBubble(); return; }
+    var sel = window.getSelection();
+    if(!sel || sel.isCollapsed || sel.rangeCount === 0){ hideBubble(); return; }
+    if(!isEditable(sel.anchorNode)){ hideBubble(); return; }
+    showBubbleForSelection();
+    updateBubbleState();
+  });
+  // 滚动 / 缩放时同步跟随
+  window.addEventListener('scroll', function(){ if(bubble.classList.contains('show')) showBubbleForSelection(); }, true);
+  window.addEventListener('resize', function(){ if(bubble.classList.contains('show')) showBubbleForSelection(); });
+  // 点击空白处隐藏
+  document.addEventListener('mousedown', function(e){
+    if(bubble.contains(e.target)) return;
+    if(!isEditable(e.target)) hideBubble();
+  });
+
+  /* ============ 编辑模式开关 ============ */
+  function setEditing(on){
+    editing = !!on;
+    document.body.classList.toggle('editing', editing);
+    root.querySelectorAll('[data-ce="1"]').forEach(function(el){
+      if(editing){ el.setAttribute('contenteditable','true'); }
+      else { el.removeAttribute('contenteditable'); }
+    });
+    if(editing){
+      editIcon.innerHTML = '&#10003;';
+      editLabel.textContent = '完成编辑';
+      toggle.title = '退出编辑模式';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if(!silent) toast('已进入编辑模式 · 点击文字修改，选中文字调格式', 2400);
+    } else {
+      hideBubble();
+      editIcon.innerHTML = '&#9998;';
+      editLabel.textContent = '编辑';
+      toggle.title = '开启编辑模式';
+      window.getSelection().removeAllRanges();
+      localStorage.setItem(LS_KEY, root.innerHTML);
+      if(!silent) toast('已退出编辑模式 · 内容已自动暂存', 1800);
+    }
+  }
+  toggle.addEventListener('click', function(){ setEditing(!editing); });
+
+  /* ============ 增删行列 ============ */
+  function freeTd(cls){
+    var td = document.createElement('td');
+    td.setAttribute('data-ce','1');
+    td.setAttribute('contenteditable','true');
+    if(cls) td.className = cls;
+    td.innerHTML = '&nbsp;';
+    return td;
+  }
+  document.getElementById('btnRowAdd').addEventListener('click', function(){
+    var cell = activeCell(); if(!cell){ toast('请先点进一个单元格'); return; }
+    var tr = cell.parentNode;
+    var nt = document.createElement('tr');
+    Array.prototype.forEach.call(tr.children, function(src){
+      var cls = '';
+      if(src.classList.contains('cell-owner')) cls = 'cell-owner';
+      else if(src.classList.contains('cell-date')) cls = 'cell-date';
+      else if(src.classList.contains('cell-lvl')) cls = 'cell-lvl';
+      nt.appendChild(freeTd(cls));
+    });
+    tr.parentNode.insertBefore(nt, tr.nextSibling);
+    markDirty(); toast('已在下方插入行');
+  });
+  document.getElementById('btnRowDel').addEventListener('click', function(){
+    var cell = activeCell(); if(!cell){ toast('请先点进一个单元格'); return; }
+    var tr = cell.parentNode, tb = tr.parentNode;
+    if(tb.querySelectorAll('tr').length <= 1){ toast('至少保留一行'); return; }
+    tr.parentNode.removeChild(tr);
+    markDirty(); toast('已删除该行（Ctrl+Z 可撤销）');
+  });
+  document.getElementById('btnColAdd').addEventListener('click', function(){
+    var cell = activeCell(); if(!cell){ toast('请先点进一个单元格'); return; }
+    var idx = Array.prototype.indexOf.call(cell.parentNode.children, cell);
+    cell.closest('table').querySelectorAll('tr').forEach(function(tr){
+      var ref = tr.children[idx]; if(!ref) return;
+      if(ref.tagName === 'TH'){
+        var th = document.createElement('th'); th.className='th-slim'; th.textContent='新列';
+        ref.parentNode.insertBefore(th, ref.nextSibling);
+      } else {
+        ref.parentNode.insertBefore(freeTd(''), ref.nextSibling);
+      }
+    });
+    markDirty(); toast('已在右侧插入列');
+  });
+  document.getElementById('btnColDel').addEventListener('click', function(){
+    var cell = activeCell(); if(!cell){ toast('请先点进一个单元格'); return; }
+    var idx = Array.prototype.indexOf.call(cell.parentNode.children, cell);
+    cell.closest('table').querySelectorAll('tr').forEach(function(tr){
+      if(tr.children[idx]) tr.removeChild(tr.children[idx]);
+    });
+    markDirty(); toast('已删除该列（Ctrl+Z 可撤销）');
+  });
+
+  /* ============ 保存 / 导出 / 打印 ============ */
+  function markDirty(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){ localStorage.setItem(LS_KEY, root.innerHTML); }, 800);
+  }
+
+  function download(content, filename, mime){
+    var blob = new Blob([content], {type: mime});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 500);
+  }
+
+  document.getElementById('btnSave').addEventListener('click', function(){
+    var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    var d = new Date();
+    var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+    download(html, '数智化周报-' + stamp + '.html', 'text/html;charset=utf-8');
+    toast('已下载 HTML 文件（双击打开可继续编辑）');
+  });
+
+  document.getElementById('btnExport').addEventListener('click', function(){
+    var tables = document.querySelectorAll('.paper table');
+    var titles = ['一、异常汇报','二、项目总结','三、决策事项','三、Action跟进',
+                  '附录1、AI化转型','附录2、用户资产项目',
+                  '附录3、数智化转型'];
+    var body = '';
+    tables.forEach(function(t, i){
+      body += '<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;font-family:微软雅黑;font-size:11pt;">';
+      if(titles[i]) body += '<tr><td colspan="20" style="background:#1F4E79;color:#fff;font-weight:bold;">' + titles[i] + '</td></tr>';
+      t.querySelectorAll('tr').forEach(function(tr){
+        body += '<tr>';
+        tr.querySelectorAll('th,td').forEach(function(c){
+          var tag = c.tagName === 'TH' ? 'th' : 'td';
+          var bg = c.tagName === 'TH' ? ' style="background:#2c6699;color:#fff;text-align:center;"' : '';
+          body += '<' + tag + bg + '>' + c.innerHTML + '</' + tag + '>';
+        });
+        body += '</tr>';
+      });
+      body += '</table><br>';
+    });
+    var xls = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8">'
+      + '<xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>数智化周报</x:Name>'
+      + '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>'
+      + '</head><body>' + body + '</body></html>';
+    download(xls, '数智化周报-导出.xls', 'application/vnd.ms-excel;charset=utf-8');
+    toast('已导出 Excel（可直接用 Excel/WPS 打开）');
+  });
+
+  document.getElementById('btnPrint').addEventListener('click', function(){ window.print(); });
+
+  /* ============ 快捷键 ============ */
+  document.addEventListener('keydown', function(e){
+    var meta = e.metaKey || e.ctrlKey;
+    if(meta && e.key === 's'){ e.preventDefault(); document.getElementById('btnSave').click(); return; }
+    if(!editing) return;
+    if(meta && e.key === 'b'){ e.preventDefault(); exec('bold'); }
+    if(meta && e.key === 'i'){ e.preventDefault(); exec('italic'); }
+    if(meta && e.key === 'u'){ e.preventDefault(); exec('underline'); }
+    if(e.key === 'Escape'){ setEditing(false); }
+    if(e.key === 'Tab'){
+      var cell = activeCell();
+      if(cell && isEditable(cell)){
+        e.preventDefault();
+        var cells = Array.prototype.slice.call(cell.closest('table').querySelectorAll('td[data-ce="1"],th[data-ce="1"]'));
+        var idx = cells.indexOf(cell);
+        var next = cells[e.shiftKey ? idx-1 : idx+1];
+        if(next) next.focus();
+      }
+    }
+  });
+
+  document.addEventListener('input', function(e){ if(editing && isEditable(e.target)) markDirty(); });
+  document.addEventListener('paste', function(e){
+    if(!editing || !isEditable(e.target)) return;
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+
+  /* ============ 启动 ============ */
+  root.querySelectorAll('[contenteditable="true"]').forEach(function(el){ el.setAttribute('data-ce','1'); });
+
+  var saved = localStorage.getItem(LS_KEY);
+  if(saved){
+    if(window.confirm('检测到本机存在未保存的草稿，是否恢复？\n（点「取消」加载原始模板）')){
+      root.innerHTML = saved;
+    } else {
+      localStorage.removeItem(LS_KEY);
+    }
+  }
+
+  setEditing(false);
+  flag.classList.remove('show');
+})();
+</script>
+</body>
+</html>
