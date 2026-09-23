@@ -428,10 +428,19 @@
   .ap-table tbody td:first-child{padding-left:14px;}
   .ap-table tbody td:last-child{border-right:none;}
   .ap-table tbody tr:last-child td{border-bottom:none;}
-  /* 任务起点标记：左内缩进线（inset，不可用 border-left，会被边框审计判为加粗边） */
+  /* 任务起点标记：左内缩进线（inset，不可用 border-left，会被边框审计判为加粗边）
+     ★ V22.4：同时在任务文字前加圆点项目符号，与「目标/进展」的 .note-list 视觉统一；
+       圆点用 ::before 定位在 inset 线右侧，文字左对齐起始位保持一致。 */
   .ap-table tbody td.t-task{
     box-shadow:inset 2px 0 0 0 rgba(31,78,121,.35);
-    padding-left:14px;
+    padding-left:22px;
+    text-align:left;
+    position:relative;
+  }
+  .ap-table tbody td.t-task::before{
+    content:''; position:absolute; left:12px; top:1.02em;
+    width:4px; height:4px; border-radius:50%;
+    background:var(--brand-2); opacity:.55;
   }
   .ap-table td.t-ddl{
     text-align:center; vertical-align:middle;
@@ -480,8 +489,11 @@
      表1「异常汇报」是空行模板，首列没有 .row-head 类，
      默认 text-align:start 会与其余 6 张表的居 中首列不一致。
      这里统一居中 + 与 .row-head 相同的紧凑左右 padding；
-     用 :not(.wide) 排除附录宽表，避免覆盖宽表的 6px 8px 规格。 */
-  table:not(.wide) tbody td:first-child{
+     用 :not(.wide) 排除附录宽表，避免覆盖宽表的 6px 8px 规格。
+     ⚠️ V22.4：附录已改用 .ap-table（无 .wide 类），此规则会误伤
+        其任务列（首列）—— 它比 `.ap-table tbody td.t-task` 的
+        选择器权重更高（伪类 :not 计入权重），必须显式排除。 */
+  table:not(.wide):not(.ap-table) tbody td:first-child{
     text-align:center; vertical-align:middle;
     padding-left:3px; padding-right:3px; font-size:12px;
   }
@@ -1581,12 +1593,12 @@
       </thead>
       <tbody>
         <tr>
-          <td class="t-task" contenteditable="true">1、当前测试有其余p0事项，测试排期未定，气象测试待办项目排期表（2026）</td>
+          <td class="t-task" contenteditable="true">当前测试有其余p0事项，测试排期未定，气象测试待办项目排期表（2026）</td>
           <td class="t-ddl" contenteditable="true">未定</td>
           <td class="t-owner" contenteditable="true"><span class="ow">张志远</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">2、测试 deepseek-v4.1-flash 效果；同步测试私有化部署模型 GLM5.2 的效果</td>
+          <td class="t-task" contenteditable="true">测试 deepseek-v4.1-flash 效果；同步测试私有化部署模型 GLM5.2 的效果</td>
           <td class="t-ddl" contenteditable="true">未定</td>
           <td class="t-owner" contenteditable="true"><span class="ow">张志远</span></td>
         </tr>
@@ -1693,7 +1705,7 @@
 </div>
 
 <div class="paper">
-  <h2 class="sec-title">四、附录（续）</h2>
+  <h2 class="sec-title">四、附录</h2>
   <h3 class="sec-title sub">2、用户资产项目</h3>
 
   <div class="app-proj">
@@ -1717,17 +1729,17 @@
       </thead>
       <tbody>
         <tr>
-          <td class="t-task" contenteditable="true">事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中</td>
+          <td class="t-task" contenteditable="true">完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中</td>
           <td class="t-ddl" contenteditable="true">09/24</td>
           <td class="t-owner" contenteditable="true"><span class="ow">齐金桐</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据</td>
+          <td class="t-task" contenteditable="true">供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据</td>
           <td class="t-ddl" contenteditable="true">09/24</td>
           <td class="t-owner" contenteditable="true"><span class="ow">齐金桐</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项3：需求梳理中</td>
+          <td class="t-task" contenteditable="true">需求梳理中</td>
           <td class="t-ddl" contenteditable="true">09/24</td>
           <td class="t-owner" contenteditable="true"><span class="ow">齐金桐</span></td>
         </tr>
@@ -1756,17 +1768,17 @@
       </thead>
       <tbody>
         <tr>
-          <td class="t-task" contenteditable="true">事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期。</td>
+          <td class="t-task" contenteditable="true">依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期。</td>
           <td class="t-ddl" contenteditable="true">10/31</td>
           <td class="t-owner" contenteditable="true"><span class="ow">何洲</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议</td>
+          <td class="t-task" contenteditable="true">大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议</td>
           <td class="t-ddl" contenteditable="true">09/18</td>
           <td class="t-owner" contenteditable="true"><span class="ow">何洲</span><span class="ow">郭师光</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
+          <td class="t-task" contenteditable="true">德勤侧梳理往期测试报告供质监后续验收参考</td>
           <td class="t-ddl" contenteditable="true">09/17</td>
           <td class="t-owner" contenteditable="true"><span class="ow">德勤</span></td>
         </tr>
@@ -1795,17 +1807,17 @@
       </thead>
       <tbody>
         <tr>
-          <td class="t-task" contenteditable="true">事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整</td>
+          <td class="t-task" contenteditable="true">策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整</td>
           <td class="t-ddl" contenteditable="true">09/18</td>
           <td class="t-owner" contenteditable="true"><span class="ow">马佳</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项2：OPPO高价值人群包上线验证中</td>
+          <td class="t-task" contenteditable="true">OPPO高价值人群包上线验证中</td>
           <td class="t-ddl" contenteditable="true"><span class="d">09/20</span><small>数据价值评估</small></td>
           <td class="t-owner" contenteditable="true"><span class="ow">马佳</span></td>
         </tr>
         <tr>
-          <td class="t-task" contenteditable="true">事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
+          <td class="t-task" contenteditable="true">德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
           <td class="t-ddl" contenteditable="true">09/18</td>
           <td class="t-owner" contenteditable="true"><span class="ow">德勤</span></td>
         </tr>      </tbody>
@@ -1814,7 +1826,7 @@
 </div>
 
 <div class="paper">
-  <h2 class="sec-title">四、附录（续）</h2>
+  <h2 class="sec-title">四、附录</h2>
   <h3 class="sec-title sub">3、数智化转型</h3>
 
   <div class="app-proj">
