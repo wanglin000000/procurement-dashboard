@@ -97,12 +97,12 @@
     hyphens:none;
     text-wrap:pretty;
   }
-  /* 单元格正文里的「完整词组」不可拆开（中英混排专有名词，如 测试QA Agent） */
   th,td{text-autospace:normal;}
   .nw{white-space:nowrap;}
   thead th{background:var(--brand);color:#fff;font-weight:600;text-align:center;font-size:12.5px;vertical-align:middle;
-    word-break:keep-all;overflow-wrap:normal;line-height:1.5;}
-  .th-slim{background:var(--brand-2);text-align:center;word-break:keep-all;overflow-wrap:normal;}
+    word-break:keep-all;overflow-wrap:normal;line-height:1.5;letter-spacing:.2px;}
+  .th-slim{background:var(--brand-2);text-align:center;word-break:keep-all;overflow-wrap:normal;
+    font-size:11.5px;font-weight:600;letter-spacing:.3px;}
   .row-head{background:var(--brand-soft);font-weight:600;text-align:center;color:var(--brand);vertical-align:middle;
     line-height:1.45;letter-spacing:0;
     /* 短标签优先单行；若列宽不足，允许在字间断行但不溢出 */
@@ -112,13 +112,35 @@
   tbody tr:nth-child(even) td:not(.row-head){background:#fcfdfe;}
   .cell-owner{text-align:center;vertical-align:middle;font-weight:600;color:var(--ink-2);
     word-break:normal;overflow-wrap:anywhere;font-size:12px;padding-left:3px;padding-right:3px;}
-  /* 责任人/日期内部多条目：整块换行，绝不拆字；超长条目允许在顿号后断行 */
   .ow{display:block;line-height:1.55;}
   .ow+.ow{margin-top:1px;}
   .cell-date{text-align:center;vertical-align:middle;word-break:normal;overflow-wrap:anywhere;
     font-size:12px;line-height:1.45;padding-left:3px;padding-right:3px;}
   .cell-date .d{display:block;white-space:nowrap;}
   .cell-date .d small{display:block;font-weight:400;font-size:11px;color:var(--muted);white-space:normal;line-height:1.35;}
+
+  /* ============ 附录宽表专用（提升规整度与可读性）============ */
+  /* 1) 附录表：单元格垂直居中、行高紧凑；文字类单元格顶对齐便于阅读 */
+  table.wide td{vertical-align:middle;padding:6px 8px;line-height:1.6;}
+  table.wide td.txt{vertical-align:top;text-align:left;line-height:1.62;}
+  /* 2) 表头：主表头深蓝，slim 行浅蓝底 + 底边线，层次分明 */
+  table.wide thead tr:first-child th{background:var(--brand);font-size:12.5px;}
+  table.wide thead tr:last-child th{background:#eef3f8;color:var(--brand);border-bottom:2px solid var(--brand);}
+  /* 3) 项目列：竖向标签 */
+  table.wide .row-head{background:var(--brand-soft);font-size:12px;}
+  /* 4) 板块分隔：每组最后一列右侧加粗线，一眼分清各板块 */
+  table.wide td.grp-end,table.wide th.grp-end{border-right:2px solid var(--brand);}
+  /* 5) 目标/进展 整块跨列：顶对齐、行距舒展 */
+  table.wide td.span-note{vertical-align:top;line-height:1.62;}
+  /* 6) 附录表整体外框加粗，与正文表拉开层次 */
+  table.wide{border:2px solid var(--brand);}
+  table.wide thead tr:first-child th{border-top:none;}
+  table.wide tbody tr:last-child td{border-bottom:none;}
+  table.wide th:first-child,table.wide td:first-child{border-left:none;}
+  table.wide th:last-child,table.wide td:last-child{border-right:none;}
+  /* 7) 附录表最后一行留白收紧 */
+  table.wide tbody tr:last-child td{padding-bottom:7px;}
+
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
   .lvl-p1{color:var(--warn);background:var(--warn-soft)!important;}
@@ -388,13 +410,13 @@
   <h2 class="sec-title">四、附录</h2>
   <h3 class="sec-title sub">1、AI化转型</h3>
 
-  <table>
+  <table class="wide">
     <colgroup>
-      <col style="width:7.4%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:7%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
     </colgroup>
     <thead>
       <tr>
@@ -405,41 +427,41 @@
         <th colspan="3">AI安全</th>
       </tr>
       <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true">• 数据治理2.0<br>• AI友好性治理</td>
-        <td colspan="3" contenteditable="true">• 通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%<br>• 提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</td>
-        <td colspan="3" contenteditable="true">• 支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。<br>• 借助自动化系统，提效新业务的业务处理工作，减少人工误差。</td>
-        <td colspan="3" contenteditable="true">• AI治理制度项目，安全规范与流程闭环。<br>• AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 数据治理2.0<br>• AI友好性治理</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 通过开源大模型进行广告素材分类和品牌识别，目标识别准确率85%<br>• 提升用户广告兴趣覆盖率并进行广告oCPX模型优化，目标转化率提升5%</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行。<br>• 借助自动化系统，提效新业务的业务处理工作，减少人工误差。</td>
+        <td colspan="3" contenteditable="true" class="span-note">• AI治理制度项目，安全规范与流程闭环。<br>• AI 安全产品采购项目，落地（SaaS 模式）AIDR+XDLP，AI使用与数据防泄漏管控。</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true">本周进行 token hub 模型测试<br>结论：共评测7个模型，均存在明显短板，无法直接替换<br>AI 指数替换模型测试</td>
-        <td colspan="3" contenteditable="true">• 对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；</td>
-        <td colspan="3" contenteditable="true">• 内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>• 第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</td>
-        <td colspan="3" contenteditable="true">• AI治理制度项目启动会召开完毕；<br>• AI治理制度项目书面调研4/14，10个部门未反馈调研报告；<br>• AI治理制度项目项目技术研发部访谈6/8；<br>• 高权限终端云端 XDLP 安全评估工作已完成；<br>• AI安全工具部署，目前已部署146/243；</td>
+        <td colspan="3" contenteditable="true" class="span-note">本周进行 token hub 模型测试<br>结论：共评测7个模型，均存在明显短板，无法直接替换<br>AI 指数替换模型测试</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 对Qwen3-VL开源模型进行广告素材识别进行优化标签准确率为85%，品牌识别准确率为80%，已完成线上接口开发和上线；</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 内部自研agent：技术侧自研“测试QA Agent、代码审查 Agent、架构设计 Agent、技术评审 Agent、问题扫描 Agent、优化解决 Agent、自动化执行 Agent、性能监测 Agent、埋点审核Agent”，已完成测试和验证<br>• 第三方合作：完成明略章鱼平台私有化部署，正在进行技术方案编写，技术评审，代码开发，测试方案多智能体协同；阿里云Agentloop平台进行流量监控分析，已完成接入，目前正在进行测试验证中</td>
+        <td colspan="3" contenteditable="true" class="span-note">• AI治理制度项目启动会召开完毕；<br>• AI治理制度项目书面调研4/14，10个部门未反馈调研报告；<br>• AI治理制度项目项目技术研发部访谈6/8；<br>• 高权限终端云端 XDLP 安全评估工作已完成；<br>• AI安全工具部署，目前已部署146/243；</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">下一步计划</td>
-        <td contenteditable="true">当前测试有其余p0事项，测试排期未定<br>气象测试待办项目排期表（2026）</td>
+        <td contenteditable="true" class="txt">当前测试有其余p0事项，测试排期未定<br>气象测试待办项目排期表（2026）</td>
         <td class="cell-date" contenteditable="true">未定</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">张志远</span></td>
-        <td contenteditable="true">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>针对墨迹真实需求-主版天气服务加速优化需求</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张志远</span></td>
+        <td contenteditable="true" class="txt">广告兴趣标签做为特征进行广告oCPX模型优化，目标转化率提升5%<br>针对墨迹真实需求-主版天气服务加速优化需求</td>
         <td class="cell-date" contenteditable="true"><span class="d">10月10日</span><span class="d">9月30日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">郭师光</span></td>
-        <td contenteditable="true">目前正在进行基于openclaw产研智能体持续优化。</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
+        <td contenteditable="true" class="txt">目前正在进行基于openclaw产研智能体持续优化。</td>
         <td class="cell-date" contenteditable="true">10月10日</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">郭师光</span></td>
-        <td contenteditable="true">AI治理制度项目各部门访谈调研<br>AI安全工具部署达到95%</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">郭师光</span></td>
+        <td contenteditable="true" class="txt">AI治理制度项目各部门访谈调研<br>AI安全工具部署达到95%</td>
         <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月22日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">王平</span></td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王平</span></td>
       </tr>
     </tbody>
   </table>
@@ -449,12 +471,12 @@
   <h2 class="sec-title">四、附录（续）</h2>
   <h3 class="sec-title sub">2、用户资产项目</h3>
 
-  <table>
+  <table class="wide">
     <colgroup>
-      <col style="width:8.6%">
-      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
-      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
-      <col style="width:15.8%"><col style="width:6.3%"><col style="width:8.3%">
+      <col style="width:7%">
+      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
+      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
+      <col style="width:15.81%"><col style="width:8.06%"><col style="width:7.13%">
     </colgroup>
     <thead>
       <tr>
@@ -464,35 +486,35 @@
         <th colspan="3">价值兑现</th>
       </tr>
       <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true">厂商及新媒体渠道付费新增精细化运营，包括投放下钻至创意/素材粒度效果</td>
-        <td colspan="3" contenteditable="true">用户资产底层任务及算法迁移及后续验收交付</td>
-        <td colspan="3" contenteditable="true">用户资产渠道投放计划POC中</td>
+        <td colspan="3" contenteditable="true" class="span-note">厂商及新媒体渠道付费新增精细化运营，包括投放下钻至创意/素材粒度效果</td>
+        <td colspan="3" contenteditable="true" class="span-note">用户资产底层任务及算法迁移及后续验收交付</td>
+        <td colspan="3" contenteditable="true" class="span-note">用户资产渠道投放计划POC中</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true">• 事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）<br>• 事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）<br>• 事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</td>
-        <td colspan="3" contenteditable="true">• 事项1：系统底层任务及表从老IDC需要完整迁移至京东云<br>• 事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</td>
-        <td colspan="3" contenteditable="true">• 事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中<br>• 事项2：OPPO高价值人群包策略上线<br>• 事项3：德勤价值兑现需结合整体DAU下降进行补充说明</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 事项1：前链路-渠道付费新增投放点击日志监测字段完善（丰富广告计划、广告组、创意等单用户渠道信息）<br>• 事项2：后链路-从媒体拉取广告计划、创意等展点消及转化数据（离线T+1&amp;小时级）<br>• 事项3：整合前后链路，梳理渠道广告计划、广告组、创意素材维度业务单用户CAC等宽表建模需求</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 事项1：系统底层任务及表从老IDC需要完整迁移至京东云<br>• 事项2：任务迁移并优化改造代码规范，验证新平台的数据治理可用性，包括指标及口径等</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 事项1：苹果ASA（搜索匹配、广泛匹配策略）&amp;安卓VIVO（搜索三图）策略持续生效中<br>• 事项2：OPPO高价值人群包策略上线<br>• 事项3：德勤价值兑现需结合整体DAU下降进行补充说明</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">下一步计划</td>
-        <td contenteditable="true">• 事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中<br>• 事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据<br>• 事项3：需求梳理中</td>
+        <td contenteditable="true" class="txt">• 事项1：完成11家线上投放的渠道监测格式优化，目前日志在大数据清洗规则研发并测试中<br>• 事项2：供应商研发资源开始远程入场，搭建系统部署及环境测试后，优先接入OPPO及VIVO两家渠道广告组&amp;创意级数据<br>• 事项3：需求梳理中</td>
         <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月24日</span><span class="d">9月24日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">齐金桐</span></td>
-        <td contenteditable="true">• 事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期<br>• 事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议<br>• 事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">齐金桐</span></td>
+        <td contenteditable="true" class="txt">• 事项1：依赖大数据侧进行系统上游依赖的任务迁移完成，项目任务进行优化迁移。大数据侧梳理进行迁移整体排期<br>• 事项2：大数据侧及算法侧对项目验收任务及代码规范进行检查，提出具体整改规范及问题建议<br>• 事项3：德勤侧梳理往期测试报告供质监后续验收参考</td>
         <td class="cell-date" contenteditable="true"><span class="d">10月31日</span><span class="d">9月18日</span><span class="d">9月17日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">何洲</span><span class="ow">何洲、郭师光</span><span class="ow">德勤</span></td>
-        <td contenteditable="true">• 事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整<br>• 事项2：OPPO高价值人群包上线验证中<br>• 事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">何洲</span><span class="ow">何洲、郭师光</span><span class="ow">德勤</span></td>
+        <td contenteditable="true" class="txt">• 事项1：策略POC台账策略持续跟进中-搜索匹配低百指CAC策略调整<br>• 事项2：OPPO高价值人群包上线验证中<br>• 事项3：德勤侧需要基于目前整体DAU下降，进行价值补充说明</td>
         <td class="cell-date" contenteditable="true"><span class="d">9月18日</span><span class="d">9月20日<small>数据价值评估</small></span><span class="d">9月18日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">马佳</span><span class="ow">马佳</span><span class="ow">德勤</span></td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">马佳</span><span class="ow">马佳</span><span class="ow">德勤</span></td>
       </tr>
     </tbody>
   </table>
@@ -502,13 +524,13 @@
   <h2 class="sec-title">四、附录（续）</h2>
   <h3 class="sec-title sub">3、数智化转型</h3>
 
-  <table>
+  <table class="wide">
     <colgroup>
-      <col style="width:7.4%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
-      <col style="width:13.0%"><col style="width:6.3%"><col style="width:8.6%">
+      <col style="width:7%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
+      <col style="width:11.86%"><col style="width:6.04%"><col style="width:5.35%">
     </colgroup>
     <thead>
       <tr>
@@ -519,41 +541,41 @@
         <th colspan="3">人资培训系统 E-Learning应用</th>
       </tr>
       <tr>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
-        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
+        <th class="th-slim">计划描述</th><th class="th-slim">DDL</th><th class="th-slim grp-end">责任人</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td class="row-head" contenteditable="true">目标</td>
-        <td colspan="3" contenteditable="true">数据治理2.0按规范治理完成（数据治理认责工作有五个步骤：包括BDO、TDO、DO、指标定义和口径定义）；数据治理2.0涉及的看板完成指标溯源</td>
-        <td colspan="3" contenteditable="true">优化业务的端到端流程，实现关联交易的在线化与自动合并报表处理</td>
-        <td colspan="3" contenteditable="true">支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行；借助自动化系统，提效新业务的业务处理工作，减少人工误差</td>
-        <td colspan="3" contenteditable="true">围绕公司人才发展与组织能力建设需求，实现培训过程线上化、学习资源体系化、培训管理数据化，提升员工学习覆盖率、培训执行效率及培训效果追踪能力，逐步形成可沉淀、可复用的人才培养体系</td>
+        <td colspan="3" contenteditable="true" class="span-note">数据治理2.0按规范治理完成（数据治理认责工作有五个步骤：包括BDO、TDO、DO、指标定义和口径定义）；数据治理2.0涉及的看板完成指标溯源</td>
+        <td colspan="3" contenteditable="true" class="span-note">优化业务的端到端流程，实现关联交易的在线化与自动合并报表处理</td>
+        <td colspan="3" contenteditable="true" class="span-note">支撑会员新业务开展，确保从下单、对账、开票和回款的结算按公司管理流程执行；借助自动化系统，提效新业务的业务处理工作，减少人工误差</td>
+        <td colspan="3" contenteditable="true" class="span-note">围绕公司人才发展与组织能力建设需求，实现培训过程线上化、学习资源体系化、培训管理数据化，提升员工学习覆盖率、培训执行效率及培训效果追踪能力，逐步形成可沉淀、可复用的人才培养体系</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">进展描述</td>
-        <td colspan="3" contenteditable="true">• 用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责<br>• 推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库<br>• 埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计9月18日结束</td>
-        <td colspan="3" contenteditable="true">本周供应商针对需求内容完成方案的产出</td>
-        <td colspan="3" contenteditable="true">• 方案评审：完成联名卡（端内/端外）第三轮评审：通过；<br>• 开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间9/18；报表定义模块开发未开始，预计完成时间9/20<br>• 测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间9/24<br>• 整体完成进度：70%</td>
-        <td colspan="3" contenteditable="true">培训系统与OA的对接的需求目前在测试环境调试完成</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 用户资产数据治理后续计划：更新和维护用户资产项目的口径台账，并转化成指标字典，持续推进认责<br>• 推进用户资产数据表和任务治理，做成可收敛、可复用、对AI友好的用户资产数据仓库<br>• 埋点治理进度：按产品板块建立的埋点认责映射逻辑已打通，埋点责任人名单已通过邮件宣贯，目前处于公示阶段，预计9月18日结束</td>
+        <td colspan="3" contenteditable="true" class="span-note">本周供应商针对需求内容完成方案的产出</td>
+        <td colspan="3" contenteditable="true" class="span-note">• 方案评审：完成联名卡（端内/端外）第三轮评审：通过；<br>• 开发进展：端内/端外模式总共三个模块——数据集成模块开发完成100%；财务结算模块开发完成80%，预计完成时间9/18；报表定义模块开发未开始，预计完成时间9/20<br>• 测试进展：模式数据集成测试完成80%；全流程端到端测试，预计完成时间9/24<br>• 整体完成进度：70%</td>
+        <td colspan="3" contenteditable="true" class="span-note">培训系统与OA的对接的需求目前在测试环境调试完成</td>
       </tr>
       <tr>
         <td class="row-head" contenteditable="true">下一步计划</td>
-        <td contenteditable="true">完成运维合同的签订<br>制定数据溯源计划的产出<br>9月18日启动400个埋点的认责执行。按当前埋点总量2000+测算，执行完成后认责率从13.3%提升至30%以上</td>
+        <td contenteditable="true" class="txt">完成运维合同的签订<br>制定数据溯源计划的产出<br>9月18日启动400个埋点的认责执行。按当前埋点总量2000+测算，执行完成后认责率从13.3%提升至30%以上</td>
         <td class="cell-date" contenteditable="true"><span class="d">9月24日</span><span class="d">9月20日</span><span class="d">9月20日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">王林</span><span class="ow">王林</span><span class="ow">何洲</span></td>
-        <td contenteditable="true">针对税筹方案完成与财务部进行方案的确认</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">王林</span><span class="ow">王林</span><span class="ow">何洲</span></td>
+        <td contenteditable="true" class="txt">针对税筹方案完成与财务部进行方案的确认</td>
         <td class="cell-date" contenteditable="true">9月20日</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">张秋侠、王林</span></td>
-        <td contenteditable="true">测试：完成端内/端外数据集成测试<br>完成端内/端外结算方式开发<br>场景一（端内）和场景二（端外）开发完成并通过测试</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">张秋侠、王林</span></td>
+        <td contenteditable="true" class="txt">测试：完成端内/端外数据集成测试<br>完成端内/端外结算方式开发<br>场景一（端内）和场景二（端外）开发完成并通过测试</td>
         <td class="cell-date" contenteditable="true"><span class="d">9月18日</span><span class="d">9月18日</span><span class="d">9月29日</span></td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">庞盛耀</span></td>
-        <td contenteditable="true">培训系统与OA的对接的需求计划在9月24日完成生产环境的发布上线</td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">庞盛耀</span></td>
+        <td contenteditable="true" class="txt">培训系统与OA的对接的需求计划在9月24日完成生产环境的发布上线</td>
         <td class="cell-date" contenteditable="true">9月24日</td>
-        <td class="cell-owner" contenteditable="true"><span class="ow">刘超楠、王林</span></td>
+        <td class="cell-owner grp-end" contenteditable="true"><span class="ow">刘超楠、王林</span></td>
       </tr>
     </tbody>
   </table>
