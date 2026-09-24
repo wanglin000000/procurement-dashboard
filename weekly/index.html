@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='a00a9db2b74d';</script>
+<script>window.__SZ_REPORT_BUILD__='214b88fdd45b';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -839,6 +839,7 @@
     display:grid;
     grid-template-columns:27% repeat(var(--slots, 6), minmax(0,1fr)) 11%;
     font-size:11.5px;
+    position:relative;              /* ★ V25：作为「今日」贯穿线的定位参照 */
   }
   .g-row{display:contents;}
   /* 月份轴（首行） */
@@ -886,6 +887,35 @@
     content:''; position:absolute; top:0; bottom:0; left:50%;
     width:1px; background:rgba(214,69,69,.55);
   }
+  /* ============ ★ V25「今日」贯穿线 ============
+     为什么重做（用户原话「甘特图里的那个今天显示的不太合适，不细看的话找不到」）：
+       改前「今日」只是图例里一根 1px 细线，**图表主体里根本没标出今天在哪**。
+     改法：
+       · 一条竖直贯穿线（虚线，跨满所有任务行）—— 一眼看出「现在推进到哪」
+       · 顶部挂一个「今天 09/24」小胶囊 —— 不用回头看图例就知道那根线是什么
+       · 用 dashed 虚线而非实线，避免与里程碑菱形/任务条抢视线
+       · 层级压在最底（z-index:0），不遮挡任务条与里程碑
+     ⚠️ 定位用 left:calc(27% + 62% * <比例>)，与 grid-template-columns 的
+        27%/11% 两个边列严格对应；改列宽必须同步改这里。 */
+  .g-todayline{
+    position:absolute; top:0; bottom:0;
+    width:0;
+    border-left:1px dashed rgba(214,69,69,.75);
+    pointer-events:none;
+    z-index:0;
+  }
+  /* 顶部「今天 MM/DD」胶囊标签 —— 贴合线顶、向右展开 */
+  .g-today-tag{
+    position:absolute; top:2px; left:3px;
+    display:inline-block; white-space:nowrap;
+    padding:1px 5px;
+    font-size:9.5px; font-weight:700; line-height:1.5;
+    color:#fff; background:rgba(214,69,69,.92);
+    border-radius:3px;
+    letter-spacing:.2px;
+  }
+  /* 贴在右边缘时改为向左展开，避免溢出出图外 */
+  .g-todayline.at-right .g-today-tag{left:auto; right:3px;}
   /* ★ 任务条：只允许这一处着色（进度一眼可辨），尺寸与内部网格对齐 */
   .g-bar{
     position:absolute; top:50%; transform:translateY(-50%);
@@ -956,7 +986,11 @@
   .gantt-legend .sw.warn{background:rgba(198,138,26,.20);border-color:rgba(198,138,26,.62);}
   .gantt-legend .dm{width:10px;height:10px;background:#fff;border:1px solid var(--brand);rotate:45deg;}
   .gantt-legend .dm.filled{background:var(--brand);}
-  .gantt-legend .ln{width:1px;height:13px;background:rgba(214,69,69,.55);}
+  /* ★ V25：图例里的「今日」样片改为与图中一致的红色虚线（原先 1px 实线太弱） */
+  .gantt-legend .ln{
+    width:0; height:13px;
+    border-left:1px dashed rgba(214,69,69,.85);
+  }
 
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
@@ -1179,6 +1213,10 @@
     .gantt-legend .sw,.gantt-legend .dm{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .gantt-grid{font-size:10.5px;}
     .g-bar{height:13px;}
+    /* ★ V25「今日」线：打印转灰（避免彩色打印抢眼），仍保留位置信息 */
+    .g-todayline{border-left-color:rgba(90,102,115,.75);}
+    .g-today-tag{background:#5a6673;color:#fff;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
     /* ★★★ V22.5 C3：附录打印分页修复
        病因（V22.4 实测）：1 个 .app-proj 小节高于一页时，
@@ -1413,6 +1451,7 @@
     <div class="g-scale">2026/11</div>
     <div class="g-scale">2026/12</div>
     <div class="g-scale">(Owner)</div>
+    <div class="g-todayline" data-pct="35.29" style="left:calc(27% + 62% * 0.3529)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">企业知识库平台（POC 完成知识库搭建并测试问答能力）</span></div>
       <div class="g-cells">
@@ -1713,6 +1752,7 @@
     <div class="g-scale">10/26–11/01</div>
     <div class="g-scale">11/02–11/08</div>
     <div class="g-scale">(Owner)</div>
+    <div class="g-todayline" data-pct="17.86" style="left:calc(27% + 62% * 0.17859999999999998)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商研发准备流程（墨迹账号申请、VPN权限、服务器方案规格及权限、端口应用权限等工单审批确认）</span></div>
       <div class="g-cells">
@@ -1867,6 +1907,7 @@
     <div class="g-scale">2027/03</div>
     <div class="g-scale">2027/04</div>
     <div class="g-scale">(Owner)</div>
+    <div class="g-todayline" data-pct="9.5" style="left:calc(27% + 62% * 0.095)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">短期方案：将模型切换成华为模型（德勤），并结合广告增长系数外放，作为冷启动调节系数，快速响应初步的LTV</span></div>
       <div class="g-cells">
@@ -3307,6 +3348,18 @@
       box.className = 'gantt-scroll';
       p.insertBefore(box, g);
       box.appendChild(g);
+    });
+    placeTodayTags();
+  }
+
+  /* ★ V25：让「今天 MM/DD」胶囊标签贴边时自动改向左展开。
+     为什么要 JS：标签位置取决于今天的横坐标（随月份推进而变），
+     CSS 无法预知。当今天落在图形右侧 1/3 时，
+     标签若仍向右展开会溢出图外 → 加 .at-right 改为向左展开。 */
+  function placeTodayTags(){
+    root.querySelectorAll('.g-todayline').forEach(function(ln){
+      var pct = parseFloat(ln.getAttribute('data-pct') || '0');
+      ln.classList.toggle('at-right', pct > 66);
     });
   }
 
