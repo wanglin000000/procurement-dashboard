@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='7fbd41b35b4a';</script>
+<script>window.__SZ_REPORT_BUILD__='a00a9db2b74d';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -2420,6 +2420,30 @@
      ⚠️ 改版后必须让 BUILD_STAMP 变化（_build.py 已自动按内容哈希注入）。 */
   var BUILD_STAMP = window.__SZ_REPORT_BUILD__ || '';
   var LS_STAMP_KEY = LS_KEY + '__stamp';
+
+  /* ★★★ V24 守卫加固 —— 解决「普通窗口旧 / 无痕正常」的残留场景
+     背景：V22.9c 的守卫只在「草稿指纹与模板指纹都存在且不一致」时才丢弃草稿。
+           存在两个漏网情形 ——
+             (a) 旧草稿存在，但**没有** __stamp 记录（守卫上线前的版本存下的草稿）；
+             (b) 指纹为空串 / 模板未注入指纹时，守卫整体失效。
+           这两种情况下旧草稿会照样把新版整页覆盖掉。
+     加固规则（★判定只认记录在案的过期证据，绝不误杀用户正常草稿）：
+             · 草稿有指纹、模板有指纹 → 不等即丢弃（原逻辑）
+             · 草稿存在、模板有指纹、★草稿无指纹记录 → 判为守卫上线前/损坏的遗留草稿 → 丢弃
+             · 模板无指纹（本地 file:// 直开等）→ 不做任何判定，草稿照常恢复
+     加固②「旧版残留守卫」：仓库里预留过 __SZ_DEPRECATED__ 名单，
+           若某次构建被标记为「不应再被缓存使用」，命中即静默清除本地草稿。 */
+  var DEPRECATED = window.__SZ_DEPRECATED__ || [];
+  if(DEPRECATED.length){
+    try{
+      var _cur = localStorage.getItem(LS_STAMP_KEY) || '';
+      if(_cur && DEPRECATED.indexOf(_cur) !== -1){
+        localStorage.removeItem(LS_KEY);
+        localStorage.removeItem(LS_STAMP_KEY);
+      }
+    }catch(e){}
+  }
+
   var root = document.getElementById('root');
   var flag = document.getElementById('flag');
   var bubble = document.getElementById('bubble');
@@ -3301,15 +3325,27 @@
      清空入口保留在「保存」按钮旁的下载行为之外 —— 见下方 CLEAR_DRAFT_KEY 逻辑。 */
   var saved = localStorage.getItem(LS_KEY);
   if(saved){
-    /* ★ V22.9c：先做模板版本校验 —— 旧模板留下的草稿一律作废
-       （否则更新的内容会被旧草稿整页覆盖，用户永远看到旧版） */
+    /* ★★★ V24：先做模板版本校验 —— 旧模板留下的草稿一律作废
+       （否则更新的内容会被旧草稿整页覆盖，用户永远看到旧版）
+       三种判定，见文件顶部说明；关键原则：
+         ★「模板没有指纹」时绝不推断草稿过期 —— 否则会误杀用户正常草稿。 */
     var savedStamp = localStorage.getItem(LS_STAMP_KEY) || '';
-    var stampMismatch = BUILD_STAMP && savedStamp && savedStamp !== BUILD_STAMP;
-    if(stampMismatch){
-      localStorage.removeItem(LS_KEY);       // ★ 静默丢弃过期草稿
-      localStorage.removeItem(LS_STAMP_KEY);
-      saved = null;
+    if(BUILD_STAMP){
+      if(savedStamp){
+        /* 情形 A：两边都有指纹 → 不一致即过期 */
+        if(savedStamp !== BUILD_STAMP){
+          localStorage.removeItem(LS_KEY);
+          localStorage.removeItem(LS_STAMP_KEY);
+          saved = null;
+        }
+      } else {
+        /* 情形 B：草稿没带指纹（守卫上线前存下的遗留草稿）→ 判为过期。
+           判据明确：新模板一定会写指纹，没写 = 必然来自旧模板。 */
+        localStorage.removeItem(LS_KEY);
+        saved = null;
+      }
     }
+    /* 情形 C：BUILD_STAMP 为空（file:// 直开等）→ 不做版本判定，照常恢复草稿 */
   }
   if(saved){
     // 校验草稿有效性：必须含 #root 结构，否则视为损坏草稿并丢弃

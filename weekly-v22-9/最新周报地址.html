@@ -3,40 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>数智化周报 · 最新地址（V22.9）</title>
+<title>数智化周报 · 最新地址（V23）</title>
 <style>
-  :root{--brand:#1F4E79;--brand2:#2E6DA4;--line:#dfe4ea;--ink:#1c2733;--sub:#5a6673;--ok:#1a7f4b;--bg:#eef1f5;}
+  :root{--brand:#1F4E79;--brand2:#2E6DA4;--line:#dfe4ea;--ink:#1c2733;--sub:#5a6673;--ok:#1a7f4b;--bg:#eef1f5;--amber:#b45309;}
   *{box-sizing:border-box;}
   body{margin:0;padding:34px 18px 60px;background:var(--bg);color:var(--ink);
        font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;}
-  .wrap{max-width:860px;margin:0 auto;}
-  .top{text-align:center;margin-bottom:26px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  .top{text-align:center;margin-bottom:24px;}
   .top h1{margin:0 0 8px;font-size:24px;font-weight:700;color:var(--brand);letter-spacing:.4px;}
   .top .sub{font-size:13.5px;color:var(--sub);}
   .badge{display:inline-block;margin-top:12px;padding:5px 13px;background:#fff;border:1px solid var(--line);
          border-radius:99px;font-size:12.5px;color:var(--brand);font-weight:600;}
+  .fix{background:#e8f5ec;border:1px solid #b7dfc4;border-radius:8px;padding:15px 18px;margin:0 0 22px;
+       font-size:13.5px;line-height:1.8;color:#175c33;}
+  .fix b{color:#0f4526;}
+  .fix .t{font-weight:700;font-size:14px;margin-bottom:7px;display:block;color:#0f4526;}
   .note{background:#fff8e6;border:1px solid #f0d9a0;border-radius:8px;padding:13px 17px;margin:0 0 24px;
         font-size:13px;line-height:1.75;color:#7a5a12;}
   .note b{color:#6b4e0a;}
-  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+  .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
   @media(max-width:680px){.grid{grid-template-columns:1fr;}}
   .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px;display:flex;flex-direction:column;}
-  .card .tag{font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--brand2);margin-bottom:9px;}
+  .card .tag{font-size:11.5px;font-weight:700;letter-spacing:.6px;color:var(--brand2);margin-bottom:9px;}
   .card h2{margin:0 0 6px;font-size:16.5px;font-weight:700;}
-  .card .why{font-size:12.5px;color:var(--sub);line-height:1.65;margin-bottom:15px;min-height:34px;}
+  .card .why{font-size:12.5px;color:var(--sub);line-height:1.65;margin-bottom:14px;min-height:34px;}
   .qr{display:flex;justify-content:center;padding:12px 0 14px;}
-  .qr img{width:170px;height:170px;image-rendering:pixelated;border:1px solid var(--line);border-radius:6px;background:#fff;padding:7px;}
+  .qr img{width:148px;height:148px;image-rendering:pixelated;border:1px solid var(--line);border-radius:6px;background:#fff;padding:6px;}
   .url{margin-top:auto;}
   .url .lab{font-size:11.5px;color:var(--sub);margin-bottom:5px;}
   .url a{display:block;color:var(--brand2);text-decoration:none;font-weight:600;font-size:13.5px;
          word-break:break-all;line-height:1.6;}
   .url a:hover{text-decoration:underline;}
-  .btn{display:block;text-align:center;margin-top:12px;padding:11px;background:var(--brand);color:#fff;
+  .btn{display:block;text-align:center;margin-top:12px;padding:12px;background:var(--brand);color:#fff;
        text-decoration:none;border-radius:6px;font-size:14px;font-weight:600;}
   .btn:hover{background:var(--brand2);}
-  .btn.ghost{background:#fff;color:var(--brand);border:1px solid var(--brand);}
-  .btn.ghost:hover{background:var(--brand);color:#fff;}
-  .sec{margin-top:34px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;}
+  .sec{margin-top:32px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:24px;}
   .sec h3{margin:0 0 15px;font-size:15.5px;color:var(--brand);}
   .steps{margin:0;padding-left:20px;font-size:13.5px;line-height:2.05;color:#333;}
   .steps b{color:var(--brand);}
@@ -53,15 +56,21 @@
 
   <div class="top">
     <h1>数智化周报 20260928</h1>
-    <div class="sub">可编辑 HTML 模板 · 最新地址（不会再看到旧内容）</div>
-    <div class="badge">版本 V22.9 · 生成于 2026-09-24</div>
+    <div class="sub">可编辑 HTML 模板 · 三个入口任选</div>
+    <div class="badge">版本 V23 · 生成于 2026-09-24</div>
+  </div>
+
+  <div class="fix">
+    <span class="t">✅ 已修复「打开还是旧内容」的根本原因</span>
+    之前不是链接的问题，也不是服务器的问题。真正的原因是：<b>你浏览器本地存了一份旧的编辑草稿</b>，
+    页面一打开就用旧草稿覆盖了新内容。现在已加入<b>自动识别机制</b> ——
+    模板更新后，本地过期旧草稿会被自动丢弃，直接加载最新内容。
+    <b>下面三个地址都已应用该修复。</b>
   </div>
 
   <div class="note">
-    <b>为什么换新链接？</b><br>
-    旧链接被浏览器缓存过，打开可能还是昨天的内容。下面这两个是<b>全新地址</b>，没有任何缓存记录，
-    打开必定是最新版。<b>旧链接也能用</b>，服务端已改成「每次回源校验」，只是新链接更省心 ——
-    不想折腾就直接用新的。
+    <b>三个地址内容完全一样，任选一个即可：</b>公司内网用第一个（最快）；
+    要发给外部的人，用第二个短链最方便。
   </div>
 
   <div class="grid">
@@ -69,38 +78,50 @@
     <div class="card">
       <div class="tag">内网 · 推荐</div>
       <h2>公司内网访问</h2>
-      <div class="why">同一办公网络下最快，秒开。手机连公司 Wi-Fi 也可扫码打开。</div>
+      <div class="why">同一办公网络下最快。手机连公司 Wi-Fi 也可扫码打开。</div>
       <div class="qr"><img src="qr-intranet.png" alt="内网地址二维码"></div>
       <div class="url">
         <div class="lab">地址</div>
-        <a href="http://192.168.21.71:8088/szh-weekly-20260928-v229.html">http://192.168.21.71:8088/szh-weekly-20260928-v229.html</a>
-        <a class="btn" href="http://192.168.21.71:8088/szh-weekly-20260928-v229.html">打开周报</a>
+        <a href="http://192.168.21.71:8088/szh-weekly-20260928-v230.html">http://192.168.21.71:8088/szh-weekly-20260928-v230.html</a>
+        <a class="btn" href="http://192.168.21.71:8088/szh-weekly-20260928-v230.html">打开周报</a>
       </div>
     </div>
 
     <div class="card">
-      <div class="tag">公网 · 分享用</div>
-      <h2>外部网络访问</h2>
-      <div class="why">发给不在公司的同事、领导，或在外网/手机上打开。</div>
+      <div class="tag">公网 · 短链（全新域名）</div>
+      <h2>短链访问 / 分享</h2>
+      <div class="why">域名与旧地址完全不同，任何人打开都是最新版。适合发群、发微信。</div>
+      <div class="qr"><img src="qr-htmlcode.png" alt="短链二维码"></div>
+      <div class="url">
+        <div class="lab">地址</div>
+        <a href="https://www.htmlcode.fun/s/f4n6lyaw">https://www.htmlcode.fun/s/f4n6lyaw</a>
+        <a class="btn" href="https://www.htmlcode.fun/s/f4n6lyaw">打开周报</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tag">公网 · GitHub Pages</div>
+      <h2>备用公网地址</h2>
+      <div class="why">长期稳定地址，作为短链的备份。</div>
       <div class="qr"><img src="qr-public.png" alt="公网地址二维码"></div>
       <div class="url">
         <div class="lab">地址</div>
-        <a href="https://wanglin000000.github.io/procurement-dashboard/weekly-v22-9/">https://wanglin000000.github.io/procurement-dashboard/weekly-v22-9/</a>
-        <a class="btn" href="https://wanglin000000.github.io/procurement-dashboard/weekly-v22-9/">打开周报</a>
+        <a href="https://wanglin000000.github.io/procurement-dashboard/weekly-v23/">https://wanglin000000.github.io/procurement-dashboard/weekly-v23/</a>
+        <a class="btn" href="https://wanglin000000.github.io/procurement-dashboard/weekly-v23/">打开周报</a>
       </div>
     </div>
 
   </div>
 
   <div class="sec">
-    <h3>如果打开还是旧的 —— 三步解决</h3>
+    <h3>万一还是旧的 —— 三步解决</h3>
     <ol class="steps">
-      <li>按 <code>Cmd + Shift + R</code> <b>强制刷新</b>（跳过缓存，最常用的一招）</li>
+      <li>按 <code>Cmd + Shift + R</code> <b>强制刷新</b>（跳过缓存，最常用）</li>
       <li>还是不行 → 用 <code>Cmd + Shift + N</code> 打开<b>无痕窗口</b>，粘贴新地址</li>
       <li>仍然不行 → 双击桌面的 <b>「清除周报缓存.html」</b>，点「一键清除本站缓存」</li>
     </ol>
     <div class="old">
-      旧地址（仍可用，服务端已修复缓存）——<br>
+      旧地址（仍可用，同样已应用修复）——<br>
       内网 <a href="http://192.168.21.71:8088/">http://192.168.21.71:8088/</a><br>
       公网 <a href="https://wanglin000000.github.io/procurement-dashboard/weekly/">https://wanglin000000.github.io/procurement-dashboard/weekly/</a>
     </div>
@@ -109,10 +130,11 @@
   <div class="sec">
     <h3>版本核对（确认你拿到的是最新版）</h3>
     <dl class="kv">
-      <dt>文件大小</dt><dd>167,771 字节</dd>
-      <dt>内容指纹</dt><dd><code>28b50084f7c08e25b9c7c8bb446e9c7e</code></dd>
+      <dt>文件大小</dt><dd>169,391 字节</dd>
+      <dt>内容指纹</dt><dd><code>482276db7bea0fb51778379c53d8cbb2</code></dd>
+      <dt>构建标识</dt><dd><code>7fbd41b35b4a</code>（用于自动识别过期草稿）</dd>
       <dt>甘特图</dt><dd>3 张（AI化转型 / MarketingAPI / 鸿蒙），默认收起</dd>
-      <dt>防缓存</dt><dd>已启用（no-cache + ETag 回源校验）</dd>
+      <dt>过期草稿</dt><dd>已启用自动识别丢弃 ✅</dd>
     </dl>
   </div>
 
