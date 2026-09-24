@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='33d6a13649f0';</script>
+<script>window.__SZ_REPORT_BUILD__='34b7fbb0a547';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -36,6 +36,11 @@
     --warn:#b45309; --warn-soft:#fef3e2;
     --ok:#15803d; --ok-soft:#e8f5ee;
     --danger:#b91c1c; --danger-soft:#fdecec;
+    /* ★ V27 评论：黄色批注（用户明确要求「勾选的这段文字字体颜色变更为黄色」）。
+       取偏琥珀的黄而非纯 #ff0 —— 纯黄在白底上对比度不足，打印/投影看不清。
+       --cmt 用于**文字颜色**（用户诉求），--cmt-bg 是极淡的底衬，
+       仅供鼠标悬停/选中时增强可点性，不喧宾夺主。 */
+    --cmt:#c7891a; --cmt-strong:#a86f08; --cmt-bg:#fdf6e3; --cmt-line:#e8d5a3;
     --paper:#ffffff; --canvas:#eef1f5;
     --radius:8px;
     --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);
@@ -1127,6 +1132,149 @@
   }
   .brush-hint .bh-x:hover{background:rgba(255,255,255,.32);}
 
+  /* ==================================================================
+     ★ V27 评论（批注）
+     ------------------------------------------------------------------ */
+
+  /* ---------- ① 右侧固定评论栏 ---------- */
+  .cmt-panel{
+    position:fixed; top:0; right:0; z-index:88;
+    width:320px; height:100vh;
+    background:#fff; border-left:1px solid var(--line-strong);
+    box-shadow:-8px 0 28px rgba(16,24,40,.10);
+    display:flex; flex-direction:column;
+    transform:translateX(102%);
+    transition:transform .22s cubic-bezier(.32,.72,0,1);
+    font-family:inherit;
+  }
+  .cmt-panel.show{transform:translateX(0);}
+
+  .cmt-head{
+    flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
+    padding:13px 14px 11px; border-bottom:1px solid var(--line);
+  }
+  .cmt-title{font-size:13.5px; font-weight:700; color:var(--ink); letter-spacing:.3px;}
+  .cmt-x{
+    appearance:none; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); font-size:20px; line-height:1; padding:0 4px;
+    border-radius:4px; transition:color .12s ease,background .12s ease;
+  }
+  .cmt-x:hover{color:var(--danger); background:var(--danger-soft);}
+
+  /* 新建态 */
+  .cmt-editor{display:none; flex-direction:column; gap:9px; padding:12px 14px 14px;}
+  .cmt-editor.show{display:flex;}
+  .cmt-quote{
+    font-size:11.5px; line-height:1.55; color:var(--cmt-strong);
+    background:var(--cmt-bg); border-left:3px solid var(--cmt-line);
+    border-radius:0 5px 5px 0; padding:7px 9px;
+    max-height:74px; overflow:auto;
+    word-break:break-word;
+  }
+  .cmt-ta{
+    width:100%; min-height:104px; resize:vertical;
+    border:1px solid var(--line-strong); border-radius:6px;
+    padding:9px 10px; font-family:inherit; font-size:12.5px; line-height:1.65;
+    color:var(--ink-2); background:#fff; box-sizing:border-box;
+  }
+  .cmt-ta:focus{outline:none; border-color:var(--brand-2); box-shadow:0 0 0 3px rgba(44,102,153,.12);}
+  .cmt-actions{display:flex; gap:8px; justify-content:flex-end;}
+  .cmt-btn{
+    appearance:none; cursor:pointer; font-family:inherit; line-height:1;
+    border-radius:6px; padding:7px 15px; font-size:12.5px; font-weight:600;
+    border:1px solid var(--line-strong); background:#fff; color:var(--ink-2);
+    transition:background .12s ease,border-color .12s ease,color .12s ease;
+  }
+  .cmt-btn:hover{background:var(--brand-soft); border-color:var(--brand-2); color:var(--brand);}
+  .cmt-btn.primary{background:var(--brand); border-color:var(--brand); color:#fff;}
+  .cmt-btn.primary:hover{background:#18405f; border-color:#18405f; color:#fff;}
+  .cmt-btn.wide{width:100%;}
+
+  /* 列表态 */
+  .cmt-list{display:none; flex:1 1 auto; overflow:auto; padding:10px 12px;}
+  .cmt-list.show{display:block;}
+  .cmt-empty{
+    text-align:center; color:var(--muted); font-size:12px;
+    padding:34px 0; line-height:1.7;
+  }
+  .cmt-item{
+    border:1px solid var(--line); border-radius:7px;
+    padding:9px 10px; margin-bottom:9px; cursor:pointer;
+    background:#fff; transition:border-color .12s ease,background .12s ease;
+  }
+  .cmt-item:hover{border-color:var(--cmt-line); background:#fffdf7;}
+  .cmt-item.active{border-color:var(--cmt); background:var(--cmt-bg);}
+  .cmt-item-head{display:flex; align-items:center; gap:7px; margin-bottom:6px;}
+  .cmt-no{
+    font-size:10.5px; font-weight:700; color:#fff; background:var(--cmt);
+    border-radius:3px; padding:1px 5px; line-height:1.5;
+  }
+  .cmt-time{font-size:10.5px; color:var(--muted); flex:1 1 auto;}
+  .cmt-del{
+    appearance:none; border:none; background:transparent; cursor:pointer;
+    color:var(--muted); font-size:15px; line-height:1; padding:0 3px;
+    border-radius:4px; transition:color .12s ease,background .12s ease;
+  }
+  .cmt-del:hover{color:var(--danger); background:var(--danger-soft);}
+  .cmt-item .cmt-quote{
+    border-left-width:2px; font-size:11px; padding:5px 7px; margin-bottom:6px;
+    max-height:52px;
+  }
+  .cmt-text{
+    font-size:12.5px; line-height:1.68; color:var(--ink-2);
+    word-break:break-word; white-space:normal;
+  }
+  .cmt-lost{
+    font-size:10px; color:var(--warn); background:var(--warn-soft);
+    border-radius:3px; padding:0 4px; margin-left:4px; white-space:nowrap;
+  }
+  .cmt-foot{
+    flex:0 0 auto; padding:10px 12px; border-top:1px solid var(--line); background:#fafbfc;
+  }
+
+  /* ---------- ② 选中文字后的小图标 ---------- */
+  .cmt-icon{
+    display:none; position:absolute; z-index:86;
+    width:30px; height:30px; border-radius:50%;
+    align-items:center; justify-content:center; cursor:pointer;
+    background:var(--cmt); color:#fff;
+    border:2px solid #fff;
+    box-shadow:0 3px 12px rgba(16,24,40,.24);
+    transition:transform .12s ease,background .12s ease;
+    user-select:none; -webkit-user-select:none;
+  }
+  .cmt-icon.show{display:flex;}
+  .cmt-icon:hover{background:var(--cmt-strong); transform:scale(1.08);}
+  .cmt-icon svg{display:block;}
+
+  /* ---------- ③ 正文里的黄色批注文字 ---------- */
+  .cmt-mark{
+    color:var(--cmt); cursor:pointer;
+    border-radius:2px; padding:0 1px;
+    transition:background .12s ease;
+  }
+  .cmt-mark:hover{background:var(--cmt-bg);}
+  /* 当前正在查看的那条：加底色 + 下划虚线，便于在长文档里定位 */
+  .cmt-mark.active{
+    background:var(--cmt-bg);
+    box-shadow:inset 0 -1.5px 0 0 var(--cmt);
+  }
+
+  /* ---------- ④ 展开评论栏时给正文让位（避免遮挡右侧内容） ---------- */
+  body.cmt-open .page-wrap{padding-right:326px;}
+  @media (max-width:900px){
+    .cmt-panel{width:280px;}
+    body.cmt-open .page-wrap{padding-right:286px;}
+  }
+
+  /* ★ V27：评论是「查看模式」的能力，编辑模式下全部收起 ——
+     编辑模式已有格式刷，两种模式分工明确，避免浮层互相打架。
+     ⚠️ 但 .cmt-mark 的黄色**保留**：批注是文档内容的一部分，
+        编辑时也应看得见（用户要改的正是这段被批注的文字）。 */
+  body.editing .cmt-icon,
+  body.editing .cmt-panel{display:none!important;}
+  body.editing.cmt-open .page-wrap{padding-right:0;}
+
   /* 编辑态专用：表格行列工具（收纳在右下角浮动小面板） */
   .rowcol-tools{
     display:none; position:fixed; left:18px; bottom:18px; z-index:70;
@@ -1163,7 +1311,11 @@
   @media print{
     html,body{background:#fff;width:auto;overflow:visible;}
     .flag,.edit-hint,.hint-open,.edit-toggle,.edit-banner,.bubble,.rowcol-tools,
-    .brush-hint{display:none!important;}
+    .brush-hint,
+    /* ★ V27 评论 UI 全部隐藏；但正文里的 .cmt-mark 黄色文字**保留**
+       （批注要跟着打印出来才有意义），仅去掉底色与下划线，避免打印脏。 */
+    .cmt-icon,.cmt-panel,.cmt-body{display:none!important;}
+    .cmt-mark{background:none!important;box-shadow:none!important;color:var(--cmt);}
     .page-wrap{max-width:none;width:auto;margin:0;padding:0;}
     .paper{box-shadow:none;border-radius:0;padding:0 0 14px;margin:0;page-break-after:always;
       width:auto;max-width:none;overflow:visible;}
@@ -1306,6 +1458,46 @@
   <span class="bh-tx">已拾取格式，请选中目标文字</span>
   <button class="bh-x" id="brushCancel" type="button">退出格式刷</button>
 </div>
+
+<!-- ============ ★ V27 评论（批注）============
+     用户诉求：查看文档时勾选部分文字 → 弹出小图标 → 点它右侧弹出评论框
+     （有关闭/保存两个按钮）→ 保存后勾选文字变黄色 → 点黄字右侧显示评论。
+
+     ★ 仅在**查看模式**出现（编辑模式用格式刷），故这些节点默认不参与编辑标记。 -->
+<div class="cmt-icon" id="cmtIcon" role="button" tabindex="-1"
+     title="添加评论">
+  <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+    <path d="M3 3.6h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8.2l-3.9 2.8a.5.5 0 0 1-.8-.4V13.6H3a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"
+          fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M6.2 8.6h7.6M6.2 6.1h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<aside class="cmt-panel" id="cmtPanel" aria-label="评论">
+  <div class="cmt-head">
+    <span class="cmt-title">评论</span>
+    <button class="cmt-x" id="cmtClose" type="button" title="关闭">&times;</button>
+  </div>
+
+  <!-- 新建态：文本框 + 「关闭」「保存」两个按钮 -->
+  <div class="cmt-editor" id="cmtEditor">
+    <div class="cmt-quote" id="cmtQuote"></div>
+    <textarea class="cmt-ta" id="cmtText" placeholder="写下你的评论…"></textarea>
+    <div class="cmt-actions">
+      <button class="cmt-btn ghost" id="cmtCancel" type="button">关闭</button>
+      <button class="cmt-btn primary" id="cmtSave" type="button">保存</button>
+    </div>
+  </div>
+
+  <!-- 列表态：多条评论依次排列 -->
+  <div class="cmt-list" id="cmtList"></div>
+
+  <div class="cmt-foot">
+    <button class="cmt-btn ghost wide" id="cmtOpenList" type="button">查看全部评论</button>
+  </div>
+</aside>
+
+<div class="cmt-body" id="cmtBody"></div>
 
 <!-- ============ 编辑态右下角：表格行列工具 + 输出 ============ -->
 <div class="rowcol-tools" id="rowcolTools">
@@ -3229,14 +3421,23 @@
     setTimeout(function(){ URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 500);
   }
 
-  document.getElementById('btnSave').addEventListener('click', function(){
+  /* ★ V27：把「保存」按钮的实现抽成具名函数 —— 按钮与 Ctrl/Cmd+S 必须走**同一条**路径，
+     否则两处逻辑会各自漂移（如评论数据只注入到按钮那条，快捷键下载出来的文件就不带评论）。 */
+  function saveHtmlFile(){
+    /* ★ V27：先把评论数据内嵌进当前文档，再取 outerHTML —— 这样下载的文件
+       自带评论，换设备/发给别人打开评论仍在。取完立刻移除以保持页面干净。 */
+    if(window.__SZ_attachComments) window.__SZ_attachComments();
     var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    if(window.__SZ_detachComments) window.__SZ_detachComments();
+
     var d = new Date();
     var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
     download(html, '数智化周报-' + stamp + '.html', 'text/html;charset=utf-8');
     flushDraft();
     toast('已下载 HTML 文件（双击打开可继续编辑）');
-  });
+  }
+
+  document.getElementById('btnSave').addEventListener('click', saveHtmlFile);
 
   document.getElementById('btnExport').addEventListener('click', function(){
     var tables = document.querySelectorAll('.paper table');
@@ -3279,12 +3480,19 @@
   /* ============ 快捷键 ============ */
   document.addEventListener('keydown', function(e){
     var meta = e.metaKey || e.ctrlKey;
-    // Ctrl/Cmd+S：仅编辑态拦截为「保存草稿」，避免非编辑态误触下载
+    /* ★ V27：Ctrl/Cmd+S 在任何状态下都必须有反馈 —— 用户诉求「希望可以支持键盘快捷键保存」。
+       改前：非编辑态直接 return → 浏览器弹出自己的「保存网页」框，用户以为我们的功能没生效。
+       改后两个分支都拦截浏览器默认行为，行为与右上角「保存」按钮**完全一致**：
+         · 编辑态   → 保存草稿（沿用原行为，文案不变）
+         · 非编辑态 → 直接下载 HTML（等价于点「保存」按钮） */
     if(meta && (e.key === 's' || e.key === 'S')){
-      if(!editing) return;
       e.preventDefault();
-      flushDraft();
-      toast('草稿已保存（点「保存」按钮可下载 HTML 文件）', 2200);
+      if(editing){
+        flushDraft();
+        toast('草稿已保存（点「保存」按钮可下载 HTML 文件）', 2200);
+      } else {
+        saveHtmlFile();          // ★ 与「保存」按钮同一实现，避免两套逻辑走偏
+      }
       return;
     }
     if(!editing) return;
@@ -3482,6 +3690,470 @@
   ensureEditButton();               // 双保险：确保按钮存在（草稿损坏被丢弃时仍需按钮）
   setSaveState('saved');
   flag.classList.remove('show');
+
+  /* ==================================================================
+     ★★★ V27 评论（批注）模块
+     ------------------------------------------------------------------
+     用户诉求：
+       「在查看文档的时候，如果勾选了部分文字，需要弹出一个小的评论的图标…
+        点击这个图标之后在文档对应的右侧弹出填写评论的文本框，
+        文本框需要有关闭和保存两个按钮。保存完成后，勾选的这段文字字体颜色
+        变更为黄色，然后点击这个黄色的字体后就可以在右侧显示出评论的内容。」
+     设计要点（与用户确认）：
+       · ★仅「查看模式」可用 —— 编辑模式已有格式刷，两种模式互不干扰
+       · ★评论数据存本地 + 随「保存/下载」内嵌进 HTML（换设备打开仍在）
+       · ★右侧固定栏，多条评论依次排列，可滚动看全部
+
+     ★★ 锚定方案（最关键的设计决策）：
+       `#root` 会被草稿恢复整页重建 → **绝对不能存 DOM 节点引用**。
+       改用「可序列化的文本锚点」：
+         anchor = { path:[子节点索引...], start:起始偏移, end:结束偏移 }
+       定位规则：从 `#root` 出发按 path 逐层 childNodes 下钻到目标元素，
+       再用纯文本偏移在整个元素文本里定位选区。
+       ⚠️ 该锚点**只在整页文字整体不变时有效**；文字一旦被编辑，偏移会错位
+       —— 此时降级为「按原文摘录 (quote) 在全文中查找」，仍找不到就标记为
+       「原文已改动」，评论本身不丢（内容与列表照常显示）。
+     ================================================================== */
+  var COMMENT_KEY = 'szhWeekly.comments.v1';
+
+  function getCommentLayer(){ return document.getElementById('commentLayer'); }
+  function getCommentIcon(){ return document.getElementById('cmtIcon'); }
+  function getCommentPanel(){ return document.getElementById('cmtPanel'); }
+  function getCommentBody(){ return document.getElementById('cmtBody'); }
+  function getCommentEditor(){ return document.getElementById('cmtEditor'); }
+  function getCommentList(){ return document.getElementById('cmtList'); }
+
+  var comments = [];          // [{id, text, quote, anchor, ts}]
+  var cmtSeq = 0;             // 自增序号，用于生成稳定 id
+  var pendingRange = null;    // 待评论的选区（点图标时冻结）
+  var activeId = null;        // 当前在右栏展示的评论 id
+  var cmtDelegated = false;
+
+  /* ---------- 存储 ---------- */
+
+  function loadComments(){
+    try{
+      var raw = localStorage.getItem(COMMENT_KEY);
+      if(!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+
+  function saveComments(){
+    try{ localStorage.setItem(COMMENT_KEY, JSON.stringify(comments)); }catch(e){}
+    /* 评论也算「有改动」→ 让顶部的保存状态条同步，用户能看出评论已落盘 */
+    markDirty();
+  }
+
+  /* 供「保存/下载」使用：把评论嵌进导出的 HTML。
+     为什么不用 localStorage：localStorage 绑在**本机这个浏览器**上，
+     把文件发给别人 / 换台电脑打开，评论就全丢了。
+     内嵌进 HTML 才能真正做到「评论跟着文件走」。 */
+  function exportCommentsPayload(){
+    return '<script id="szhCommentsData" type="application/json">'
+         + JSON.stringify(comments)
+         + '<\/script>';
+  }
+
+  /* 页面打开时优先读内嵌数据（来自别人发来的文件或自己下载的那份）。
+     ★ 合并策略：以本地为准（本地是用户最新操作的结果），
+       内嵌数据只在**本地为空**时作为兜底灌入。 */
+  function readEmbeddedComments(){
+    var tag = document.getElementById('szhCommentsData');
+    if(!tag) return null;
+    try{
+      var arr = JSON.parse(tag.textContent || '[]');
+      return Array.isArray(arr) ? arr : null;
+    }catch(e){ return null; }
+  }
+
+  /* ---------- 锚点：序列化 / 反解析 ---------- */
+
+  function pathTo(el){
+    var path = [];
+    var node = el;
+    while(node && node !== root){
+      var parent = node.parentNode;
+      if(!parent) break;
+      path.unshift(Array.prototype.indexOf.call(parent.childNodes, node));
+      node = parent;
+    }
+    return path;
+  }
+
+  function nodeAt(path){
+    var node = root;
+    for(var i = 0; i < path.length; i++){
+      if(!node || !node.childNodes || !node.childNodes[path[i]]) return null;
+      node = node.childNodes[path[i]];
+    }
+    return node;
+  }
+
+  /* 计算 range 起点在其宿主元素纯文本里的偏移 */
+  function textOffset(el, container, offset){
+    if(container.nodeType === 3){
+      // 文本节点：累加它前面所有文本节点的长度
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var total = 0, t;
+      while((t = walker.nextNode())){
+        if(t === container) return total + offset;
+        total += t.textContent.length;
+      }
+      return total;
+    }
+    return 0;
+  }
+
+  /* 从元素 + 偏移反推回真实的 (文本节点, 节点内偏移) */
+  function locateOffset(el, target){
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var total = 0, t;
+    while((t = walker.nextNode())){
+      var len = t.textContent.length;
+      if(total + len >= target) return { node: t, offset: target - total };
+      total += len;
+    }
+    return null;
+  }
+
+  function makeAnchor(range){
+    var startEl = range.startContainer.nodeType === 3
+      ? range.startContainer.parentElement : range.startContainer;
+    var endEl = range.endContainer.nodeType === 3
+      ? range.endContainer.parentElement : range.endContainer;
+    return {
+      path: pathTo(startEl),
+      start: textOffset(startEl, range.startContainer, range.startOffset),
+      end: endEl === startEl
+        ? textOffset(startEl, range.endContainer, range.endOffset)
+        : -1,                                   // 跨元素选区：只锚起点，末尾不限
+      quote: (range.toString() || '').slice(0, 120)
+    };
+  }
+
+  /* ---------- 高亮渲染 ---------- */
+
+  /* 已存在的评论高亮用 CSS class `.cmt-mark`（黄色文字），
+     ★ 不写内联 color —— 否则「保存」下载的 HTML 里会混入内联样式，
+     且编辑模式下用户改颜色会与评论色冲突。 */
+  function applyMarks(){
+    /* 先清掉旧标记：把 .cmt-mark 拆开还原成纯文本 */
+    root.querySelectorAll('.cmt-mark').forEach(function(el){
+      var parent = el.parentNode;
+      while(el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+      parent.normalize();                       // 合并被拆碎的文本节点
+    });
+    comments.forEach(function(c){
+      if(c.__lost) return;                      // 原文已改动 → 不高亮
+      try{ markRange(c); }catch(e){ /* 锚点失效则静默跳过，评论本身不丢 */ }
+    });
+  }
+
+  function markRange(c){
+    var el = nodeAt(c.anchor.path);
+    if(!el) { c.__lost = true; return; }
+    var a = locateOffset(el, c.anchor.start);
+    if(!a) { c.__lost = true; return; }
+    var b = c.anchor.end >= 0 ? locateOffset(el, c.anchor.end) : null;
+
+    var range = document.createRange();
+    range.setStart(a.node, a.offset);
+    if(b){ range.setEnd(b.node, b.offset); }
+    else { range.setEnd(a.node, a.node.textContent.length); }
+    if(range.collapsed) { c.__lost = true; return; }
+
+    var span = document.createElement('span');
+    span.className = 'cmt-mark';
+    span.setAttribute('data-cmt', c.id);
+    span.title = '点击查看评论';
+    try{
+      range.surroundContents(span);
+    }catch(e){
+      /* 跨节点选区 surroundContents 会抛错 → 退化为 extract+append */
+      try{
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+      }catch(e2){ c.__lost = true; }
+    }
+    c.__lost = false;
+  }
+
+  /* ---------- 选区小图标 ---------- */
+
+  function hideCommentIcon(){
+    var ic = getCommentIcon();
+    if(ic) ic.classList.remove('show');
+    pendingRange = null;
+  }
+
+  function showCommentIcon(range){
+    if(editing) return;                        // ★ 仅查看模式
+    var ic = getCommentIcon();
+    if(!ic) return;
+    var rect = range.getBoundingClientRect();
+    if(!rect || (rect.width === 0 && rect.height === 0)) return;
+
+    /* 图标贴选区**末尾**（用户勾完文字，视觉落点就在那里），
+       并做上下边界处理：上方空间不足则翻到下方。 */
+    var iw = 30, ih = 30;
+    var x = rect.right + window.scrollX + 6;
+    var y = rect.top + window.scrollY + (rect.height - ih) / 2;
+    if(rect.top < 44) y = rect.bottom + window.scrollY + 6;
+
+    var maxX = window.scrollX + document.documentElement.clientWidth - iw - 12;
+    if(x > maxX) x = maxX;
+
+    ic.style.left = x + 'px';
+    ic.style.top = y + 'px';
+    ic.classList.add('show');
+  }
+
+  document.addEventListener('mouseup', function(e){
+    if(editing){ hideCommentIcon(); return; }
+    var t = e.target;
+    if(t && t.closest && t.closest('.cmt-icon, .cmt-panel, .bubble')) return;
+
+    setTimeout(function(){
+      var sel = window.getSelection();
+      if(!sel || sel.rangeCount === 0 || sel.isCollapsed){ hideCommentIcon(); return; }
+      var range = sel.getRangeAt(0);
+      if(!root.contains(range.commonAncestorContainer)){ hideCommentIcon(); return; }
+      var text = (range.toString() || '').trim();
+      if(!text){ hideCommentIcon(); return; }
+      pendingRange = range.cloneRange();
+      showCommentIcon(range);
+    }, 0);
+  }, true);
+
+  /* ---------- 右侧面板 ---------- */
+
+  function openPanel(mode, id){
+    var panel = getCommentPanel();
+    var editor = getCommentEditor();
+    var list = getCommentList();
+    if(!panel) return;
+    panel.classList.add('show');
+    document.body.classList.add('cmt-open');
+    if(mode === 'new'){
+      activeId = null;
+      if(editor) editor.classList.add('show');
+      if(list) list.classList.remove('show');
+      var ta = document.getElementById('cmtText');
+      if(ta){ ta.value = ''; setTimeout(function(){ ta.focus(); }, 60); }
+      renderQuotePreview();
+    } else {
+      activeId = id || null;
+      if(editor) editor.classList.remove('show');
+      if(list) list.classList.add('show');
+      renderCommentList();
+    }
+  }
+
+  function closePanel(){
+    var panel = getCommentPanel();
+    if(panel) panel.classList.remove('show');
+    document.body.classList.remove('cmt-open');
+    clearActiveMark();
+    activeId = null;
+  }
+
+  function renderQuotePreview(){
+    var q = document.getElementById('cmtQuote');
+    if(!q) return;
+    var txt = pendingRange ? (pendingRange.toString() || '').trim() : '';
+    q.textContent = txt ? '“' + (txt.length > 80 ? txt.slice(0,80) + '…' : txt) + '”' : '（未选中文字）';
+  }
+
+  function renderCommentList(){
+    var list = getCommentList();
+    if(!list) return;
+    if(!comments.length){
+      list.innerHTML = '<div class="cmt-empty">暂无评论</div>';
+      return;
+    }
+    var html = '';
+    comments.forEach(function(c, i){
+      var active = (c.id === activeId) ? ' active' : '';
+      var lost = c.__lost ? ' <span class="cmt-lost">原文已改动</span>' : '';
+      var d = new Date(c.ts || Date.now());
+      var stamp = String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0')
+                + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+      html += '<div class="cmt-item' + active + '" data-id="' + c.id + '">'
+           +    '<div class="cmt-item-head">'
+           +      '<span class="cmt-no">#' + (i+1) + '</span>'
+           +      '<span class="cmt-time">' + stamp + '</span>'
+           +      '<button class="cmt-del" data-del="' + c.id + '" title="删除该评论">×</button>'
+           +    '</div>'
+           +    (c.quote ? '<div class="cmt-quote">“' + escapeHtml(c.quote) + '”' + lost + '</div>' : '')
+           +    '<div class="cmt-text">' + escapeHtml(c.text).replace(/\n/g,'<br>') + '</div>'
+           +  '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];
+    });
+  }
+
+  function clearActiveMark(){
+    root.querySelectorAll('.cmt-mark.active').forEach(function(el){
+      el.classList.remove('active');
+    });
+  }
+
+  /* ---------- 新建 / 保存 / 删除 ---------- */
+
+  function saveComment(){
+    var ta = document.getElementById('cmtText');
+    var text = ta ? (ta.value || '').trim() : '';
+    if(!text){ toast('请先填写评论内容', 1800); if(ta) ta.focus(); return; }
+    if(!pendingRange){ toast('评论目标已失效，请重新选中文字', 2200); closePanel(); return; }
+
+    cmtSeq++;
+    comments.push({
+      id: 'c' + Date.now() + '_' + cmtSeq,
+      text: text,
+      quote: (pendingRange.toString() || '').trim().slice(0, 120),
+      anchor: makeAnchor(pendingRange),
+      ts: Date.now()
+    });
+    applyMarks();
+    saveComments();
+    hideCommentIcon();
+    try{ window.getSelection().removeAllRanges(); }catch(e){}
+    openPanel('list', comments[comments.length-1].id);
+    toast('评论已保存', 1600);
+  }
+
+  function deleteComment(id){
+    comments = comments.filter(function(c){ return c.id !== id; });
+    applyMarks();
+    saveComments();
+    if(activeId === id) activeId = null;
+    renderCommentList();
+    if(!comments.length) closePanel();
+    toast('评论已删除', 1400);
+  }
+
+  function focusComment(id){
+    activeId = id;
+    openPanel('list', id);
+    clearActiveMark();
+    var mark = root.querySelector('.cmt-mark[data-cmt="' + id + '"]');
+    if(mark){ mark.classList.add('active'); mark.scrollIntoView({ block:'center', behavior:'smooth' }); }
+    /* 面板里对应条目滚到可见 */
+    var item = getCommentList() && getCommentList().querySelector('.cmt-item[data-id="' + id + '"]');
+    if(item) item.scrollIntoView({ block:'nearest', behavior:'smooth' });
+  }
+
+  /* ---------- 事件委托（★ #root 会被草稿重建，绝不能绑内部节点） ---------- */
+
+  function bindComments(){
+    if(cmtDelegated) return;
+    cmtDelegated = true;
+
+    /* 小图标 → 打开新建面板 */
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      if(!t || !t.closest) return;
+
+      if(t.closest('#cmtIcon')){ e.preventDefault(); openPanel('new'); return; }
+      if(t.closest('#cmtClose')){ e.preventDefault(); closePanel(); return; }
+      if(t.closest('#cmtSave')){ e.preventDefault(); saveComment(); return; }
+      if(t.closest('#cmtCancel')){ e.preventDefault(); closePanel(); return; }
+      if(t.closest('#cmtOpenList')){ e.preventDefault(); openPanel('list', activeId); return; }
+
+      var del = t.closest('[data-del]');
+      if(del){ e.preventDefault(); deleteComment(del.getAttribute('data-del')); return; }
+
+      /* 点右栏某条评论 → 高亮并滚到正文对应位置 */
+      var item = t.closest('.cmt-item');
+      if(item){
+        var id = item.getAttribute('data-id');
+        activeId = id;
+        clearActiveMark();
+        var mk = root.querySelector('.cmt-mark[data-cmt="' + id + '"]');
+        if(mk){ mk.classList.add('active'); mk.scrollIntoView({ block:'center', behavior:'smooth' }); }
+        renderCommentList();
+        return;
+      }
+
+      /* ★ 点正文里的黄色文字 → 右栏显示对应评论（用户明确要求的交互） */
+      var mark = t.closest('.cmt-mark');
+      if(mark){
+        e.preventDefault();
+        focusComment(mark.getAttribute('data-cmt'));
+        return;
+      }
+
+      /* 点面板外部 → 收起（编辑态输入时不收，避免误关） */
+      var panel = getCommentPanel();
+      if(panel && panel.classList.contains('show')){
+        if(!t.closest('.cmt-panel') && !t.closest('.cmt-icon')) closePanel();
+      }
+    }, true);
+
+    /* Esc 关面板（★ 必须在编辑态处理器之前 stopImmediatePropagation，避免连带退出编辑） */
+    document.addEventListener('keydown', function(e){
+      if(e.key !== 'Escape') return;
+      var panel = getCommentPanel();
+      if(panel && panel.classList.contains('show')){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        closePanel();
+      }
+    }, true);
+
+    /* 滚动 / 改窗口尺寸 → 小图标位置失效，直接收起（避免图标悬在半空指错地方） */
+    var onMove = function(){ hideCommentIcon(); };
+    window.addEventListener('scroll', onMove, { passive:true });
+    window.addEventListener('resize', onMove);
+  }
+
+  /* ---------- 初始化 ---------- */
+
+  function initComments(){
+    comments = loadComments();
+    /* 本地草稿为空 → 尝试用文件内嵌数据兜底（别人发来的 / 自己下载的那份） */
+    if(!comments.length){
+      var emb = readEmbeddedComments();
+      if(emb && emb.length) comments = emb;
+    }
+    /* 给老数据补 id（防御：手工编辑过的数据可能缺字段） */
+    comments.forEach(function(c, i){
+      if(!c.id) c.id = 'c_legacy_' + i;
+      if(!c.anchor) c.anchor = { path:[], start:0, end:-1, quote:c.quote || '' };
+    });
+    applyMarks();
+    bindComments();
+    renderCommentList();
+  }
+
+  /* ★ 顺序：草稿恢复 + markEditable 之后再跑，确保锚点对应的 DOM 已就位 */
+  initComments();
+
+  /* 暴露给「保存」按钮：把评论数据内嵌进下载的 HTML。
+     实现方式：下载前把数据写进一个临时 <script> 节点，
+     取完 outerHTML 再移除 —— 页面上不会残留多余节点。 */
+  window.__SZ_attachComments = function(){
+    var old = document.getElementById('szhCommentsData');
+    if(old) old.parentNode.removeChild(old);
+    if(!comments.length) return;
+    var s = document.createElement('script');
+    s.id = 'szhCommentsData';
+    s.type = 'application/json';
+    s.textContent = JSON.stringify(comments);
+    document.body.appendChild(s);
+  };
+  window.__SZ_detachComments = function(){
+    var s = document.getElementById('szhCommentsData');
+    if(s) s.parentNode.removeChild(s);
+  };
 })();
 </script>
 </body>
