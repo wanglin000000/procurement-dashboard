@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ★ V22.9 防缓存：让浏览器/CDN 每次都回源校验，避免打开链接看到旧版本
+     （GitHub Pages 服务端固定发 max-age=600，此处用 HTML 级声明兜底；
+       内容哈希随时间变化 → ETag/Last-Modified 变更 → 立即取到新版） -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
