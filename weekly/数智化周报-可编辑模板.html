@@ -910,6 +910,21 @@
     rotate:45deg;
   }
   .g-ms.filled{background:var(--brand);}
+  /* ★ V22.7 里程碑汇总行：把多个项目共享的交付时点归到一行
+     为什么独立成行：如 09/30 有 4 个项目同时到期，钉在各自任务行上会重叠。
+     样式：浅色分隔条（不用底色填充，仅上边框加粗一档做区隔），
+          菱形沿用 .g-ms.filled，与任务行里的里程碑视觉一致。 */
+  .g-row-ms > .g-label,
+  .g-row-ms > .g-cells,
+  .g-row-ms > .g-owner{
+    border-top:1px solid var(--line-strong);
+    background:#fafbfd;
+  }
+  .g-row-ms > .g-label .g-ms-ic{
+    flex:0 0 auto; width:7px; height:7px;
+    background:var(--brand); rotate:45deg;
+  }
+  .g-row-ms > .g-label .g-txt{font-weight:600;color:var(--ink);}
   /* 负责人列 */
   .g-owner{
     padding:5px 6px; text-align:center; font-weight:600; color:var(--ink-2);
@@ -1371,117 +1386,254 @@
       </div>
       <!-- ★ V22.2：甘特图并入卡片内部（紧接「下一步计划」，把计划可视化） -->
       <div class="proj-gantt">
-<div class="gantt">
+<div class="gantt" style="--slots:5">
   <div class="gantt-title">
-    <span contenteditable="true">AI化转型 · 任务甘特图</span>
-    <span class="gt-sum" aria-hidden="true">3 项任务 · 09/18 ～ 10/14</span>
-    %s周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <span contenteditable="true">AI化转型 · 项目甘特图</span>
+    <span class="gt-sum" aria-hidden="true">18 个 AI 项目 · 08/15 ～ 12/30</span>
+    <span class="gt-sub" contenteditable="true">周期 2026/08 ～ 2026/12 · 18 个 AI 项目（2026 年 Q4 计划交付）</span>
     <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="true" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>收起</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
-    <div class="g-month" style="grid-column:2 / span 3">2026年9月</div>
-    <div class="g-month" style="grid-column:5 / span 3">2026年10月</div>
+    <div class="g-month" style="grid-column:2 / span 5">2026年8–12月</div>
     <div class="g-month">负责人</div>
-    <div class="g-scale g-label">周次</div>
-    <div class="g-scale">09/18–09/21</div>
-    <div class="g-scale">09/22–09/26</div>
-    <div class="g-scale">09/27–10/01</div>
-    <div class="g-scale">10/02–10/05</div>
-    <div class="g-scale">10/06–10/09</div>
-    <div class="g-scale">10/10–10/14</div>
+    <div class="g-scale g-label">(Owner)</div>
+    <div class="g-scale">2026/08</div>
+    <div class="g-scale">2026/09</div>
+    <div class="g-scale">2026/10</div>
+    <div class="g-scale">2026/11</div>
+    <div class="g-scale">2026/12</div>
     <div class="g-scale">(Owner)</div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">气象测试待办项目排期表（2026）</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">企业知识库平台（POC 完成知识库搭建并测试问答能力）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:60%"></span><span class="g-pct">60%</span></div>
+        <div class="g-bar warn" style="left:20.26%;width:39.22%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+      <div class="g-owner"><span contenteditable="true">王林</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">测试 deepseek-v4.1-flash / GLM5.2 效果</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">DATA agent 一期（CEO 一眼报）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:40%"></span><span class="g-pct">40%</span></div>
+        <div class="g-bar done" style="left:0.0%;width:27.45%"><span class="g-pct">100%</span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+      <div class="g-owner"><span contenteditable="true">何洲</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">广告 oCPX 模型优化（转化率 +5%）</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">DATA agent 二期（用户资产）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:55%"></span><span class="g-pct">55%</span></div>
+        <div class="g-bar warn" style="left:20.26%;width:9.8%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+      <div class="g-owner"><span contenteditable="true">何洲</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">openclaw 产研智能体持续优化</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 友好性数据治理（认责五个步骤：BDO/TDO/DO/指标定义与口径）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:85.19%"><span class="g-fill" style="width:70%"></span><span class="g-pct">70%</span></div>
+        <div class="g-bar" style="left:20.26%;width:79.08%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+      <div class="g-owner"><span contenteditable="true">何洲、王林</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">主版天气服务加速优化需求</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 安全治理中心（AI 制度 + AI 安全工具落地）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar done" style="left:0.0%;width:48.15%"><span class="g-pct">100%</span></div>
-      </div>
-      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
-    </div>
-    <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 治理制度差距分析报告编写</span></div>
-      <div class="g-cells">
-        <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:45%"></span><span class="g-pct">45%</span></div>
+        <div class="g-bar" style="left:20.26%;width:49.67%"><span class="g-pct"></span></div>
       </div>
       <div class="g-owner"><span contenteditable="true">王平</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 安全工具部署达 95%</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">AI 模型管理平台与成本治理（API 管理平台）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-cell"></div>
-        <div class="g-ms" style="left:44.44%"></div>
-        <div class="g-bar warn" style="left:0.0%;width:48.15%"><span class="g-fill" style="width:30%"></span><span class="g-pct">30%</span></div>
+        <div class="g-bar done" style="left:0.0%;width:39.87%"><span class="g-pct">100%</span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">王平</span></div>
+      <div class="g-owner"><span contenteditable="true">赵同凯、郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">研发数字员工（AI 研发协作平台）· AI 研发全流程提效</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:19.61%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">经营分析数字员工（业务数字员工）· AI 智能体赋能业务提效</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:59.48%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">基于 AgentLoop 搭建 AI 成本管理和可视化平台</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:9.8%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">赵同凯</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">广告素材标签与品牌识别（准确率 85%）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:20.26%;width:19.61%"><span class="g-pct">100%</span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">通过大模型输出向量特征将广告 OCPX 转化率提升 5%</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:39.22%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">郭师光</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">新能源功率预测（年底 8 个场站的预测能力接入）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:79.08%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">航空辅助决策（基于 LongGraph 构建轨道交通气象 AI Agent 框架）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:79.08%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">张志远</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">数据底座全链路打通（预算到后链路，统一指标口径）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:59.48%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">何洲</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">渠道监控 0.1 初版（投放监控看板，识别渠道代理数据异常）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar warn" style="left:60.13%;width:39.87%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">何洲、王素玲</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">B 端 · 能源：建设新能源功率预测系统（商业版本产品）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:79.08%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">孙晓刚、陈祎</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">B 端 · 轨道：线路级气象预警与应急 SOP 助手（完成 3 家地铁试用）</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:39.22%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">孙晓刚、陈祎</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">B 端 · 航空：多源气象融合、风险识别及问答 AI Agent</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.26%;width:79.08%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">孙晓刚、陈祎</span></div>
+    </div>
+    <div class="g-row g-row-ms">
+      <div class="g-label"><span class="g-ms-ic"></span><span class="g-txt" contenteditable="true">关键交付时点</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-ms filled" style="left:39.22%" title="新能源 4 站接入 / 地铁服务系统开发完成（张志远）"></div>
+        <div class="g-ms filled" style="left:58.82%" title="企业知识库平台系统交付 · OCPX 转化率 +5%（郭师光）"></div>
+        <div class="g-ms filled" style="left:69.28%" title="AI 安全治理中心（王平）· 渠道数据底座 data agent 接入（何洲、王素玲）"></div>
+        <div class="g-ms filled" style="left:98.69%" title="数据治理 / 剩余 4 站接入 / 航空辅助系统（跨部门）"></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">尽调 / 交付节点</span></div>
     </div>
   </div>
   <div class="gantt-legend">
