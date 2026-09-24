@@ -447,6 +447,28 @@
     font-weight:700; color:var(--ink-2);
     white-space:nowrap; font-variant-numeric:tabular-nums;
   }
+  /* ★★★ V22.5 B2：未定 DDL 警示
+     背景：全篇 3 处 DDL 写「未定」（01 AI生活指数 ×2、01 帆软BI ×1），
+           与已定日期同样呈现为深灰粗体 —— 视觉上「无期限」和「有期限」一样重，
+           管理层扫读时极易漏掉「这个事没有交付承诺」这一风险信号。
+     方案：淡黄底 + 琥珀色字（复用已核查的 10 色文字体系之外的语义色，
+           与 Action 表 P0 的红 #b91c1c 属同一「风险语义色」家族，
+           但强度更低 —— 未定 ≠ 逾期，只是缺失承诺）。
+     铁律遵守：
+       · 只改样式，绝不增删文字（「未定」二字原样保留）
+       · 底色走 rgba 半透明，白底上呈现淡黄，打印 -webkit-print-color-adjust 保留
+       · 不用 border-left，起点标记类样式一律避开表格边框审计 */
+  .ap-table td.t-ddl.is-undated{
+    background:rgba(198,138,26,.12);
+    color:#854F0B;
+    box-shadow:inset 0 0 0 1px rgba(198,138,26,.28);
+  }
+  /* 打印保留警示底色 */
+  @media print{
+    .ap-table td.t-ddl.is-undated{
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
+    }
+  }
   /* 带附注的 DDL（如「09/20 + 数据价值评估」）：主日期与附注分两行，
      附注缩小字号并允许折行，避免单行 nowrap 撑破 74px 窄列 */
   .ap-table td.t-ddl .d{display:block;line-height:1.35;}
@@ -544,6 +566,63 @@
   }
   .proj-owner::before{content:'负责人 ';font-weight:400;opacity:.75;}
 
+  /* ★★★ V22.5 B1：项目状态灯（框架）
+     ------------------------------------------------------------------
+     背景：领导视角第一个问题是「三个项目哪个有风险」。
+          现在三个卡片标题条完全同色，扫读时无法一眼分出轻重。
+     现状：项目状态色属业务判断（谁算红、谁算黄），AI 不可代拟 ——
+          因此这里只搭「框架 + 中性占位」，等业务方定色后一键启用。
+     机制：.proj-head 上挂 data-lamp="none|green|amber|red"
+          · 默认 none → 空心灰点（不暗示任何状态，零编造）
+          · 其余三档 → 实心色点 + 标题条左侧同色细条
+     交互：点击圆点循环切换 none → green → amber → red → none，
+          状态写入独立 localStorage key，不进正文草稿。
+     铁律：① 默认态不改变任何现有视觉（灰点极小且低对比）
+          ② 打印隐藏交互点，但保留已选色（色值靠 print-color-adjust 锁定）
+          ③ 不加 <br>、不改文字 */
+  .proj-lamp{
+    flex:0 0 auto; appearance:none; border:none; background:none; padding:0;
+    width:11px; height:11px; border-radius:50%; cursor:pointer;
+    box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55);
+    background:transparent;
+    transition:background .16s ease, box-shadow .16s ease;
+    position:relative;
+  }
+  .proj-lamp::after{ /* 点击热区放大到 24px，不改变视觉尺寸 */
+    content:''; position:absolute; inset:-7px; border-radius:50%;
+  }
+  .proj-lamp:hover{box-shadow:inset 0 0 0 1.5px #fff;}
+  .proj-lamp:focus-visible{outline:2px solid #fff; outline-offset:2px;}
+
+  .proj-head[data-lamp="green"] .proj-lamp{background:#3f9e5a; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.9);}
+  .proj-head[data-lamp="amber"] .proj-lamp{background:#d99a1f; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.9);}
+  .proj-head[data-lamp="red"]   .proj-lamp{background:#c0392b; box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.9);}
+
+  /* 标题条左侧色条：与灯色呼应，强化「整条就是状态」的感知 */
+  .proj-head{position:relative;}
+  .proj-head[data-lamp="green"]::before,
+  .proj-head[data-lamp="amber"]::before,
+  .proj-head[data-lamp="red"]::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+  }
+  .proj-head[data-lamp="green"]::before{background:#3f9e5a;}
+  .proj-head[data-lamp="amber"]::before{background:#d99a1f;}
+  .proj-head[data-lamp="red"]::before{background:#c0392b;}
+
+  /* 状态图例：说明四档含义，放在项目总结区末尾 */
+  .lamp-legend{
+    display:flex; align-items:center; flex-wrap:wrap; gap:14px;
+    margin-top:10px; font-size:11px; color:var(--muted); line-height:1.7;
+  }
+  .lamp-legend .ll-t{font-weight:600; color:var(--ink-2);}
+  .lamp-legend .ll-i{display:inline-flex; align-items:center; gap:5px;}
+  .lamp-legend .ll-d{width:9px; height:9px; border-radius:50%; flex:0 0 auto;}
+  .lamp-legend .ll-d.none{background:transparent; box-shadow:inset 0 0 0 1.5px #b9c0c9;}
+  .lamp-legend .ll-d.green{background:#3f9e5a;}
+  .lamp-legend .ll-d.amber{background:#d99a1f;}
+  .lamp-legend .ll-d.red{background:#c0392b;}
+  .lamp-legend .ll-note{font-style:normal; color:#9aa3ae;}
+
   /* ② 卡片主体：两栏（亮灯状态 | 进展） */
   .proj-body{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);}
   .proj-block{padding:11px 14px 12px;min-width:0;}
@@ -607,7 +686,11 @@
   }
 
   /* ★ V22.2：卡片内甘特图容器 —— 复用 .gantt 但去掉外框，
-     避免在卡片里再套一层框（框中框会显得杂乱）。 */
+     避免在卡片里再套一层框（框中框会显得杂乱）。
+     ★★★ V22.5：新增折叠能力（交互 I1）。
+       实测三个甘特图合计 1101px = 第 1 页 39%，是全页最大高度来源。
+       折叠后第 1 页 2858px → 约 1757px，让老板先看结论、按需展开细节。
+       ★ 铁律：打印时强制全部展开（@media print），保证纸质件完整。 */
   .proj-gantt{
     border-top:1px solid var(--line-strong);
     padding:0;
@@ -627,6 +710,55 @@
   .proj-gantt .gantt-legend{
     border-top:1px solid var(--line);
     padding:7px 14px;
+  }
+
+  /* ============ ★ V22.5 甘特图折叠（交互 I1）============
+     折叠开关放在 .gantt-title 右侧，与标题同一行，不额外占高度。
+     收起时只隐藏 .gantt-grid 与 .gantt-legend，保留标题条作为「展开入口」。 */
+  .gantt-fold{
+    margin-left:auto;
+    flex:0 0 auto;
+    display:inline-flex; align-items:center; gap:4px;
+    padding:2px 8px; margin-top:-1px;
+    border:1px solid var(--line-strong); border-radius:3px;
+    background:#fff; cursor:pointer;
+    font-family:inherit; font-size:10.5px; font-weight:600;
+    color:var(--muted); letter-spacing:.3px; line-height:1.6;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .gantt-fold:hover{border-color:var(--brand);color:var(--brand);}
+  .gantt-fold:focus-visible{outline:2px solid var(--brand-2);outline-offset:1px;}
+  .gantt-fold .gf-ic{
+    display:inline-block; width:7px; text-align:center;
+    font-size:9px; line-height:1;
+    transition:transform .2s ease;
+  }
+  /* 标题条需要 flex 才能把开关推到右侧。
+     ⚠️ 基础样式 .gantt-title 是 align-items:baseline，这里改为 center
+        以适配按钮的垂直居中；三条 .gt-sub 用 margin-left:auto 把副标题
+        右推，因此折叠按钮紧跟其后，整体仍是「标题…副标题 [展开]」的右对齐节奏。 */
+  .proj-gantt .gantt-title{display:flex; align-items:center; gap:8px;}
+  .proj-gantt .gantt-title .gt-sub{margin-left:auto;}
+
+  /* 折叠态：隐藏网格与图例（用 max-height 做平滑过渡，避免 display 突变） */
+  .proj-gantt.is-folded .gantt-grid,
+  .proj-gantt.is-folded .gantt-legend{
+    display:none;
+  }
+  .proj-gantt.is-folded .gantt-title{border-bottom:none;}
+  .proj-gantt.is-folded .gantt-fold .gf-ic{transform:rotate(-90deg);}
+
+  /* ★ 铁律：打印时强制展开，保证纸质件完整可读 */
+  @media print{
+    .gantt-fold{display:none !important;}
+    .proj-gantt.is-folded .gantt-grid,
+    .proj-gantt.is-folded .gantt-legend{display:block !important;}
+    .proj-gantt.is-folded .gantt-title{border-bottom:1px solid var(--line) !important;}
+    .proj-gantt.is-folded .gantt-title{display:flex !important;}
+  }
+  /* 尊重减少动效偏好 */
+  @media (prefers-reduced-motion: reduce){
+    .gantt-fold, .gantt-fold .gf-ic{transition:none;}
   }
 
   /* ==================================================================
@@ -884,10 +1016,100 @@
     font-size:12px;padding:7px 16px;border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:99;opacity:.95;}
   .flag.show{display:block;}
 
+  /* ============ ★★★ V22.5 C4：按负责人聚焦（交互 I3）============
+     背景：实测全篇可提取 12 位负责人，汇报现场高频提问「这条是谁负责的」。
+     设计目标：对着某位负责人一眼扫出他名下全部事项，其余降噪。
+     铁律遵守：
+       · 不选人 = 零视觉变化（默认态即当前态，不点也一样好看）
+       · 只改显示，绝不改任何文字内容（不增删一个字）
+       · 打印自动取消聚焦 → 纸质件永远完整
+       · 起点标记用 box-shadow: inset，绝不用 border-left（否则边框审计判加粗）
+     面板只出现在第 1 页报头标题行右侧，与「编辑」按钮并排。 */
+  .title-tools{position:absolute; right:0; top:50%; transform:translateY(-50%);
+    display:flex; align-items:center; gap:8px;}
+  /* 标题行内的 .edit-toggle 原本是绝对定位 → 收进 flex 容器后改回静态 */
+  .title-tools .edit-toggle{position:static; right:auto; top:auto; transform:none;}
+  .title-tools .edit-toggle:active{transform:scale(.97);}
+  body.editing .title-tools .edit-toggle{transform:none;}
+
+  .owner-filter{position:relative; display:inline-flex; align-items:center;}
+  .owner-filter .of-btn{
+    appearance:none; border:1px solid var(--line-strong); background:#fff; color:var(--ink-2);
+    height:32px; padding:0 12px; border-radius:18px; cursor:pointer;
+    font-size:13px; font-weight:600; font-family:inherit; letter-spacing:.3px;
+    display:inline-flex; align-items:center; gap:6px;
+    transition:all .16s ease; white-space:nowrap; box-shadow:0 1px 3px rgba(16,24,40,.08);
+  }
+  .owner-filter .of-btn:hover{border-color:var(--brand); color:var(--brand); background:var(--brand-soft);}
+  .owner-filter .of-btn:focus-visible{outline:2px solid var(--brand-2); outline-offset:1px;}
+  .owner-filter .of-ic{font-size:11px; line-height:1; opacity:.85;}
+  .owner-filter .of-caret{font-size:9px; line-height:1; opacity:.7; transition:transform .16s ease;}
+  .owner-filter.is-open .of-caret{transform:rotate(180deg);}
+
+  /* 面板：与工具栏同一视觉语言（白底 + 1px 描边 + 圆角 + 软阴影） */
+  .of-panel{
+    display:none; position:absolute; right:0; top:calc(100% + 6px); z-index:85;
+    min-width:186px; max-height:290px; overflow-y:auto;
+    background:#fff; border:1px solid var(--line-strong); border-radius:10px;
+    box-shadow:0 8px 26px rgba(16,24,40,.18); padding:6px;
+  }
+  .owner-filter.is-open .of-panel{display:block;}
+  .of-panel .of-head{
+    font-size:10.5px; font-weight:600; color:#9aa3ae; letter-spacing:.4px;
+    padding:4px 8px 6px; border-bottom:1px solid var(--line); margin-bottom:4px;
+  }
+  .of-panel .of-item{
+    appearance:none; border:none; background:none; width:100%; text-align:left;
+    padding:6px 8px; border-radius:6px; cursor:pointer;
+    font-size:12.5px; font-weight:400; font-family:inherit; color:var(--ink-2);
+    display:flex; align-items:center; gap:8px; line-height:1.5;
+    transition:background .12s ease, color .12s ease;
+  }
+  .of-panel .of-item:hover{background:var(--brand-soft); color:var(--brand);}
+  .of-panel .of-item:focus-visible{outline:2px solid var(--brand-2); outline-offset:-2px;}
+  .of-panel .of-item .of-name{flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .of-panel .of-item .of-num{
+    flex:0 0 auto; font-size:11px; font-weight:600; color:var(--muted);
+    background:#f3f5f8; border-radius:9px; padding:0 6px; line-height:16px; min-width:18px; text-align:center;
+  }
+  .of-panel .of-item.is-active{background:var(--brand); color:#fff;}
+  .of-panel .of-item.is-active .of-num{background:rgba(255,255,255,.22); color:#fff;}
+  .of-panel .of-sep{height:1px; background:var(--line); margin:4px 2px;}
+
+  /* 聚焦提示条：明确「正在聚焦谁 / 共几项 / 怎么退出」 */
+  .of-status{
+    display:none; align-items:center; gap:8px; flex-wrap:wrap;
+    margin-top:12px; padding:7px 12px;
+    background:#eef4fa; border:1px solid #c9dcf0; border-radius:6px;
+    font-size:12px; color:var(--brand); line-height:1.6;
+  }
+  body.owner-focus .of-status{display:flex;}
+  .of-status .ofs-txt{font-weight:600;}
+  .of-status .ofs-clear{
+    appearance:none; border:1px solid var(--line-strong); background:#fff; color:var(--ink-2);
+    font-size:11.5px; font-family:inherit; font-weight:600; cursor:pointer;
+    padding:1px 9px; border-radius:11px; line-height:1.6;
+  }
+  .of-status .ofs-clear:hover{border-color:var(--brand); color:var(--brand);}
+
+  /* ★聚焦态：命中项淡蓝底 + 左侧 inset 色条；未命中项降噪 */
+  body.owner-focus .owner-dim{opacity:.34; transition:opacity .16s ease;}
+  body.owner-focus .owner-hit{
+    box-shadow:inset 3px 0 0 0 var(--brand-2);
+    background:#f1f7fd;
+    transition:background .16s ease;
+  }
+  body.owner-focus .owner-hit.tl-owner{background:#e8f1fb; border-radius:3px;}
+
   @page{size:A4 portrait;margin:12mm 10mm;}
   @media print{
     html,body{background:#fff;width:auto;overflow:visible;}
-    .flag,.edit-hint,.hint-open,.edit-toggle,.edit-banner,.bubble,.rowcol-tools{display:none!important;}
+    .flag,.edit-hint,.hint-open,.edit-toggle,.edit-banner,.bubble,.rowcol-tools,
+    .owner-filter,.of-status{display:none!important;}
+    /* ★ 铁律：打印自动取消聚焦 —— 未命中项恢复全亮，命中项去掉底色与色条，
+       保证纸质件与默认态完全一致（不因屏幕上选了谁而缺内容）。 */
+    body.owner-focus .owner-dim{opacity:1!important;}
+    body.owner-focus .owner-hit{background:none!important; box-shadow:none!important;}
     .page-wrap{max-width:none;width:auto;margin:0;padding:0;}
     .paper{box-shadow:none;border-radius:0;padding:0 0 14px;margin:0;page-break-after:always;
       width:auto;max-width:none;overflow:visible;}
@@ -906,13 +1128,42 @@
     .gantt-legend .sw,.gantt-legend .dm{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .gantt-grid{font-size:10.5px;}
     .g-bar{height:13px;}
+
+    /* ★★★ V22.5 C3：附录打印分页修复
+       病因（V22.4 实测）：1 个 .app-proj 小节高于一页时，
+         · 表头（下一步计划 / DDL / 责任人）只在首屏出现，翻页后丢失 →
+           第二页的任务行没有列标题，读者不知道哪列是 DDL
+         · 单行（tr）被从中间劈开 → 任务名在这页、DDL 在那页
+         · 小节标题（.ap-head 深蓝条）与内容被拆散 → 认不出属于哪个项目
+       方案：
+         1) .ap-head 打印时「跟随下一块」→ 标题绝不孤立在页尾
+         2) .ap-table thead 声明为表头组 → 跨页自动重复列标题
+         3) 任务行 tr 禁止内部断页 → 一行任务永远完整
+         4) .ap-row（目标/进展行）禁止内部断页
+       ④ 不变量：仍保持 break-inside:auto（单个小节可高于一页，不整体挪页） */
+    .ap-head{break-after:avoid; break-inside:avoid;}
+    .ap-table thead{display:table-header-group;}
+    .ap-table tbody tr{break-inside:avoid; page-break-inside:avoid;}
+    .ap-row{break-inside:avoid; page-break-inside:avoid;}
+    /* 表头随组重复时，补回上边框（否则第二页表头没有上边线，视觉断层） */
+    .ap-table thead th{border-top:1px solid var(--line-strong);}
+
+    /* ★ V22.5 B1：打印时隐藏灯点（它是交互控件），但保留标题条左侧色条，
+       让纸质件依然体现「哪个项目有风险」。
+       ⚠️ 色条是 ::before 伪元素，需 print-color-adjust 才能打印出颜色。 */
+    .proj-lamp{display:none!important;}
+    .proj-head[data-lamp]::before{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .proj-head{background:var(--brand)!important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .lamp-legend .ll-d{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
   }
   @media (max-width:820px){
     .paper{padding:22px 16px 28px;}
     .report-title{font-size:19px;}
     .title-row{flex-direction:column;gap:8px;}
+    .title-tools{position:static; transform:none; justify-content:center; flex-wrap:wrap;}
     .edit-toggle{position:static;transform:none;height:30px;padding:0 13px;font-size:12px;}
     body.editing .edit-toggle{transform:none;}
+    .of-panel{right:auto; left:50%; transform:translateX(-50%);}
     /* 小屏：工具栏与提示卡都收窄，避免遮挡正文 */
     .rowcol-tools{left:8px;right:8px;bottom:8px;justify-content:center;flex-wrap:wrap;padding:6px;}
     .edit-hint{right:8px;bottom:56px;max-width:min(240px,72vw);font-size:11.5px;}
@@ -927,6 +1178,7 @@
     .sec-title{font-size:14px;}
     th,td{padding:5px 6px;font-size:11.5px;}
     .edit-toggle{height:28px;padding:0 11px;font-size:11.5px;}
+    .owner-filter .of-btn{height:28px;padding:0 10px;font-size:11.5px;}
   }
   /* ============ 窄屏（手机）图表兜底 ============
      附录宽表有 10~13 列，在 390px 级宽度下单个汉字列会被压到
@@ -1016,9 +1268,21 @@
   <div class="report-head">
     <div class="title-row">
       <h1 class="report-title">数智化周报 <span contenteditable="true">20260928</span></h1>
-      <button class="edit-toggle" id="editToggle" title="开启/关闭编辑模式">
-        <span class="ic" id="editIcon">&#9998;</span><span id="editLabel">编辑</span>
-      </button>
+      <!-- ★★★ V22.5 C4：工具区（负责人聚焦 + 编辑开关）。
+           负责人聚焦 = 汇报现场「这条是谁负责的」的秒答能力；
+           默认不选人时零视觉变化，打印自动取消聚焦。 -->
+      <div class="title-tools">
+        <div class="owner-filter" id="ownerFilter">
+          <button type="button" class="of-btn" id="ownerFilterBtn"
+                  aria-haspopup="listbox" aria-expanded="false" title="按负责人聚焦查看其名下全部事项">
+            <span class="of-ic">&#9906;</span><span id="ownerFilterLabel">按负责人聚焦</span><span class="of-caret">&#9660;</span>
+          </button>
+          <div class="of-panel" id="ownerFilterPanel" role="listbox" aria-label="负责人列表"></div>
+        </div>
+        <button class="edit-toggle" id="editToggle" title="开启/关闭编辑模式">
+          <span class="ic" id="editIcon">&#9998;</span><span id="editLabel">编辑</span>
+        </button>
+      </div>
     </div>
     <div class="meta-row">
       <div class="meta-item"><span class="k">作者：</span><span class="v" contenteditable="true">马佳、王林</span></div>
@@ -1026,6 +1290,11 @@
       <div class="meta-item"><span class="k">操盘会预审：</span><span class="v" contenteditable="true">&nbsp;</span></div>
       <div class="meta-item"><span class="k">负责人自检：</span><span class="pill done" contenteditable="true">已完成</span></div>
       <div class="meta-item"><span class="k">Agent 终审：</span><span class="pill pending" contenteditable="true">待进行</span></div>
+    </div>
+    <!-- ★ V22.5 C4：仅在聚焦时出现的状态条（不聚焦则 display:none，零视觉占用） -->
+    <div class="of-status" id="ownerStatus">
+      <span class="ofs-txt" id="ownerStatusText"></span>
+      <button type="button" class="ofs-clear" id="ownerClear">取消聚焦</button>
     </div>
   </div>
 
@@ -1044,7 +1313,10 @@
   <div class="proj-list">
 
     <section class="proj">
-      <header class="proj-head">
+      <header class="proj-head" data-lamp="none">
+        <button type="button" class="proj-lamp" data-lamp-toggle
+                title="切换项目状态灯（灰=未定 / 绿=正常 / 黄=关注 / 红=风险）"
+                aria-label="项目状态灯"></button>
         <span class="proj-name" contenteditable="true">AI化转型</span>
         <span class="proj-owner" contenteditable="true">郭晨阳</span>
       </header>
@@ -1076,6 +1348,7 @@
   <div class="gantt-title">
     <span contenteditable="true">AI化转型 · 任务甘特图</span>
     <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
@@ -1196,7 +1469,10 @@
     </section>
 
     <section class="proj">
-      <header class="proj-head">
+      <header class="proj-head" data-lamp="none">
+        <button type="button" class="proj-lamp" data-lamp-toggle
+                title="切换项目状态灯（灰=未定 / 绿=正常 / 黄=关注 / 红=风险）"
+                aria-label="项目状态灯"></button>
         <span class="proj-name" contenteditable="true">用户资产项目</span>
         <span class="proj-owner" contenteditable="true">马佳</span>
       </header>
@@ -1225,6 +1501,7 @@
   <div class="gantt-title">
     <span contenteditable="true">用户资产项目 · 任务甘特图</span>
     <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
@@ -1370,7 +1647,10 @@
     </section>
 
     <section class="proj">
-      <header class="proj-head">
+      <header class="proj-head" data-lamp="none">
+        <button type="button" class="proj-lamp" data-lamp-toggle
+                title="切换项目状态灯（灰=未定 / 绿=正常 / 黄=关注 / 红=风险）"
+                aria-label="项目状态灯"></button>
         <span class="proj-name" contenteditable="true">数智化转型</span>
         <span class="proj-owner" contenteditable="true">郭晨阳</span>
       </header>
@@ -1401,6 +1681,7 @@
   <div class="gantt-title">
     <span contenteditable="true">数智化转型 · 任务甘特图</span>
     <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
@@ -1534,6 +1815,19 @@
 
   </div>
 
+  <!-- ★★ V22.5 B1：项目状态灯图例。
+       ⚠️ 业务方尚未确认三档色的判定标准（哪些算黄、哪些算红），
+          因此当前三个项目的灯一律为「未定（空心灰）」——不代拟业务判断。
+          定色后：点击卡片标题左侧的圆点即可逐档切换，状态自动随草稿保存。 -->
+  <div class="lamp-legend">
+    <span class="ll-t">项目状态：</span>
+    <span class="ll-i"><i class="ll-d none"></i>未定</span>
+    <span class="ll-i"><i class="ll-d green"></i>正常</span>
+    <span class="ll-i"><i class="ll-d amber"></i>关注</span>
+    <span class="ll-i"><i class="ll-d red"></i>风险</span>
+    <span class="ll-note">（点击标题左侧圆点可切换；当前待业务方确认判定口径）</span>
+  </div>
+
   <h2 class="sec-title">三、【决策事项 &amp; Action 跟进】</h2>
   <h3 class="sec-title sub">【决策事项】</h3>
   <!-- ★ V22.0：无决策事项时不显示空表格，直接写「无」 -->
@@ -1594,12 +1888,12 @@
       <tbody>
         <tr>
           <td class="t-task" contenteditable="true">当前测试有其余p0事项，测试排期未定，气象测试待办项目排期表（2026）</td>
-          <td class="t-ddl" contenteditable="true">未定</td>
+          <td class="t-ddl is-undated" contenteditable="true">未定</td>
           <td class="t-owner" contenteditable="true"><span class="ow">张志远</span></td>
         </tr>
         <tr>
           <td class="t-task" contenteditable="true">测试 deepseek-v4.1-flash 效果；同步测试私有化部署模型 GLM5.2 的效果</td>
-          <td class="t-ddl" contenteditable="true">未定</td>
+          <td class="t-ddl is-undated" contenteditable="true">未定</td>
           <td class="t-owner" contenteditable="true"><span class="ow">张志远</span></td>
         </tr>
       </tbody>
@@ -2228,6 +2522,342 @@
     }, true);                        // 捕获阶段：先于 #root 内其他冒泡逻辑
   }
 
+  /* ★★★ V22.5 甘特图折叠（交互 I1）
+     ------------------------------------------------------------------
+     为什么用事件委托：与 #editToggle 同理，#root 的 innerHTML 会被草稿恢复
+     整体重建，绑在按钮上的监听器会随之失效。绑到 document 捕获阶段后，
+     无论甘特图被重建多少次，点击始终有效。
+     实测收益：三个甘特图合计 1101px = 第 1 页 39%，折叠后第 1 页 2858 → 约 1757px。
+     ★ 铁律：只改显示状态，绝不改任何文字内容。 */
+  var foldDelegated = false;
+  function bindGanttFold(){
+    if(foldDelegated) return;
+    foldDelegated = true;
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var btn = (t && t.closest) ? t.closest('[data-gantt-fold]') : null;
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var box = btn.closest('.proj-gantt');
+      if(!box) return;
+      var folded = box.classList.toggle('is-folded');
+      btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+      /* 文字语义：表达「点击后会做什么」
+         · 已折叠 → 显示"展开"（点击即展开）
+         · 已展开 → 显示"收起"（点击即收起）
+         箭头 ▼ 随 CSS 旋转为 ▶，与文字方向一致。 */
+      var label = btn.querySelector('[data-fold-label]');
+      if(label) label.textContent = folded ? '展开' : '收起';
+      saveGanttFold();                 // 折叠状态随草稿持久化
+    }, true);
+  }
+
+  /* 折叠状态持久化：只存"哪个索引被收起"，与文字草稿分开存，
+     避免污染正文内容。 */
+  var FOLD_KEY = 'szhWeekly.ganttFold.v1';
+  function saveGanttFold(){
+    try{
+      var list = [];
+      document.querySelectorAll('.proj-gantt').forEach(function(box, i){
+        if(box.classList.contains('is-folded')) list.push(i);
+      });
+      localStorage.setItem(FOLD_KEY, JSON.stringify(list));
+    }catch(err){}
+  }
+  function restoreGanttFold(){
+    try{
+      var raw = localStorage.getItem(FOLD_KEY);
+      if(!raw) return;
+      var list = JSON.parse(raw);
+      if(!list || !list.length) return;
+      document.querySelectorAll('.proj-gantt').forEach(function(box, i){
+        if(list.indexOf(i) < 0) return;
+        box.classList.add('is-folded');
+        var btn = box.querySelector('[data-gantt-fold]');
+        if(btn){
+          btn.setAttribute('aria-expanded','false');
+          var label = btn.querySelector('[data-fold-label]');
+          if(label) label.textContent = '展开';
+        }
+      });
+    }catch(err){}
+  }
+
+  /* ★★★ V22.5 C4：按负责人聚焦（交互 I3）
+     ------------------------------------------------------------------
+     为什么用事件委托：与 #editToggle / 甘特图折叠同理 —— 第 1 页报头位于
+     #root 内，草稿恢复（root.innerHTML = saved）会整棵重建，绑在按钮上的
+     监听器随之失效。委托到 document 捕获阶段后，重建多少次都有效。
+     为什么每次现算负责人列表：内容可编辑，用户可能改名或加人；
+     现算保证面板永远与当前内容一致（15 处负责人容器 + Action 表，
+     总节点量很小，一次 full scan 不到 1ms）。
+     ★ 铁律：只切 class（owner-hit / owner-dim），绝不动任何文字。 */
+  var OWNER_FOCUS_KEY = 'szhWeekly.ownerFocus.v1';
+  var ownerFocusName = '';                        // '' = 未聚焦（默认态）
+
+  /* 取人名列表用的分隔符：顿号 / 逗号 / 斜杠 / 分号 / 空格分隔的多人 */
+  var NAME_SPLIT = /[、,，\/;；\s]+/;
+
+  /* 收集「人名集合」（用于初始化高亮），不是精确匹配 —— 处理
+     「张秋侠、王林」这类一格多人的情况，避免只匹配到整串。 */
+  function collectOwnerNames(text){
+    var out = [];
+    String(text || '').split(NAME_SPLIT).forEach(function(s){
+      s = s.replace(/[\s\u00a0]/g,'');
+      if(s && out.indexOf(s) < 0) out.push(s);
+    });
+    return out;
+  }
+
+  /* 页面里所有「负责人」容器。
+     三类（覆盖全页 15+ 处，实测可提取 12 位负责人）：
+       a) 项目卡片头部 → .proj-owner（如「郭晨阳」）
+       b) 下一步计划行 → .tl-owner（可能一格多人，如「张秋侠、王林」）
+       c) Action 表 → .cell-owner 里的 .ow；附录小节 → .ap-owner
+     白名单式选取，避免误伤正文里出现的其他人名（如正文提到的「黄耀海」）。 */
+  var OWNER_SEL = '.proj-owner, .tl-owner, .cell-owner, .ap-owner';
+  function ownerHosts(){
+    var list = [];
+    root.querySelectorAll(OWNER_SEL).forEach(function(el){
+      /* .cell-owner 内是多 .ow，聚焦标记加在 .cell-owner 上即可（整格降噪/高亮） */
+      list.push(el);
+    });
+    return list;
+  }
+
+  /* 扫描全页，得到 { 人名: 出现次数 } */
+  function scanOwners(){
+    var map = {};                                 // 用对象做字典，兼容老浏览器
+    var order = [];
+    ownerHosts().forEach(function(el){
+      collectOwnerNames(el.textContent).forEach(function(n){
+        if(!(n in map)){ map[n] = 0; order.push(n); }
+        map[n] += 1;
+      });
+    });
+    return { map: map, order: order };
+  }
+
+  /* 渲染下拉面板 */
+  function renderOwnerPanel(){
+    var panel = document.getElementById('ownerFilterPanel');
+    if(!panel) return;
+    var data = scanOwners();
+    var html = '<div class="of-head">选择负责人（共 ' + data.order.length + ' 位）</div>';
+    if(data.order.length){
+      data.order.forEach(function(n){
+        html += '<button type="button" class="of-item' + (n === ownerFocusName ? ' is-active' : '') +
+                '" role="option" data-owner="' + n.replace(/"/g,'&quot;') + '">' +
+                '<span class="of-name">' + n + '</span>' +
+                '<span class="of-num">' + data.map[n] + '</span></button>';
+      });
+    } else {
+      html += '<div class="of-item" style="cursor:default;color:var(--muted)">未识别到负责人</div>';
+    }
+    html += '<div class="of-sep"></div>' +
+            '<button type="button" class="of-item" data-owner=""><span class="of-name">显示全部</span></button>';
+    panel.innerHTML = html;
+  }
+
+  /* 应用聚焦：给命中项加 owner-hit，其余加 owner-dim */
+  function applyOwnerFocus(name){
+    /* 先彻底清掉上一次的标记，保证反复切换不残留 */
+    root.querySelectorAll('.owner-hit, .owner-dim').forEach(function(el){
+      el.classList.remove('owner-hit');
+      el.classList.remove('owner-dim');
+    });
+
+    if(!name){
+      document.body.classList.remove('owner-focus');
+      ownerFocusName = '';
+      updateOwnerUI(0);
+      try{ localStorage.removeItem(OWNER_FOCUS_KEY); }catch(err){}
+      return;
+    }
+
+    var hit = 0;
+    ownerHosts().forEach(function(el){
+      var names = collectOwnerNames(el.textContent);
+      if(names.indexOf(name) >= 0){
+        el.classList.add('owner-hit');
+        hit += 1;
+      } else {
+        el.classList.add('owner-dim');
+      }
+    });
+    ownerFocusName = name;
+    document.body.classList.add('owner-focus');
+    updateOwnerUI(hit);
+    try{ localStorage.setItem(OWNER_FOCUS_KEY, name); }catch(err){}
+  }
+
+  /* 刷新按钮文案 + 状态条文字 */
+  function updateOwnerUI(hitCount){
+    var label = document.getElementById('ownerFilterLabel');
+    var btn   = document.getElementById('ownerFilterBtn');
+    var txt   = document.getElementById('ownerStatusText');
+    if(label) label.textContent = ownerFocusName ? ('聚焦：' + ownerFocusName) : '按负责人聚焦';
+    if(btn){
+      btn.setAttribute('aria-expanded', ownerFocusName ? 'true' : 'false');
+      btn.title = ownerFocusName
+        ? '正在聚焦「' + ownerFocusName + '」，点击可切换或取消'
+        : '按负责人聚焦查看其名下全部事项';
+    }
+    if(txt){
+      txt.textContent = ownerFocusName
+        ? '聚焦：' + ownerFocusName + '（共 ' + hitCount + ' 项）'
+        : '';
+    }
+  }
+
+  function closeOwnerPanel(){
+    var box = document.getElementById('ownerFilter');
+    if(!box) return;
+    box.classList.remove('is-open');
+    var btn = document.getElementById('ownerFilterBtn');
+    if(btn) btn.setAttribute('aria-expanded', ownerFocusName ? 'true' : 'false');
+  }
+
+  var ownerDelegated = false;
+  function bindOwnerFilter(){
+    if(ownerDelegated) return;
+    ownerDelegated = true;
+
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      if(!t || !t.closest) return;
+
+      /* 1) 点开/收起按钮 */
+      var toggle = t.closest('#ownerFilterBtn');
+      if(toggle){
+        e.preventDefault();
+        e.stopPropagation();
+        var box = document.getElementById('ownerFilter');
+        if(!box) return;
+        var willOpen = !box.classList.contains('is-open');
+        if(willOpen) renderOwnerPanel();        // 每次打开都现算，保证与内容一致
+        box.classList.toggle('is-open', willOpen);
+        var btn = document.getElementById('ownerFilterBtn');
+        if(btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        return;
+      }
+
+      /* 2) 点面板里的某个人 → 聚焦 / 取消聚焦 */
+      var item = t.closest('[data-owner]');
+      if(item){
+        e.preventDefault();
+        e.stopPropagation();
+        var name = item.getAttribute('data-owner') || '';
+        /* 再点一次同一个人 = 取消聚焦（符合直觉的开关行为） */
+        applyOwnerFocus(name && name !== ownerFocusName ? name : '');
+        closeOwnerPanel();
+        if(ownerFocusName) toast('已聚焦：' + ownerFocusName, 1600);
+        return;
+      }
+
+      /* 3) 点「取消聚焦」按钮 */
+      if(t.closest('#ownerClear')){
+        e.preventDefault();
+        applyOwnerFocus('');
+        toast('已取消聚焦，显示全部', 1600);
+        return;
+      }
+
+      /* 4) 点击面板外部 → 收起 */
+      if(!t.closest('#ownerFilter')) closeOwnerPanel();
+    }, true);
+
+    /* Esc 先关面板（编辑态下 Esc 是"保存退出"，这里只在面板展开时拦截，
+       避免抢走编辑态的快捷键） */
+    document.addEventListener('keydown', function(e){
+      if(e.key !== 'Escape') return;
+      var box = document.getElementById('ownerFilter');
+      if(box && box.classList.contains('is-open')){
+        e.preventDefault();
+        e.stopPropagation();
+        closeOwnerPanel();
+      }
+    }, true);
+  }
+
+  /* 恢复上次聚焦的负责人（与草稿同生命周期，独立 key 不污染内容） */
+  function restoreOwnerFocus(){
+    try{
+      var name = localStorage.getItem(OWNER_FOCUS_KEY);
+      if(!name) return;
+      /* 校验此人当前仍在页面里，否则静默丢弃（避免聚焦到一个不存在的人） */
+      var data = scanOwners();
+      if(!(name in data.map)){ localStorage.removeItem(OWNER_FOCUS_KEY); return; }
+      applyOwnerFocus(name);
+    }catch(err){}
+  }
+
+  /* ★★★ V22.5 B1：项目状态灯（框架，待业务方定色）
+     ------------------------------------------------------------------
+     为什么只搭框架不代拟颜色：项目红/黄/绿属业务判断 ——
+     谁算「有风险」、谁算「需关注」是管理层口径，AI 编不得。
+     因此默认三档全为 none（空心灰），并提供点击切换能力，
+     等业务方定色后逐个项目点一下即可，无需改代码。
+     为什么用事件委托：与其它交互同理，#root 会被草稿重建。
+     为什么独立 key：状态灯是"呈现状态"，不属于正文内容，
+     不能混进 LS_KEY 草稿（否则「还原模板」后灯色错乱）。 */
+  var LAMP_KEY = 'szhWeekly.projLamp.v1';
+  var LAMP_CYCLE = ['none', 'green', 'amber', 'red'];
+  var LAMP_LABEL = { none:'未定', green:'正常', amber:'关注', red:'风险' };
+
+  function projHeads(){
+    var list = [];
+    root.querySelectorAll('.proj-head').forEach(function(el){ list.push(el); });
+    return list;
+  }
+
+  function saveLamps(){
+    try{
+      var arr = projHeads().map(function(h){ return h.getAttribute('data-lamp') || 'none'; });
+      localStorage.setItem(LAMP_KEY, JSON.stringify(arr));
+    }catch(err){}
+  }
+
+  function restoreLamps(){
+    try{
+      var raw = localStorage.getItem(LAMP_KEY);
+      if(!raw) return;
+      var arr = JSON.parse(raw);
+      if(!arr || !arr.length) return;
+      projHeads().forEach(function(h, i){
+        var v = arr[i];
+        if(!v || LAMP_CYCLE.indexOf(v) < 0) return;
+        h.setAttribute('data-lamp', v);
+        var btn = h.querySelector('[data-lamp-toggle]');
+        if(btn) btn.title = '当前状态：' + LAMP_LABEL[v] +
+          '（灰=未定 / 绿=正常 / 黄=关注 / 红=风险，点击切换）';
+      });
+    }catch(err){}
+  }
+
+  var lampDelegated = false;
+  function bindProjLamp(){
+    if(lampDelegated) return;
+    lampDelegated = true;
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var btn = (t && t.closest) ? t.closest('[data-lamp-toggle]') : null;
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var head = btn.closest('.proj-head');
+      if(!head) return;
+      var cur = head.getAttribute('data-lamp') || 'none';
+      var next = LAMP_CYCLE[(LAMP_CYCLE.indexOf(cur) + 1) % LAMP_CYCLE.length];
+      head.setAttribute('data-lamp', next);
+      btn.title = '当前状态：' + LAMP_LABEL[next] +
+        '（灰=未定 / 绿=正常 / 黄=关注 / 红=风险，点击切换）';
+      saveLamps();
+      toast('项目状态 → ' + LAMP_LABEL[next], 1400);
+    }, true);
+  }
+
   /* 提示卡折叠 / 展开 */
   var hintClose = document.getElementById('hintClose');
   var hintOpen  = document.getElementById('hintOpen');
@@ -2434,7 +3064,7 @@
       if(el.hasAttribute('data-ce')) return;            // 已标记
       if(el.querySelector('[data-ce="1"]')) return;     // 含已标记子元素 → 交给子元素
       if(SKIP_TAGS[el.tagName]) return;
-      if(el.closest('.rowcol-tools, .edit-hint, .edit-banner, .bubble, .hint-open, .edit-toggle')) return;  // UI 控件区
+      if(el.closest('.rowcol-tools, .edit-hint, .edit-banner, .bubble, .hint-open, .edit-toggle, .gantt-fold, .owner-filter, .of-status')) return;  // UI 控件区
       if(el.isContentEditable) return;
       // 必须有直接可见文字（或非空子元素文本）
       var direct = '';
@@ -2482,6 +3112,9 @@
 
   /* ★顺序很关键：先把委托监听绑好（与按钮是否存在无关），再恢复草稿 */
   bindToggle();
+  bindGanttFold();
+  bindOwnerFilter();                // ★ V22.5 C4 负责人聚焦
+  bindProjLamp();                   // ★ V22.5 B1 项目状态灯
 
   /* ============ 草稿恢复：静默自动加载，不弹任何确认框 ============
      用户要求：打开页面时不要出现"检测到本机有编辑，是否恢复？"这类告警。
@@ -2504,6 +3137,9 @@
   // 草稿可能带来新的 DOM 节点，标记必须在恢复之后执行
   markEditable();
   wrapTablesForNarrow();            // ★ 宽表横向滚动兜底（草稿恢复后重建包装层）
+  restoreGanttFold();               // ★ V22.5 恢复甘特图折叠状态（草稿重建后）
+  restoreOwnerFocus();              // ★ V22.5 C4 恢复负责人聚焦（草稿重建后）
+  restoreLamps();                   // ★ V22.5 B1 恢复项目状态灯（草稿重建后）
 
   /* 初始化：静默进入只读态（不弹提示、不写草稿）
      注意：HTML 里硬编码的 contenteditable="true" 必须物理移除，
