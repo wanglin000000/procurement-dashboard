@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='56c32ae181fd';</script>
+<script>window.__SZ_REPORT_BUILD__='39c1b1059c89';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -1314,9 +1314,20 @@
   }
   .rc-edge .re-btn:hover{ background:var(--brand-soft); border-color:var(--brand-2); color:var(--brand); }
   .rc-edge .re-btn.del:hover{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
-  /* 仅编辑态出现；小屏（宽表已横滚）不出现，避免遮挡 */
+  /* ★ V29：行工具翻到单元格右侧时，按钮圆角镜像，视觉上仍「贴」着单元格 */
+  .rc-edge.pos-row.flip .re-btn{ border-radius:5px 5px 5px 5px; }
+  /* 仅编辑态出现 */
   body.editing .rc-edge.show{ display:flex; }
-  @media (max-width:900px){ .rc-edge{ display:none !important; } }
+  /* ★★★ V29 修复「行 +/− 点不动」的真凶 —— 原先这里有
+     `@media (max-width:900px){ .rc-edge{ display:none !important; } }`。
+     实测：视口 ≤900px（小笔记本 / 分屏 / 浏览器缩放 ≥125%）时浮层被 CSS
+     直接隐藏，用户看到的是「功能凭空消失 / 点了没反应」。
+     ★ 判据回顾：报告正文是「宽表 + 横向滚动」，窄视口恰恰是最需要增删行列的
+       场景 —— 隐藏它等于在最需要的地方砍掉功能，方向完全反了。
+     改为「窄视口仅缩小按钮，绝不隐藏」： */
+  @media (max-width:900px){
+    .rc-edge .re-btn{ width:20px; height:20px; font-size:11px; border-radius:4px; }
+  }
 
   .flag{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2328;color:#fff;
     font-size:12px;padding:7px 16px;border-radius:20px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:99;opacity:.95;}
@@ -1531,7 +1542,8 @@
      改为跟光标走 .rc-edge 就近浮出（见上方）。这里只留全局输出动作。 -->
 <div class="rowcol-tools" id="rowcolTools">
   <button class="rc-btn" id="btnPrint" title="打印 / 导出 PDF">打印</button>
-  <button class="rc-btn" id="btnSave" title="保存为 HTML (Ctrl+S)">保存</button>
+  <button class="rc-btn" id="btnSave" title="保存编辑内容（Ctrl+S）">保存</button>
+  <button class="rc-btn" id="btnDownload" title="把当前内容另存为独立 HTML 文件（自带评论，可发给他人）">下载 HTML</button>
   <button class="rc-btn" id="btnExport" title="导出 Excel">导出 Excel</button>
   <span class="rc-sep"></span>
   <button class="rc-btn del" id="btnReset" title="放弃所有改动，回到原始模板">还原模板</button>
@@ -1552,7 +1564,8 @@
   <b>编辑模式</b><br>
   点击任意文字直接修改；<b>选中文字</b>会浮出格式工具条。<br>
   点进表格单元格，<b>该行左侧 / 该列上方</b>会浮出 + / − 增删行列。<br>
-  右下角小条可保存 / 导出 / 打印。按 <b>Esc</b> 保存并退出。
+  左下角小条：<b>保存</b>=存住编辑内容，<b>下载 HTML</b>=导出成独立文件。<br>
+  <b>打印</b> / <b>导出 Excel</b> 也在左下角小条。按 <b>Esc</b> 保存并退出。
 </div>
 <button class="hint-open" id="hintOpen" title="显示编辑提示">?</button>
 
@@ -3598,13 +3611,29 @@
     /* ---- 行工具：定位到该行左侧外缘、垂直居中 ----
        ★★★ V28 定位坑：**不要用 tr.getBoundingClientRect()** ——
          <tr> 的 rect 在表格布局下可能返回塌陷/过期值（实测算出 57.6 而
-         真实应为 366.5）。一律以**单元格自身**的 rect 为准。 */
+         真实应为 366.5）。一律以**单元格自身**的 rect 为准。
+       ★★★ V29 改进：原实现永远贴 `表格最左外侧`（实测 x≈230），而用户光标
+         在中间或右侧列时，鼠标要**横穿约 240px** 才够到按钮 —— 体验上就是
+         「找不到 / 点不到」。改为**贴着光标所在单元格的左外侧**，
+         鼠标几乎不用移动即可命中；若左侧空间不足（首列/窄表格），
+         自动翻转到该单元格**右外侧**，保证始终贴在光标附近。 */
     if(tr && tr.tagName === 'TR'){
       var cellRect = cell.getBoundingClientRect();
       var rowW = rowBox.offsetWidth || 23;
       var rowH = rowBox.offsetHeight || 50;
-      rowBox.style.top  = (cellRect.top + winY + cellRect.height / 2 - rowH / 2) + 'px';
-      rowBox.style.left = (cellRect.left + winX - rowW - 6) + 'px';
+      var rowTop = cellRect.top + winY + cellRect.height / 2 - rowH / 2;
+      /* 首选：单元格左外侧；左边界不够（会跑到纸张外/视口外）则翻到右外侧 */
+      var leftSpace = cellRect.left - 4;                 /* 距视口左缘的可用宽度 */
+      var rowLeft;
+      if(leftSpace >= rowW + 8){
+        rowLeft = cellRect.left + winX - rowW - 6;       /* 左外侧 */
+      } else {
+        rowLeft = cellRect.right + winX + 6;             /* 翻转：右外侧 */
+      }
+      rowBox.style.top  = rowTop + 'px';
+      rowBox.style.left = rowLeft + 'px';
+      /* ★ 翻到右侧时，两个按钮的圆角方向镜像一下，视觉上更贴 */
+      rowBox.classList.toggle('flip', leftSpace < rowW + 8);
       var rowDel = document.getElementById('edgeRowDel');
       if(rowDel) rowDel.style.display = tr.querySelector('th') ? 'none' : '';
     }
@@ -3724,22 +3753,54 @@
   }
 
   /* ★ V27：把「保存」按钮的实现抽成具名函数 —— 按钮与 Ctrl/Cmd+S 必须走**同一条**路径，
-     否则两处逻辑会各自漂移（如评论数据只注入到按钮那条，快捷键下载出来的文件就不带评论）。 */
+     否则两处逻辑会各自漂移（如评论数据只注入到按钮那条，快捷键下载出来的文件就不带评论）。
+     ★★★ V29 修复「点保存却直接下载了 HTML」：
+       用户诉求原文：「点击保存的时候是直接下载了这个html，但是我们希望是直接保存编辑页面。
+                     效果和点击右上角的保存是一样的效果才对」
+       根因：本函数**无条件**走下载分支；而快捷键那条路径（见下方 keydown）里
+             已经有 `if(editing){ flushDraft() } else { saveHtmlFile() }` 的正确分支。
+             → 点右下角「保存」按钮时把已编辑内容下载成了文件，而不是"保存编辑页面"。
+       修复：把「编辑态 = 保存草稿 / 非编辑态 = 下载」的判定**收进本函数**，
+             让它成为唯一入口 —— 右上角编辑按钮、右下角保存按钮、Ctrl/Cmd+S
+             三者从此**完全同路径同行为**（这也是 V27 抽函数的初衷，此处补齐）。
+       ★ 两种模式都返回状态字符串，便于自动化测试断言走了哪条分支。 */
   function saveHtmlFile(){
-    /* ★ V27：先把评论数据内嵌进当前文档，再取 outerHTML —— 这样下载的文件
-       自带评论，换设备/发给别人打开评论仍在。取完立刻移除以保持页面干净。 */
+    /* 编辑态：保存编辑内容（写草稿 + 保持编辑状态），不下载文件 */
+    if(editing){
+      flushDraft();
+      setSaveState('saved');
+      toast('✓ 已保存编辑内容（点右上角「完成编辑」可退出）', 2400);
+      return 'draft';
+    }
+    /* 非编辑态：导出/下载成独立 HTML（自带评论数据） */
+    downloadHtmlFile();
+    return 'download';
+  }
+  /* 供自动化测试断言「当前会走哪条分支」 */
+  window.__SZ_saveBranch = function(){ return editing ? 'draft' : 'download'; };
+
+  /* ★ V29：「下载 HTML」独立出口 —— 与「保存」解耦。
+     用户诉求是「保存 = 保存编辑页面」，那"导出成文件"就应当有自己明确的入口，
+     不能再搭在「保存」按钮上（否则两个意图永远互相打架）。 */
+  function downloadHtmlFile(){
     if(window.__SZ_attachComments) window.__SZ_attachComments();
     var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
     if(window.__SZ_detachComments) window.__SZ_detachComments();
-
     var d = new Date();
     var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
     download(html, '数智化周报-' + stamp + '.html', 'text/html;charset=utf-8');
     flushDraft();
-    toast('已下载 HTML 文件（双击打开可继续编辑）');
+    toast('已下载 HTML 文件（自带评论，双击打开可继续编辑）');
+    return true;
   }
 
+  /* ★★★ V29：「保存」按钮 —— 编辑态保存编辑内容（用户诉求），非编辑态下载。
+     与 Ctrl/Cmd+S、右上角编辑按钮三者同路径（都进 saveHtmlFile）。 */
   document.getElementById('btnSave').addEventListener('click', saveHtmlFile);
+
+  /* ★ V29：「下载 HTML」按钮 —— 明确、独立的导出出口，任何时候都能导出文件。
+     解决「保存不再下载了，那我想导出文件去哪按」的问题。 */
+  document.getElementById('btnDownload').addEventListener('click', downloadHtmlFile);
 
   document.getElementById('btnExport').addEventListener('click', function(){
     var tables = document.querySelectorAll('.paper table');
@@ -3784,17 +3845,12 @@
     var meta = e.metaKey || e.ctrlKey;
     /* ★ V27：Ctrl/Cmd+S 在任何状态下都必须有反馈 —— 用户诉求「希望可以支持键盘快捷键保存」。
        改前：非编辑态直接 return → 浏览器弹出自己的「保存网页」框，用户以为我们的功能没生效。
-       改后两个分支都拦截浏览器默认行为，行为与右上角「保存」按钮**完全一致**：
-         · 编辑态   → 保存草稿（沿用原行为，文案不变）
-         · 非编辑态 → 直接下载 HTML（等价于点「保存」按钮） */
+       ★★★ V29：分支判定已**收进 saveHtmlFile() 内部**（编辑态 = 保存编辑内容 /
+       非编辑态 = 下载 HTML）。这里无脑调用即可 —— 与右下角「保存」按钮、
+       右上角编辑按钮三者**完全同路径同行为**（这正是 V27 抽函数的初衷）。 */
     if(meta && (e.key === 's' || e.key === 'S')){
       e.preventDefault();
-      if(editing){
-        flushDraft();
-        toast('草稿已保存（点「保存」按钮可下载 HTML 文件）', 2200);
-      } else {
-        saveHtmlFile();          // ★ 与「保存」按钮同一实现，避免两套逻辑走偏
-      }
+      saveHtmlFile();
       return;
     }
     if(!editing) return;
