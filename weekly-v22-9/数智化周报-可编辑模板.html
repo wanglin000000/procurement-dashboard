@@ -9,6 +9,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
+     用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
+<script>window.__SZ_REPORT_BUILD__='7fbd41b35b4a';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -2409,6 +2412,14 @@
 (function(){
   'use strict';
   var LS_KEY = 'mozhi_digital_weekly_report_draft_v2';
+  /* ★★★ V22.9c 草稿版本守卫 —— 解决「服务器已更新，但打开还是旧内容」
+     原理：草稿存在浏览器 localStorage 里，是「上次打开时的整页 HTML 快照」。
+           若模板后续更新，旧草稿会把新内容整页覆盖掉 → 用户永远看到旧版。
+     做法：把「模板构建指纹」一起存进草稿；两次指纹不一致即判定草稿过期，
+           静默丢弃并加载最新模板。指纹来自构建时注入的 BUILD_STAMP。
+     ⚠️ 改版后必须让 BUILD_STAMP 变化（_build.py 已自动按内容哈希注入）。 */
+  var BUILD_STAMP = window.__SZ_REPORT_BUILD__ || '';
+  var LS_STAMP_KEY = LS_KEY + '__stamp';
   var root = document.getElementById('root');
   var flag = document.getElementById('flag');
   var bubble = document.getElementById('bubble');
@@ -2612,6 +2623,8 @@
   function flushDraft(){
     try {
       localStorage.setItem(LS_KEY, root.innerHTML);
+      /* ★ V22.9c：一并记录当前模板指纹 —— 下次打开时指纹不符即判草稿过期 */
+      if(BUILD_STAMP) localStorage.setItem(LS_STAMP_KEY, BUILD_STAMP);
       dirty = false;
       setSaveState('saved');
       return true;
@@ -3287,6 +3300,17 @@
      需要"回到原始模板"时，退出编辑态后按 Esc 不会清空草稿，
      清空入口保留在「保存」按钮旁的下载行为之外 —— 见下方 CLEAR_DRAFT_KEY 逻辑。 */
   var saved = localStorage.getItem(LS_KEY);
+  if(saved){
+    /* ★ V22.9c：先做模板版本校验 —— 旧模板留下的草稿一律作废
+       （否则更新的内容会被旧草稿整页覆盖，用户永远看到旧版） */
+    var savedStamp = localStorage.getItem(LS_STAMP_KEY) || '';
+    var stampMismatch = BUILD_STAMP && savedStamp && savedStamp !== BUILD_STAMP;
+    if(stampMismatch){
+      localStorage.removeItem(LS_KEY);       // ★ 静默丢弃过期草稿
+      localStorage.removeItem(LS_STAMP_KEY);
+      saved = null;
+    }
+  }
   if(saved){
     // 校验草稿有效性：必须含 #root 结构，否则视为损坏草稿并丢弃
     var valid = /class="paper"/.test(saved) || /report-title/.test(saved);
