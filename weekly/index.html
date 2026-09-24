@@ -740,6 +740,28 @@
   .proj-gantt .gantt-title{display:flex; align-items:center; gap:8px;}
   .proj-gantt .gantt-title .gt-sub{margin-left:auto;}
 
+  /* ============ ★★ V22.6 收起态摘要 ============
+     动机：用户要求「甘特图默认收缩，点击展开」。默认收起后，老板扫读时
+           只看得到一行标题，若标题只写「用户资产项目」就完全丢失信息。
+     解法：收起态在标题行内显示「N 项任务 · 起 ～ 止」，不点开也知道
+           「有多少事、跨多久」；展开后自动隐藏，避免与副标题重复。
+     ★ 实现要点：.gt-sum 始终在 DOM 里（不进 contenteditable），
+        仅靠 .is-folded 切换 display，因此不参与编辑与文字统计。 */
+  .gantt-title .gt-sum{
+    display:none;
+    flex:0 0 auto;
+    font-size:11px; font-weight:600;
+    color:var(--brand-2);
+    letter-spacing:.2px; line-height:1.6;
+    padding:1px 7px; margin-left:auto;
+    border:1px solid var(--line-strong); border-radius:3px;
+    background:#f7f9fc;
+    white-space:nowrap;
+  }
+  .proj-gantt.is-folded .gantt-title .gt-sum{display:inline-block;}
+  /* 收起态副标题右推职责交由 .gt-sum 承担，副标题紧贴摘要 */
+  .proj-gantt.is-folded .gantt-title .gt-sub{margin-left:8px;}
+
   /* 折叠态：隐藏网格与图例（用 max-height 做平滑过渡，避免 display 突变） */
   .proj-gantt.is-folded .gantt-grid,
   .proj-gantt.is-folded .gantt-legend{
@@ -755,6 +777,9 @@
     .proj-gantt.is-folded .gantt-legend{display:block !important;}
     .proj-gantt.is-folded .gantt-title{border-bottom:1px solid var(--line) !important;}
     .proj-gantt.is-folded .gantt-title{display:flex !important;}
+    /* ★ V22.6：打印即展开 → 收起态摘要必须一起隐藏，否则与副标题重复 */
+    .gantt-title .gt-sum{display:none !important;}
+    .proj-gantt.is-folded .gantt-title .gt-sub{margin-left:auto !important;}
   }
   /* 尊重减少动效偏好 */
   @media (prefers-reduced-motion: reduce){
@@ -797,11 +822,13 @@
     font-size:11.5px; font-weight:400; color:var(--muted); margin-left:auto;
     white-space:nowrap;
   }
-  /* 网格：6 周 × [任务名 27% | 周格 1fr×6 | 负责人 11%]
-     周格宽度彼此完全相等，保证条形与刻度的坐标一致（不用 % 硬算） */
+  /* 网格：[任务名 27% | N 个时间格 | 负责人 11%]
+     时间格宽度彼此完全相等，保证条形与刻度的坐标一致（不用 % 硬算）
+     ★ V22.6：格数改由 --slots 变量驱动（默认 6），
+        使同一套 CSS 可承载不同粒度的甘特图（周粒度 7 格 / 月粒度 8 格）。 */
   .gantt-grid{
     display:grid;
-    grid-template-columns:27% repeat(6, minmax(0,1fr)) 11%;
+    grid-template-columns:27% repeat(var(--slots, 6), minmax(0,1fr)) 11%;
     font-size:11.5px;
   }
   .g-row{display:contents;}
@@ -834,11 +861,11 @@
     background:var(--brand-2); opacity:.85;
   }
   .g-label .g-txt{flex:1 1 auto; min-width:0;}
-  /* 周格子：每条任务一个格子，内部放条/菱形 */
+  /* 时间格：每条任务一个格子，内部放条/菱形 */
   .g-cells{
-    grid-column:2 / span 6;
+    grid-column:2 / span var(--slots, 6);
     position:relative;                 /* 作为条形绝对定位的参照 */
-    display:grid; grid-template-columns:repeat(6, minmax(0,1fr));
+    display:grid; grid-template-columns:repeat(var(--slots, 6), minmax(0,1fr));
     align-items:center; min-height:30px;
     border-bottom:1px solid var(--line);
   }
@@ -1347,8 +1374,9 @@
 <div class="gantt">
   <div class="gantt-title">
     <span contenteditable="true">AI化转型 · 任务甘特图</span>
-    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
-    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
+    <span class="gt-sum" aria-hidden="true">3 项任务 · 09/18 ～ 10/14</span>
+    %s周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="true" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>收起</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
@@ -1496,28 +1524,36 @@
           <li><span class="tl-task" contenteditable="true">补充分析验证华为和鸿蒙模型的可复用性，并输出调节双模型间的调节系数</span><span class="tl-owner" contenteditable="true">马佳</span><span class="tl-ddl" contenteditable="true">10/16</span></li>
         </ul>
       </div>
+      <!-- ★ V22.6：用户资产项目含两条独立时间轴的计划，各自独立折叠。
+           MarketingAPI（周粒度 8 格，2026/09/17 ～ 11/08）
+           鸿蒙模型优化方案（月粒度 8 格，2026/09 ～ 2027/04）
+           展开/收起按钮在各自标题行右侧，默认全部收起（JS restoreGanttFold）。 -->
       <div class="proj-gantt">
-<div class="gantt">
+<div class="gantt" style="--slots:8">
   <div class="gantt-title">
-    <span contenteditable="true">用户资产项目 · 任务甘特图</span>
-    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
-    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
+    <span contenteditable="true">MarketingAPI · 任务甘特图</span>
+    <span class="gt-sum" aria-hidden="true">8 项任务 · 09/17 ～ 11/01</span>
+    <span class="gt-sub" contenteditable="true">周期 2026/09/17 ～ 11/08 · 8 个阶段</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="true" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>收起</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
-    <div class="g-month" style="grid-column:2 / span 3">2026年9月</div>
-    <div class="g-month" style="grid-column:5 / span 3">2026年10月</div>
+    <div class="g-month" style="grid-column:2 / span 2">2026年9月</div>
+    <div class="g-month" style="grid-column:4 / span 4">2026年10月</div>
+    <div class="g-month" style="grid-column:8 / span 2">2026年11月</div>
     <div class="g-month">负责人</div>
-    <div class="g-scale g-label">周次</div>
-    <div class="g-scale">09/18–09/21</div>
-    <div class="g-scale">09/22–09/26</div>
-    <div class="g-scale">09/27–10/01</div>
-    <div class="g-scale">10/02–10/05</div>
-    <div class="g-scale">10/06–10/09</div>
-    <div class="g-scale">10/10–10/14</div>
+    <div class="g-scale g-label">(Owner)</div>
+    <div class="g-scale">09/14–09/20</div>
+    <div class="g-scale">09/21–09/27</div>
+    <div class="g-scale">09/28–10/04</div>
+    <div class="g-scale">10/05–10/11</div>
+    <div class="g-scale">10/12–10/18</div>
+    <div class="g-scale">10/19–10/25</div>
+    <div class="g-scale">10/26–11/01</div>
+    <div class="g-scale">11/02–11/08</div>
     <div class="g-scale">(Owner)</div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">11家线上投放渠道监测格式优化</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商研发准备流程（墨迹账号申请、VPN权限、服务器方案规格及权限、端口应用权限等工单审批确认）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1525,12 +1561,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:65%"></span><span class="g-pct">65%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:5.36%;width:4.38%"><span class="g-pct">100%</span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+      <div class="g-owner"><span contenteditable="true">何洲、马佳、齐金桐</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商研发资源远程入场</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商系统部署（私有化部署系统平台模块）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1538,12 +1576,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:50%"></span><span class="g-pct">50%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar done" style="left:10.71%;width:5.36%"><span class="g-pct">100%</span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">需求梳理中</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商接口对接研发（OPPO渠道、VIVO渠道核心接口开发并落库表供查询交付）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1551,12 +1591,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar warn" style="left:0.0%;width:25.93%"><span class="g-fill" style="width:20%"></span><span class="g-pct">20%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:16.07%;width:4.38%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">齐金桐</span></div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">上游依赖任务迁移完成</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商接口研发（小米、华为、广点通、巨量引擎、荣耀、鸿蒙、苹果、百度接口开发）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1564,12 +1606,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:100.0%"><span class="g-fill" style="width:35%"></span><span class="g-pct">35%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:25.0%;width:23.21%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">何洲</span></div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">项目验收任务及代码规范检查</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商接口研发（快手、网易（待复投）、微博（待复投）、wifi、喜马拉雅接口开发）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1577,12 +1621,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:50.0%;width:7.14%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">何洲、郭师光</span></div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">梳理往期测试报告供验收参考</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">项目测试（库表数据准确性、平台稳定性、接口实效性、数据环境迁移生产库等测试）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1590,12 +1636,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:57.14%;width:14.29%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">德勤</span></div>
+      <div class="g-owner"><span contenteditable="true">马佳、齐金桐</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">策略 POC 台账持续跟进</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">项目整改完成交付（功能整改、数据校准、平台优化）</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1603,12 +1651,78 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar done" style="left:0.0%;width:5.83%"><span class="g-pct">100%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:75.0%;width:8.93%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
+    </div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">两个月运维期</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:85.71%;width:14.29%"><span class="g-pct"></span></div>
+      </div>
+      <div class="g-owner"><span contenteditable="true">汉得技术</span></div>
+    </div>
+  </div>
+  <div class="gantt-legend">
+    <span class="lg"><span class="sw done"></span>已完成</span>
+    <span class="lg"><span class="sw"></span>进行中</span>
+    <span class="lg"><span class="sw warn"></span>风险 / 待定</span>
+    <span class="lg"><span class="dm"></span>里程碑</span>
+    <span class="lg"><span class="dm filled"></span>里程碑（已达成）</span>
+    <span class="lg"><span class="ln"></span>今日</span>
+  </div>
+</div>
+      </div>
+      <div class="proj-gantt">
+<div class="gantt" style="--slots:8">
+  <div class="gantt-title">
+    <span contenteditable="true">鸿蒙模型优化方案 · 任务甘特图</span>
+    <span class="gt-sum" aria-hidden="true">3 个方案 · 09/30 ～ 2027/04</span>
+    <span class="gt-sub" contenteditable="true">周期 2026/09 ～ 2027/04 · 短/中/长期三阶段</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="true" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>收起</span></button>
+  </div>
+  <div class="gantt-grid">
+    <div class="g-month g-label">阶段</div>
+    <div class="g-month" style="grid-column:2 / span 4">2026年9–12月</div>
+    <div class="g-month" style="grid-column:6 / span 4">2027年1–4月</div>
+    <div class="g-month">负责人</div>
+    <div class="g-scale g-label">(Owner)</div>
+    <div class="g-scale">2026/09</div>
+    <div class="g-scale">2026/10</div>
+    <div class="g-scale">2026/11</div>
+    <div class="g-scale">2026/12</div>
+    <div class="g-scale">2027/01</div>
+    <div class="g-scale">2027/02</div>
+    <div class="g-scale">2027/03</div>
+    <div class="g-scale">2027/04</div>
+    <div class="g-scale">(Owner)</div>
+    <div class="g-row">
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">短期方案：将模型切换成华为模型（德勤），并结合广告增长系数外放，作为冷启动调节系数，快速响应初步的LTV</span></div>
+      <div class="g-cells">
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar warn" style="left:0.0%;width:12.4%"><span class="g-pct"></span></div>
       </div>
       <div class="g-owner"><span contenteditable="true">马佳</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">OPPO 高价值人群包上线验证</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">中期方案：补充分析验证华为部分机型和鸿蒙用户对比以及用户价值匹配度还原用户迁移的可复用性</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1616,12 +1730,14 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar" style="left:0.0%;width:11.11%"><span class="g-fill" style="width:80%"></span><span class="g-pct">80%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:11.98%;width:8.68%"><span class="g-pct"></span></div>
       </div>
       <div class="g-owner"><span contenteditable="true">马佳</span></div>
     </div>
     <div class="g-row">
-      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">价值补充说明（结合 DAU 下降）</span></div>
+      <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">长期方案：鸿蒙稳定投放1年后墨迹算法侧重新训练鸿蒙模型，替换现有模型数据</span></div>
       <div class="g-cells">
         <div class="g-cell"></div>
         <div class="g-cell"></div>
@@ -1629,9 +1745,11 @@
         <div class="g-cell"></div>
         <div class="g-cell"></div>
         <div class="g-cell"></div>
-        <div class="g-bar warn" style="left:0.0%;width:5.83%"><span class="g-fill" style="width:40%"></span><span class="g-pct">40%</span></div>
+        <div class="g-cell"></div>
+        <div class="g-cell"></div>
+        <div class="g-bar" style="left:20.25%;width:79.75%"><span class="g-pct"></span></div>
       </div>
-      <div class="g-owner"><span contenteditable="true">德勤</span></div>
+      <div class="g-owner"><span contenteditable="true">马佳</span></div>
     </div>
   </div>
   <div class="gantt-legend">
@@ -1680,8 +1798,9 @@
 <div class="gantt">
   <div class="gantt-title">
     <span contenteditable="true">数智化转型 · 任务甘特图</span>
-    <span class="gt-sub" contenteditable="true">周期 2026W39–W42 · 09/18 ～ 10/14</span>
-    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="false" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>展开</span></button>
+    <span class="gt-sum" aria-hidden="true">3 项任务 · 09/18 ～ 10/30</span>
+    %s周期 2026W39–W42 · 09/18 ～ 10/14</span>
+    <button type="button" class="gantt-fold" data-gantt-fold aria-expanded="true" title="展开 / 收起甘特图"><span class="gf-ic">▼</span><span data-fold-label>收起</span></button>
   </div>
   <div class="gantt-grid">
     <div class="g-month g-label">阶段</div>
@@ -2541,47 +2660,67 @@
       e.stopPropagation();
       var box = btn.closest('.proj-gantt');
       if(!box) return;
-      var folded = box.classList.toggle('is-folded');
-      btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
       /* 文字语义：表达「点击后会做什么」
          · 已折叠 → 显示"展开"（点击即展开）
          · 已展开 → 显示"收起"（点击即收起）
          箭头 ▼ 随 CSS 旋转为 ▶，与文字方向一致。 */
-      var label = btn.querySelector('[data-fold-label]');
-      if(label) label.textContent = folded ? '展开' : '收起';
+      var folded = !box.classList.contains('is-folded');
+      applyFold(box, folded);
       saveGanttFold();                 // 折叠状态随草稿持久化
     }, true);
   }
 
   /* 折叠状态持久化：只存"哪个索引被收起"，与文字草稿分开存，
-     避免污染正文内容。 */
+     避免污染正文内容。
+     ★★ V22.6 语义反转：用户要求「甘特图默认是收缩，点击展开的话再打开」。
+       因此此处记录的是 **"已展开"** 的索引（白名单），
+       空数组 = 全部收起（默认态）。
+       ⚠️ 不要改回存的"已收起"——首访无记录时必须落到"全部收起"。 */
   var FOLD_KEY = 'szhWeekly.ganttFold.v1';
+
+  /* 统一的折叠态应用器：把某个 .proj-gantt 设为"收起"或"展开"，
+     同步 button 的 aria-expanded 与文案（文案表达"点击后会做什么"）。 */
+  function applyFold(box, folded){
+    if(!box) return;
+    box.classList.toggle('is-folded', !!folded);
+    var btn = box.querySelector('[data-gantt-fold]');
+    if(!btn) return;
+    btn.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    var label = btn.querySelector('[data-fold-label]');
+    if(label) label.textContent = folded ? '展开' : '收起';
+  }
+
   function saveGanttFold(){
     try{
       var list = [];
       document.querySelectorAll('.proj-gantt').forEach(function(box, i){
-        if(box.classList.contains('is-folded')) list.push(i);
+        if(!box.classList.contains('is-folded')) list.push(i);   // 存"已展开"
       });
       localStorage.setItem(FOLD_KEY, JSON.stringify(list));
     }catch(err){}
   }
+
+  /* ★★ V22.6：默认全部收起。
+     · 首访（localStorage 无记录）→ 全部 .proj-gantt 加 .is-folded
+     · 有记录 → 仅展开记录在册的索引（白名单语义）
+     · 打印 → CSS @media print 强制展开，无需 JS 介入 */
   function restoreGanttFold(){
+    var boxes = document.querySelectorAll('.proj-gantt');
+    if(!boxes.length) return;
+    var open = null;
     try{
       var raw = localStorage.getItem(FOLD_KEY);
-      if(!raw) return;
-      var list = JSON.parse(raw);
-      if(!list || !list.length) return;
-      document.querySelectorAll('.proj-gantt').forEach(function(box, i){
-        if(list.indexOf(i) < 0) return;
-        box.classList.add('is-folded');
-        var btn = box.querySelector('[data-gantt-fold]');
-        if(btn){
-          btn.setAttribute('aria-expanded','false');
-          var label = btn.querySelector('[data-fold-label]');
-          if(label) label.textContent = '展开';
-        }
-      });
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Object.prototype.toString.call(parsed) === '[object Array]') open = parsed;
+      }
     }catch(err){}
+    boxes.forEach(function(box, i){
+      /* open === null（首访/数据损坏）→ 全部收起
+         open 是数组 → 未在册的收起、在册的展开 */
+      var folded = (open === null) ? true : (open.indexOf(i) < 0);
+      applyFold(box, folded);
+    });
   }
 
   /* ★★★ V22.5 C4：按负责人聚焦（交互 I3）
