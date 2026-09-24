@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键修复周报 · 打开旧内容问题</title>
+<style>
+  :root{--brand:#1F4E79;--brand2:#2E6DA4;--line:#dfe4ea;--ink:#1c2733;--sub:#5a6673;--ok:#1a7f4b;--bg:#eef1f5;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:40px 18px 60px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:720px;margin:0 auto;}
+  h1{margin:0 0 10px;font-size:23px;font-weight:700;color:var(--brand);text-align:center;}
+  .sub{text-align:center;font-size:13.5px;color:var(--sub);margin-bottom:26px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px;margin-bottom:18px;}
+  .card h2{margin:0 0 14px;font-size:16px;color:var(--brand);}
+  .why{font-size:13.5px;line-height:1.85;color:#333;margin:0 0 18px;}
+  .why b{color:var(--brand);}
+  .btn{display:block;width:100%;padding:15px;background:var(--brand);color:#fff;border:none;border-radius:7px;
+       font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn:hover{background:var(--brand2);}
+  .btn:disabled{background:#9aa7b4;cursor:default;}
+  .out{margin-top:16px;padding:14px 16px;border-radius:7px;font-size:13px;line-height:1.85;display:none;}
+  .out.on{display:block;}
+  .out.ok{background:#e8f5ec;border:1px solid #b7dfc4;color:#175c33;}
+  .out.warn{background:#fff8e6;border:1px solid #f0d9a0;color:#7a5a12;}
+  .out code{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:3px;font-size:12.5px;}
+  .step{font-size:13.5px;line-height:1.9;color:#333;margin:0;padding-left:20px;}
+  .step li{margin-bottom:6px;}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;line-height:1.85;margin:0;}
+  .kv dt{color:var(--sub);white-space:nowrap;}
+  .kv dd{margin:0;}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tab{padding:7px 15px;border:1px solid var(--line);background:#fff;border-radius:99px;font-size:13px;
+       cursor:pointer;color:var(--sub);font-family:inherit;}
+  .tab.on{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>一键修复 · 周报打开旧内容</h1>
+  <div class="sub">如果你用普通窗口打开还是旧的、但无痕窗口正常 —— 用这个工具修一下</div>
+
+  <div class="card">
+    <h2>为什么会这样？</h2>
+    <p class="why">
+      周报支持在线编辑，编辑内容会存在<b>你这台浏览器的本地</b>，方便下次接着改。<br>
+      但如果你在<b>旧版本</b>的周报页面编辑过，那份旧草稿就会一直留着，
+      新版页面一打开就被它盖住 —— 于是你看到的还是旧的。<br>
+      <b>无痕窗口没有本地存储，所以它永远是最新的。</b>这也正好证明服务器没问题。
+    </p>
+    <p class="why" style="margin-bottom:0">
+      下面的工具会<b>只清除周报相关的旧草稿</b>，然后带时间戳重新打开周报。
+      <b>不会</b>影响你其它网站的登录状态、Cookie 或书签。
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>选择要修复的地址</h2>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-i="0">公司内网</button>
+      <button class="tab" data-i="1">公网短链</button>
+      <button class="tab" data-i="2">GitHub Pages</button>
+    </div>
+    <button class="btn" id="go">立即修复并打开周报</button>
+    <div class="out" id="out"></div>
+  </div>
+
+  <div class="card">
+    <h2>修复后怎么核对是最新版？</h2>
+    <ol class="step">
+      <li>页面上 <b>右键 → 查看网页源代码</b>（或按 <code>Cmd+U</code>）</li>
+      <li>按 <code>Cmd+F</code> 搜索 <code>__SZ_REPORT_BUILD__</code></li>
+      <li>看到 <code>'214b88fdd45b'</code> 就是最新版</li>
+    </ol>
+    <dl class="kv" style="margin-top:16px">
+      <dt>最新构建标识</dt><dd><code>214b88fdd45b</code></dd>
+      <dt>文件大小</dt><dd>174,503 字节</dd>
+      <dt>甘特图</dt><dd>3 张，默认收起</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h2>还想更彻底？</h2>
+    <p class="why" style="margin-bottom:0">
+      上面的修复已经能解决周报的旧内容问题。如果你希望<b>连带清掉浏览器缓存</b>，
+      请改用桌面上的「<b>清除周报缓存.html</b>」——它是更全面的清理工具。
+      两个工具的定位不同：<b>本工具只管周报草稿</b>，那个工具管缓存。
+    </p>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var TARGETS = [
+    { name: '公司内网', url: 'http://192.168.21.71:8088/szh-weekly-20260928-v230.html' },
+    { name: '公网短链', url: 'https://www.htmlcode.fun/s/f4n6lyaw' },
+    { name: 'GitHub Pages', url: 'https://wanglin000000.github.io/procurement-dashboard/weekly-v23/' }
+  ];
+
+  /* ★ 只清周报自己的 key —— 不碰任何其它站点数据 */
+  var KEYS = [
+    'mozhi_digital_weekly_report_draft_v2',
+    'mozhi_digital_weekly_report_draft_v2__stamp'
+  ];
+
+  var cur = 0;
+  var tabs = document.getElementById('tabs');
+  var out  = document.getElementById('out');
+  var go   = document.getElementById('go');
+
+  tabs.addEventListener('click', function(e){
+    var t = e.target.closest('.tab');
+    if(!t) return;
+    Array.prototype.forEach.call(tabs.querySelectorAll('.tab'), function(b){ b.classList.remove('on'); });
+    t.classList.add('on');
+    cur = parseInt(t.getAttribute('data-i'), 10) || 0;
+    out.classList.remove('on', 'ok', 'warn');
+  });
+
+  function esc(s){ return String(s).replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }); }
+
+  go.addEventListener('click', function(){
+    var tgt = TARGETS[cur];
+    var removed = [], kept = 0, before = '';
+
+    /* 先记录修复前状态，便于对比说明 */
+    try{ before = localStorage.getItem(KEYS[0]) || ''; }catch(e){}
+
+    /* 1) 清除周报专属的本地草稿 key */
+    KEYS.forEach(function(k){
+      try{
+        if(localStorage.getItem(k) !== null){ removed.push(k); localStorage.removeItem(k); }
+      }catch(e){}
+    });
+    /* 2) 顺带清掉显示态（折叠/灯/聚焦）—— 都是周报专属命名空间 */
+    try{
+      var extra = [];
+      for(var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && k.indexOf('szhWeekly.') === 0) extra.push(k);
+      }
+      extra.forEach(function(k){ localStorage.removeItem(k); kept++; });
+    }catch(e){}
+
+    /* 3) 清 sessionStorage（周报页面可能留下的临时态） */
+    try{ sessionStorage.clear(); }catch(e){}
+
+    /* 4) 带时间戳打开，直接绕过任何中间层缓存 */
+    var url = tgt.url + (tgt.url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+
+    var html = '<b>✅ 修复完成</b><br>'
+      + '清除的周报旧草稿：' + (removed.length ? removed.length + ' 项' : '无需清除（本来就没有）') + '<br>'
+      + (kept ? '顺带清除的显示状态记录：' + kept + ' 项<br>' : '')
+      + (before ? '原来的草稿长度：' + before.length + ' 字符（已清除）<br>' : '')
+      + '正在打开最新版周报：<code>' + esc(tgt.name) + '</code>';
+
+    out.innerHTML = html;
+    out.classList.remove('warn');
+    out.classList.add('on', 'ok');
+
+    setTimeout(function(){ window.open(url, '_blank'); }, 700);
+  });
+})();
+</script>
+</body>
+</html>

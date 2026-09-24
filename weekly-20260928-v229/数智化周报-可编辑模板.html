@@ -9,9 +9,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
-     用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='214b88fdd45b';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -839,7 +836,6 @@
     display:grid;
     grid-template-columns:27% repeat(var(--slots, 6), minmax(0,1fr)) 11%;
     font-size:11.5px;
-    position:relative;              /* ★ V25：作为「今日」贯穿线的定位参照 */
   }
   .g-row{display:contents;}
   /* 月份轴（首行） */
@@ -887,35 +883,6 @@
     content:''; position:absolute; top:0; bottom:0; left:50%;
     width:1px; background:rgba(214,69,69,.55);
   }
-  /* ============ ★ V25「今日」贯穿线 ============
-     为什么重做（用户原话「甘特图里的那个今天显示的不太合适，不细看的话找不到」）：
-       改前「今日」只是图例里一根 1px 细线，**图表主体里根本没标出今天在哪**。
-     改法：
-       · 一条竖直贯穿线（虚线，跨满所有任务行）—— 一眼看出「现在推进到哪」
-       · 顶部挂一个「今天 09/24」小胶囊 —— 不用回头看图例就知道那根线是什么
-       · 用 dashed 虚线而非实线，避免与里程碑菱形/任务条抢视线
-       · 层级压在最底（z-index:0），不遮挡任务条与里程碑
-     ⚠️ 定位用 left:calc(27% + 62% * <比例>)，与 grid-template-columns 的
-        27%/11% 两个边列严格对应；改列宽必须同步改这里。 */
-  .g-todayline{
-    position:absolute; top:0; bottom:0;
-    width:0;
-    border-left:1px dashed rgba(214,69,69,.75);
-    pointer-events:none;
-    z-index:0;
-  }
-  /* 顶部「今天 MM/DD」胶囊标签 —— 贴合线顶、向右展开 */
-  .g-today-tag{
-    position:absolute; top:2px; left:3px;
-    display:inline-block; white-space:nowrap;
-    padding:1px 5px;
-    font-size:9.5px; font-weight:700; line-height:1.5;
-    color:#fff; background:rgba(214,69,69,.92);
-    border-radius:3px;
-    letter-spacing:.2px;
-  }
-  /* 贴在右边缘时改为向左展开，避免溢出出图外 */
-  .g-todayline.at-right .g-today-tag{left:auto; right:3px;}
   /* ★ 任务条：只允许这一处着色（进度一眼可辨），尺寸与内部网格对齐 */
   .g-bar{
     position:absolute; top:50%; transform:translateY(-50%);
@@ -986,11 +953,7 @@
   .gantt-legend .sw.warn{background:rgba(198,138,26,.20);border-color:rgba(198,138,26,.62);}
   .gantt-legend .dm{width:10px;height:10px;background:#fff;border:1px solid var(--brand);rotate:45deg;}
   .gantt-legend .dm.filled{background:var(--brand);}
-  /* ★ V25：图例里的「今日」样片改为与图中一致的红色虚线（原先 1px 实线太弱） */
-  .gantt-legend .ln{
-    width:0; height:13px;
-    border-left:1px dashed rgba(214,69,69,.85);
-  }
+  .gantt-legend .ln{width:1px;height:13px;background:rgba(214,69,69,.55);}
 
   .cell-lvl{text-align:center;vertical-align:middle;font-weight:700;}
   .lvl-p0{color:var(--danger);background:var(--danger-soft)!important;}
@@ -1213,10 +1176,6 @@
     .gantt-legend .sw,.gantt-legend .dm{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .gantt-grid{font-size:10.5px;}
     .g-bar{height:13px;}
-    /* ★ V25「今日」线：打印转灰（避免彩色打印抢眼），仍保留位置信息 */
-    .g-todayline{border-left-color:rgba(90,102,115,.75);}
-    .g-today-tag{background:#5a6673;color:#fff;
-      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
     /* ★★★ V22.5 C3：附录打印分页修复
        病因（V22.4 实测）：1 个 .app-proj 小节高于一页时，
@@ -1451,7 +1410,6 @@
     <div class="g-scale">2026/11</div>
     <div class="g-scale">2026/12</div>
     <div class="g-scale">(Owner)</div>
-    <div class="g-todayline" data-pct="35.29" style="left:calc(27% + 62% * 0.3529)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">企业知识库平台（POC 完成知识库搭建并测试问答能力）</span></div>
       <div class="g-cells">
@@ -1752,7 +1710,6 @@
     <div class="g-scale">10/26–11/01</div>
     <div class="g-scale">11/02–11/08</div>
     <div class="g-scale">(Owner)</div>
-    <div class="g-todayline" data-pct="17.86" style="left:calc(27% + 62% * 0.17859999999999998)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">供应商研发准备流程（墨迹账号申请、VPN权限、服务器方案规格及权限、端口应用权限等工单审批确认）</span></div>
       <div class="g-cells">
@@ -1907,7 +1864,6 @@
     <div class="g-scale">2027/03</div>
     <div class="g-scale">2027/04</div>
     <div class="g-scale">(Owner)</div>
-    <div class="g-todayline" data-pct="9.5" style="left:calc(27% + 62% * 0.095)" title="今天 09/24"><span class="g-today-tag">今天 09/24</span></div>
     <div class="g-row">
       <div class="g-label"><span class="g-dot"></span><span class="g-txt" contenteditable="true">短期方案：将模型切换成华为模型（德勤），并结合广告增长系数外放，作为冷启动调节系数，快速响应初步的LTV</span></div>
       <div class="g-cells">
@@ -2453,38 +2409,6 @@
 (function(){
   'use strict';
   var LS_KEY = 'mozhi_digital_weekly_report_draft_v2';
-  /* ★★★ V22.9c 草稿版本守卫 —— 解决「服务器已更新，但打开还是旧内容」
-     原理：草稿存在浏览器 localStorage 里，是「上次打开时的整页 HTML 快照」。
-           若模板后续更新，旧草稿会把新内容整页覆盖掉 → 用户永远看到旧版。
-     做法：把「模板构建指纹」一起存进草稿；两次指纹不一致即判定草稿过期，
-           静默丢弃并加载最新模板。指纹来自构建时注入的 BUILD_STAMP。
-     ⚠️ 改版后必须让 BUILD_STAMP 变化（_build.py 已自动按内容哈希注入）。 */
-  var BUILD_STAMP = window.__SZ_REPORT_BUILD__ || '';
-  var LS_STAMP_KEY = LS_KEY + '__stamp';
-
-  /* ★★★ V24 守卫加固 —— 解决「普通窗口旧 / 无痕正常」的残留场景
-     背景：V22.9c 的守卫只在「草稿指纹与模板指纹都存在且不一致」时才丢弃草稿。
-           存在两个漏网情形 ——
-             (a) 旧草稿存在，但**没有** __stamp 记录（守卫上线前的版本存下的草稿）；
-             (b) 指纹为空串 / 模板未注入指纹时，守卫整体失效。
-           这两种情况下旧草稿会照样把新版整页覆盖掉。
-     加固规则（★判定只认记录在案的过期证据，绝不误杀用户正常草稿）：
-             · 草稿有指纹、模板有指纹 → 不等即丢弃（原逻辑）
-             · 草稿存在、模板有指纹、★草稿无指纹记录 → 判为守卫上线前/损坏的遗留草稿 → 丢弃
-             · 模板无指纹（本地 file:// 直开等）→ 不做任何判定，草稿照常恢复
-     加固②「旧版残留守卫」：仓库里预留过 __SZ_DEPRECATED__ 名单，
-           若某次构建被标记为「不应再被缓存使用」，命中即静默清除本地草稿。 */
-  var DEPRECATED = window.__SZ_DEPRECATED__ || [];
-  if(DEPRECATED.length){
-    try{
-      var _cur = localStorage.getItem(LS_STAMP_KEY) || '';
-      if(_cur && DEPRECATED.indexOf(_cur) !== -1){
-        localStorage.removeItem(LS_KEY);
-        localStorage.removeItem(LS_STAMP_KEY);
-      }
-    }catch(e){}
-  }
-
   var root = document.getElementById('root');
   var flag = document.getElementById('flag');
   var bubble = document.getElementById('bubble');
@@ -2688,8 +2612,6 @@
   function flushDraft(){
     try {
       localStorage.setItem(LS_KEY, root.innerHTML);
-      /* ★ V22.9c：一并记录当前模板指纹 —— 下次打开时指纹不符即判草稿过期 */
-      if(BUILD_STAMP) localStorage.setItem(LS_STAMP_KEY, BUILD_STAMP);
       dirty = false;
       setSaveState('saved');
       return true;
@@ -3349,18 +3271,6 @@
       p.insertBefore(box, g);
       box.appendChild(g);
     });
-    placeTodayTags();
-  }
-
-  /* ★ V25：让「今天 MM/DD」胶囊标签贴边时自动改向左展开。
-     为什么要 JS：标签位置取决于今天的横坐标（随月份推进而变），
-     CSS 无法预知。当今天落在图形右侧 1/3 时，
-     标签若仍向右展开会溢出图外 → 加 .at-right 改为向左展开。 */
-  function placeTodayTags(){
-    root.querySelectorAll('.g-todayline').forEach(function(ln){
-      var pct = parseFloat(ln.getAttribute('data-pct') || '0');
-      ln.classList.toggle('at-right', pct > 66);
-    });
   }
 
   /* ★顺序很关键：先把委托监听绑好（与按钮是否存在无关），再恢复草稿 */
@@ -3377,29 +3287,6 @@
      需要"回到原始模板"时，退出编辑态后按 Esc 不会清空草稿，
      清空入口保留在「保存」按钮旁的下载行为之外 —— 见下方 CLEAR_DRAFT_KEY 逻辑。 */
   var saved = localStorage.getItem(LS_KEY);
-  if(saved){
-    /* ★★★ V24：先做模板版本校验 —— 旧模板留下的草稿一律作废
-       （否则更新的内容会被旧草稿整页覆盖，用户永远看到旧版）
-       三种判定，见文件顶部说明；关键原则：
-         ★「模板没有指纹」时绝不推断草稿过期 —— 否则会误杀用户正常草稿。 */
-    var savedStamp = localStorage.getItem(LS_STAMP_KEY) || '';
-    if(BUILD_STAMP){
-      if(savedStamp){
-        /* 情形 A：两边都有指纹 → 不一致即过期 */
-        if(savedStamp !== BUILD_STAMP){
-          localStorage.removeItem(LS_KEY);
-          localStorage.removeItem(LS_STAMP_KEY);
-          saved = null;
-        }
-      } else {
-        /* 情形 B：草稿没带指纹（守卫上线前存下的遗留草稿）→ 判为过期。
-           判据明确：新模板一定会写指纹，没写 = 必然来自旧模板。 */
-        localStorage.removeItem(LS_KEY);
-        saved = null;
-      }
-    }
-    /* 情形 C：BUILD_STAMP 为空（file:// 直开等）→ 不做版本判定，照常恢复草稿 */
-  }
   if(saved){
     // 校验草稿有效性：必须含 #root 结构，否则视为损坏草稿并丢弃
     var valid = /class="paper"/.test(saved) || /report-title/.test(saved);
