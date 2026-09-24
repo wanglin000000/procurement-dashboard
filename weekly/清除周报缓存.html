@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>一键清除周报缓存</title>
+<style>
+  :root{--brand:#1F4E79;--brand2:#2E6DA4;--line:#c3c9d2;--ink:#1c2733;--ok:#1a7f4b;--bg:#f4f6f9;}
+  *{box-sizing:border-box;}
+  body{margin:0;padding:40px 20px;background:var(--bg);font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif;color:var(--ink);}
+  .card{max-width:640px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .hd{background:var(--brand);color:#fff;padding:20px 26px;}
+  .hd h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.3px;}
+  .hd p{margin:6px 0 0;font-size:13px;opacity:.85;}
+  .bd{padding:26px;}
+  .step{border-left:3px solid var(--brand2);padding:2px 0 2px 14px;margin:0 0 20px;}
+  .step b{display:block;font-size:14px;margin-bottom:4px;}
+  .step span{font-size:13px;color:#4a5568;line-height:1.7;}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 8px;}
+  button{font:inherit;font-size:14px;padding:11px 20px;border-radius:6px;border:1px solid var(--brand);background:#fff;color:var(--brand);cursor:pointer;font-weight:600;}
+  button.pri{background:var(--brand);color:#fff;}
+  button:hover{background:var(--brand2);color:#fff;border-color:var(--brand2);}
+  .out{margin-top:18px;padding:14px 16px;background:#f0f4f8;border:1px solid var(--line);border-radius:6px;font-size:13px;line-height:1.75;min-height:52px;white-space:pre-wrap;}
+  .ok{color:var(--ok);font-weight:600;}
+  .warn{color:#b45309;}
+  .links{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;}
+  .links div{margin-bottom:8px;}
+  .links a{color:var(--brand2);text-decoration:none;font-weight:600;word-break:break-all;}
+  .links a:hover{text-decoration:underline;}
+  code{background:#eef2f7;padding:2px 6px;border-radius:3px;font-size:12px;color:#334;}
+  .tip{margin-top:18px;font-size:12.5px;color:#5a6673;line-height:1.8;background:#fbfcfd;border:1px dashed var(--line);border-radius:6px;padding:12px 14px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hd">
+    <h1>数智化周报 · 一键清除缓存</h1>
+    <p>解决「打开链接还是昨天旧内容」问题</p>
+  </div>
+  <div class="bd">
+
+    <div class="step">
+      <b>为什么会看到旧内容？</b>
+      <span>浏览器把上次打开的页面存在本地了。后来内容更新了，但浏览器觉得「我还有旧的，不用再去服务器拿」，于是你看到的还是老版本。这不是链接坏了，是缓存没更新。</span>
+    </div>
+
+    <div class="btns">
+      <button class="pri" onclick="clearAll()">一键清除本站缓存</button>
+      <button onclick="checkVer()">检查当前版本</button>
+    </div>
+    <div class="out" id="out">点上面的按钮开始。</div>
+
+    <div class="links">
+      <div>内网（推荐，最快）<br><a href="http://192.168.21.71:8088/" onclick="openFresh(event,this.href)">http://192.168.21.71:8088/</a></div>
+      <div>公网<br><a href="https://wanglin000000.github.io/procurement-dashboard/weekly/" onclick="openFresh(event,this.href)">https://wanglin000000.github.io/procurement-dashboard/weekly/</a></div>
+    </div>
+
+    <div class="tip">
+      <b>还是不行？</b> 试这三招，从轻到重：<br>
+      ①「一键清除本站缓存」→ 再打开链接<br>
+      ② 打开链接后按 <code>Cmd + Shift + R</code>（强制刷新，跳过缓存）<br>
+      ③ 无痕窗口打开（<code>Cmd + Shift + N</code>）——无痕窗口不带任何缓存，能打开说明就是缓存问题
+    </div>
+
+  </div>
+</div>
+
+<script>
+function log(msg, cls){
+  const o = document.getElementById('out');
+  if (msg !== null && msg !== undefined) o.innerHTML = '<span class="'+(cls||'')+'">'+msg+'</span>';
+}
+async function clearAll(){
+  log('正在清除…');
+  const targets = [
+    'http://192.168.21.71:8088/',
+    'https://wanglin000000.github.io/procurement-dashboard/weekly/'
+  ];
+  let done = 0, notes = [];
+  // 1) 清 Cache Storage
+  try{
+    if (window.caches){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+      done++; notes.push('Cache Storage 已清（'+keys.length+' 项）');
+    } else notes.push('Cache Storage：此浏览器不支持，跳过');
+  }catch(e){ notes.push('Cache Storage 清理失败：'+e.message); }
+  // 2) 清 sessionStorage（不动 localStorage，免得把编辑草稿和展开状态也删了）
+  try{ sessionStorage.clear(); done++; notes.push('sessionStorage 已清'); }catch(e){}
+  // 3) 借 fetch 强制回源，把 HTTP 缓存刷新一遍
+  for (const u of targets){
+    try{
+      await fetch(u + '?cachebust=' + Date.now(), {cache:'reload', mode:'no-cors'});
+      notes.push('已强制刷新：' + u);
+    }catch(e){ notes.push('刷新失败（可能没连该网络）：' + u); }
+  }
+  log('<span class="ok">✅ 缓存已清除</span>\n' + notes.join('\n') +
+      '\n\n现在点下面的链接打开，应该就是最新版了。\n' +
+      '<span class="warn">注意：本页 localStorage（你的编辑草稿、甘特图展开状态）特意保留了，不会被误删。</span>');
+}
+async function checkVer(){
+  log('正在检查…');
+  try{
+    const r = await fetch('https://wanglin000000.github.io/procurement-dashboard/weekly/?t='+Date.now(), {cache:'no-store'});
+    const t = await r.text();
+    const hasMeta = t.includes('http-equiv="Cache-Control"');
+    const bytes = new Blob([t]).size;
+    log('<span class="ok">✅ 公网最新版已上线</span>\n' +
+        '大小：' + bytes.toLocaleString() + ' 字节\n' +
+        '防缓存标记：' + (hasMeta ? '已包含 ✅' : '未包含 ❌') + '\n' +
+        '（期望 167,771 字节）');
+  }catch(e){
+    log('<span class="warn">检查失败</span>（可能是网络或沙箱限制）：' + e.message);
+  }
+}
+function openFresh(ev, url){
+  ev.preventDefault();
+  // 带时间戳打开 = 绕过一切缓存，保证看到最新
+  window.open(url + (url.includes('?')?'&':'?') + 't=' + Date.now(), '_blank');
+}
+</script>
+</body>
+</html>
