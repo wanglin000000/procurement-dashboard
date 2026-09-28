@@ -57,7 +57,7 @@
   <div class="top">
     <h1>数智化周报 20260928</h1>
     <div class="sub">可编辑 HTML 模板 · 三个入口任选</div>
-    <div class="badge">版本 V25 · 更新于 2026-09-24</div>
+    <div class="badge">版本 V29 · 更新于 2026-09-25</div>
   </div>
 
   <div class="fix">
@@ -70,9 +70,21 @@
   </div>
 
   <div class="note" style="background:#eef4fb;border-color:#c3d8ef;color:#1F4E79">
-    <b>本次更新（V25）：甘特图的「今日」标记重做。</b>
-    原先只是图例里一根 1px 细线，图表里看不出今天在哪；现在图内有一条
-    <b>红色虚线贯穿所有任务行</b>，顶部带 <b>「今天 09/24」</b> 小标签，一眼可辨。
+    <b>本次更新（V29）：修复「行 +/− 点不动」与「保存误下载」。</b>
+    ① <b>行 +/− 现在一定能点</b> —— 原窄屏（≤900px，如小笔记本 / 分屏 / 缩放 125%）
+    下浮动工具被样式直接隐藏，已改为「仅缩小、绝不隐藏」；<br>
+    ② <b>按钮跟着光标走</b> —— 行 «＋ / −» 现在贴着<b>光标所在单元格</b>浮出
+    （原先固定在最左端，要横穿大半个表格才够得到）；<br>
+    ③ <b>「保存」= 保存编辑内容</b> —— 不再偷偷下载文件，与右上角「完成编辑」行为一致；
+    需要导出文件请用新增的 <b>「下载 HTML」</b> 按钮。<br>
+    ④ 左下角小条现为 <b>打印 / 保存 / 下载 HTML / 导出 Excel / 还原模板</b>。
+  </div>
+
+  <div class="note">
+    <b>V27 已有能力（继续可用）：</b>
+    ① <b>评论批注</b> —— 查看模式下选中文字浮出小图标，点它右侧滑出评论框；
+    保存后该段文字变<b>黄色</b>，点黄字即可查看评论；<br>
+    ② <b>快捷键保存</b> —— 按 <b>Ctrl/Cmd + S</b> 直接保存（与「保存」按钮等效）。
   </div>
 
   <div class="note">
@@ -89,8 +101,8 @@
       <div class="qr"><img src="qr-intranet.png" alt="内网地址二维码"></div>
       <div class="url">
         <div class="lab">地址</div>
-        <a href="http://192.168.21.71:8088/szh-weekly-20260928-v230.html">http://192.168.21.71:8088/szh-weekly-20260928-v230.html</a>
-        <a class="btn" href="http://192.168.21.71:8088/szh-weekly-20260928-v230.html">打开周报</a>
+        <a href="http://192.168.3.50:8088/szh-weekly-20260928-v230.html">http://192.168.3.50:8088/szh-weekly-20260928-v230.html</a>
+        <a class="btn" href="http://192.168.3.50:8088/szh-weekly-20260928-v230.html">打开周报</a>
       </div>
     </div>
 
@@ -130,7 +142,7 @@
     </ol>
     <div class="old">
       旧地址（仍可用，同样已应用修复）——<br>
-      内网 <a href="http://192.168.21.71:8088/">http://192.168.21.71:8088/</a><br>
+      内网 <a href="http://192.168.3.50:8088/">http://192.168.3.50:8088/</a><br>
       公网 <a href="https://wanglin000000.github.io/procurement-dashboard/weekly/">https://wanglin000000.github.io/procurement-dashboard/weekly/</a>
     </div>
   </div>
@@ -138,17 +150,18 @@
   <div class="sec">
     <h3>版本核对（确认你拿到的是最新版）</h3>
     <dl class="kv">
-      <dt>文件大小</dt><dd>174,503 字节</dd>
-      <dt>内容指纹</dt><dd><code>93b8551de0f1fa07877c4b0dfa1b6b50</code></dd>
-      <dt>构建标识</dt><dd><code>214b88fdd45b</code>（用于自动识别过期草稿）</dd>
+      <dt>文件大小</dt><dd>225,069 字节</dd>
+      <dt>内容指纹</dt><dd><code>3af7e0024d08922c203b1bbfb4b0564a</code></dd>
+      <dt>构建标识</dt><dd><code>39c1b1059c89</code>（用于自动识别过期草稿）</dd>
       <dt>甘特图</dt><dd>3 张（AI化转型 / MarketingAPI / 鸿蒙），默认收起</dd>
       <dt>今日标记</dt><dd>贯穿虚线 + 顶部「今天 09/24」标签 ✅</dd>
+      <dt>增删行列</dt><dd>单元格就近浮动「＋ / −」✅</dd>
       <dt>过期草稿</dt><dd>已加固：无版本记录的旧草稿也会被清除 ✅</dd>
     </dl>
     <div class="old">
       <b style="color:#1F4F79">怎么看构建标识？</b>
       在周报页面上 <code>右键 → 查看网页源代码</code>，搜索
-      <code>__SZ_REPORT_BUILD__</code>，看到 <code>'214b88fdd45b'</code> 即为最新版。
+      <code>__SZ_REPORT_BUILD__</code>，看到 <code>'39c1b1059c89'</code> 即为最新版。
     </div>
   </div>
 

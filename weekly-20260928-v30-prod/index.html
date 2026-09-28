@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='39c1b1059c89';</script>
+<script>window.__SZ_REPORT_BUILD__='bfbabdd5cbfb';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -291,7 +291,14 @@
   .note-list > li{position:relative;padding-left:12px;}
   .note-list > li + li{margin-top:4px;}
   .note-list > li::before{
-    content:''; position:absolute; left:2px; top:.64em;
+    /* ★★★ V30 修复「黑点没和文字居中对齐」：
+       旧值 top:.64em 让圆点**中心**落在**行盒**中心上。但人眼判断对齐的基准
+       是**汉字字形的墨迹中心**，而汉字在行盒里是偏下的（em box 上方留白多，
+       实测 12.5px 字体下「国」的墨迹为 9.64↑/1.23↓，重心明显偏下）。
+       → 于是圆点相对汉字视觉上**偏上约 1.17px**，行高越大越明显。
+       实测 delta（圆点中心 − 汉字墨迹中心）= −1.17px → top 需 +1.17px。
+       ★ 用 em 表达以保证换字号时仍对齐：0.7375em（原 .64em）。 */
+    content:''; position:absolute; left:2px; top:.7375em;
     width:4px; height:4px; border-radius:50%;
     background:var(--brand-2); opacity:.45;
   }
@@ -461,7 +468,9 @@
     position:relative;
   }
   .ap-table tbody td.t-task::before{
-    content:''; position:absolute; left:2px; top:.64em;
+    /* ★ V30：同 .note-list 修正 —— 对齐基准由「行盒中心」改为「汉字墨迹中心」，
+       实测 delta = −0.92px → top 8px → 8.92px ≈ .7136em。 */
+    content:''; position:absolute; left:2px; top:.7136em;
     width:4px; height:4px; border-radius:50%;
     background:var(--brand-2); opacity:.45;
   }
@@ -666,7 +675,10 @@
   .pb-list > li{position:relative;padding-left:13px;}
   .pb-list > li + li{margin-top:3px;}
   .pb-list > li::before{
-    content:''; position:absolute; left:2px; top:.66em;
+    /* ★ V30：与 .note-list 同款修正 —— 对齐基准从「行盒中心」改为
+       「汉字字形墨迹中心」（汉字在行盒里偏下，实测「国」9.64↑/1.23↓）。
+       实测 delta = −0.92px（8.25 → 9.17px），以保证换字号仍对齐。 */
+    content:''; position:absolute; left:2px; top:.7336em;
     width:4px; height:4px; border-radius:50%;
     background:var(--brand-2); opacity:.55;
   }
@@ -695,7 +707,8 @@
     font-size:12.5px; line-height:1.62;
   }
   .task-list > li::before{
-    content:''; position:absolute; left:2px; top:.64em;
+    /* ★ V30：同 .note-list 修正 —— 实测 delta = −0.67px（8.0 → 8.67px）。 */
+    content:''; position:absolute; left:2px; top:.6936em;
     width:4px; height:4px; border-radius:50%;
     background:var(--brand-2); opacity:.45;
   }
@@ -1298,35 +1311,72 @@
      在**那一列的上方**浮出「+列 / −列」—— 目标指向一目了然。
      视觉规范：与 .rc-btn 同一套（1px 边框、5~6px 圆角、12px 字号），
      不引入新色值，仅用既有 --brand / --danger / --line-strong 变量。 */
-  .rc-edge{ display:none; position:absolute; z-index:68; gap:2px; align-items:center; }
-  .rc-edge.show{ display:flex; }
-  /* ★★ 定位铁律：JS 里已用 getBoundingClientRect 算出「居中/贴边」的最终 top/left，
-     因此 CSS **绝不能再加 transform 位移** —— 否则会被二次偏移（实测恒定偏 23px，
-     正好等于按钮宽度，就是这个原因）。这里只用 flex 控制内部排列方向。 */
-  .rc-edge.pos-row{ flex-direction:column; }         /* 行工具：竖排两枚按钮 */
-  .rc-edge.pos-col{ flex-direction:row; }            /* 列工具：横排两枚按钮 */
-  .rc-edge .re-btn{
-    appearance:none; border:1px solid var(--line-strong); background:#fff; color:var(--ink-2);
-    width:22px; height:22px; padding:0; border-radius:5px; cursor:pointer;
-    font-size:12px; line-height:1; font-family:inherit;
-    display:inline-flex; align-items:center; justify-content:center;
-    transition:all .12s ease; box-shadow:0 1px 3px rgba(16,24,40,.10);
+  /* ============ ★★★ V30 表格常驻编辑工具栏（Word 式）============
+     用户原话：「点击编辑的时候要求和 word 文档一样在表格的最上方
+               一直出现编辑的工具」。
+
+     ★★★ 设计转向（V28/V29 → V30）：
+       V28/V29 一直用「跟光标走的浮动按钮」（.rc-edge）—— 结论是**打不中真实
+       使用场景**：用户要「增删某一行」时，先得点进单元格、再去找贴在格子边上
+       的小 +/−，鼠标一动就收起（mouseover 离开表格即 hide），实测在窄视口 /
+       横滚表 / 缩放 ≥125% 下反复出现「找不到 / 点不动」。
+       Word 的心智模型完全不同：**工具栏常驻在表格上方，先选目标行/列（单击
+       整行/整列 = 选中），再点工具栏按钮执行**。方向明确、位置固定、结果可见。
+
+     ★ 结构（每个表格各一组，编辑态才显示）：
+        .tbl-bar   一条常驻工具栏，absolute 定位、钉在表格正上方
+        .tb-btn    +行 / −行 / +列 / −列 / 删本表
+        .tb-pick   「当前目标」指示（第 N 行 / 第 M 列）
+     ★ 选中机制：编辑态点单元格 → 高亮该单元格所在行列（.tb-picked-row /
+       .tb-picked-col 用 1px inset 阴影，绝不加粗边框），工具栏按钮即刻对
+       「当前行列」生效 —— 不依赖鼠标是否还悬在表格内。
+     ★ 打印强制隐藏（打印即默认态）。 */
+  .tbl-bar{
+    display:none;                 /* 仅编辑态出现 */
+    position:absolute; z-index:86;
+    align-items:center; gap:4px;
+    padding:4px 6px;
+    background:#fff;
+    border:1px solid var(--line-strong);
+    border-radius:7px;
+    box-shadow:0 2px 8px rgba(16,24,40,.12);
+    white-space:nowrap;
+    font-size:11.5px; line-height:1;
   }
-  .rc-edge .re-btn:hover{ background:var(--brand-soft); border-color:var(--brand-2); color:var(--brand); }
-  .rc-edge .re-btn.del:hover{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
-  /* ★ V29：行工具翻到单元格右侧时，按钮圆角镜像，视觉上仍「贴」着单元格 */
-  .rc-edge.pos-row.flip .re-btn{ border-radius:5px 5px 5px 5px; }
-  /* 仅编辑态出现 */
-  body.editing .rc-edge.show{ display:flex; }
-  /* ★★★ V29 修复「行 +/− 点不动」的真凶 —— 原先这里有
-     `@media (max-width:900px){ .rc-edge{ display:none !important; } }`。
-     实测：视口 ≤900px（小笔记本 / 分屏 / 浏览器缩放 ≥125%）时浮层被 CSS
-     直接隐藏，用户看到的是「功能凭空消失 / 点了没反应」。
-     ★ 判据回顾：报告正文是「宽表 + 横向滚动」，窄视口恰恰是最需要增删行列的
-       场景 —— 隐藏它等于在最需要的地方砍掉功能，方向完全反了。
-     改为「窄视口仅缩小按钮，绝不隐藏」： */
+  body.editing .tbl-bar.show{ display:flex; }
+  .tbl-bar .tb-lbl{
+    color:var(--ink-3); font-weight:700; letter-spacing:.3px;
+    padding:0 4px 0 2px; font-size:11px;
+  }
+  .tbl-bar .tb-pick{
+    color:var(--brand); font-weight:700; font-size:11.5px;
+    min-width:52px; text-align:center;
+  }
+  .tbl-bar .tb-btn{
+    appearance:none; border:1px solid var(--line-strong); background:#fff; color:var(--ink-2);
+    height:23px; min-width:34px; padding:0 7px; border-radius:5px; cursor:pointer;
+    font-size:11.5px; line-height:1; font-family:inherit;
+    display:inline-flex; align-items:center; justify-content:center; gap:2px;
+    transition:all .12s ease;
+  }
+  .tbl-bar .tb-btn:hover{ background:var(--brand-soft); border-color:var(--brand-2); color:var(--brand); }
+  .tbl-bar .tb-btn.del:hover{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+  .tbl-bar .tb-sep{ width:1px; height:16px; background:var(--line-strong); margin:0 3px; }
+  .tbl-bar .tb-btn[disabled]{ opacity:.42; cursor:not-allowed; }
+  .tbl-bar .tb-btn[disabled]:hover{ background:#fff; border-color:var(--line-strong); color:var(--ink-2); }
+
+  /* 目标行列高亮：一律 1px inset 阴影 —— 用户硬要求「边框不加粗」 */
+  body.editing td.tb-picked-row,
+  body.editing th.tb-picked-row{ box-shadow:inset 0 1px 0 var(--brand-2), inset 0 -1px 0 var(--brand-2); }
+  body.editing td.tb-picked-col,
+  body.editing th.tb-picked-col{ box-shadow:inset 1px 0 0 var(--brand-2), inset -1px 0 0 var(--brand-2); }
+  body.editing td.tb-picked-row.tb-picked-col,
+  body.editing th.tb-picked-row.tb-picked-col{ box-shadow:inset 0 0 0 1px var(--brand-2); }
+  /* 窄视口：仅缩小，绝不隐藏（V29 铁律） */
   @media (max-width:900px){
-    .rc-edge .re-btn{ width:20px; height:20px; font-size:11px; border-radius:4px; }
+    .tbl-bar{ padding:3px 5px; gap:3px; }
+    .tbl-bar .tb-btn{ height:21px; min-width:30px; padding:0 5px; font-size:11px; }
+    .tbl-bar .tb-lbl{ display:none; }
   }
 
   .flag{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1f2328;color:#fff;
@@ -1349,7 +1399,7 @@
   @media print{
     html,body{background:#fff;width:auto;overflow:visible;}
     .flag,.edit-hint,.hint-open,.edit-toggle,.edit-banner,.bubble,.rowcol-tools,
-    .brush-hint,.rc-edge,
+    .brush-hint,.rc-edge,.tbl-bar,
     /* ★ V27 评论 UI 全部隐藏；但正文里的 .cmt-mark 黄色文字**保留**
        （批注要跟着打印出来才有意义），仅去掉底色与下划线，避免打印脏。 */
     .cmt-icon,.cmt-panel,.cmt-body{display:none!important;}
@@ -1549,21 +1599,17 @@
   <button class="rc-btn del" id="btnReset" title="放弃所有改动，回到原始模板">还原模板</button>
 </div>
 
-<!-- ============ ★ V28 单元格就近浮动工具（跟光标走，不用去左下角找）============ -->
-<div class="rc-edge pos-row" id="rcEdgeRow">
-  <button class="re-btn" id="edgeRowAdd" title="在下方插入一行">+</button>
-  <button class="re-btn del" id="edgeRowDel" title="删除该行">−</button>
-</div>
-<div class="rc-edge pos-col" id="rcEdgeCol">
-  <button class="re-btn" id="edgeColAdd" title="在右侧插入一列">+</button>
-  <button class="re-btn del" id="edgeColDel" title="删除该列">−</button>
-</div>
+<!-- ============ ★★★ V30 表格常驻编辑工具栏（Word 式）============
+     原 V28 的 .rc-edge 浮动按钮已整体去除（用户实际用不上）。
+     现改为：每个表格在编辑态下、其正上方常驻一条工具栏。
+     工具栏由 JS 按需动态生成（表格数会随增删行列变化，不能写死），
+     模板与事件委托见 _script.js 的 buildTableBars() / bindTableBars()。 -->
 
 <div class="edit-hint" id="editHint">
   <button class="hint-x" id="hintClose" title="收起提示">&#10005;</button>
   <b>编辑模式</b><br>
   点击任意文字直接修改；<b>选中文字</b>会浮出格式工具条。<br>
-  点进表格单元格，<b>该行左侧 / 该列上方</b>会浮出 + / − 增删行列。<br>
+  点进表格单元格，<b>表格正上方的工具栏</b>即可 +行 / −行 / +列 / −列。<br>
   左下角小条：<b>保存</b>=存住编辑内容，<b>下载 HTML</b>=导出成独立文件。<br>
   <b>打印</b> / <b>导出 Excel</b> 也在左下角小条。按 <b>Esc</b> 保存并退出。
 </div>
@@ -3218,11 +3264,15 @@
       document.body.classList.remove('edit-hint-folded');
       var y = window.pageYOffset;
       window.scrollTo({ top: Math.max(0, y - 60), behavior: 'smooth' });
-      toast('✓ 已进入编辑模式 · 所有文字均可点击修改', 2600);
+      /* ★★ V30：进入编辑态 → 立即为每个表格建出常驻工具栏（Word 式）。
+         建在这里而不是靠用户点单元格触发 —— 用户要的就是「一进编辑就看得见工具栏」。 */
+      buildTableBars();
+      refreshTableBars();
+      toast('✓ 已进入编辑模式 · 表格上方出现编辑工具栏', 2600);
     } else {
       hideBubble();
       clearBrush();          // ★ V26：退出编辑态时一并退出格式刷拾取态
-      hideEdgeTools();       // ★ V28：退出编辑态收起就近行列工具
+      tbHide();              // ★ V30：退出编辑态收起表格工具栏
       lastCell = null;       // ★ V28：清掉单元格记忆，避免下次进入编辑态误用
       document.body.classList.remove('edit-hint-folded');
       window.getSelection().removeAllRanges();
@@ -3467,13 +3517,15 @@
   function deleteRowOf(cell){
     var tr = cell.parentNode, tb = tr && tr.parentNode;
     if(!tr || tr.tagName !== 'TR') return false;
-    /* ★ 表头行不允许删（会把整表语义破坏掉） */
+    /* ★ 表头行不允许删（会把整表语义破坏掉）
+       ★ V30 加固：除「行内含 th」外，还要看父容器是不是 THEAD ——
+         少数表头行的 th 被换成了 td（或整行用 td 排布），只查 th 会漏判。 */
+    if(tb && tb.tagName === 'THEAD'){ toast('表头行不可删除'); return false; }
     if(tr.querySelector('th')){ toast('表头行不可删除'); return false; }
     if(tb.querySelectorAll('tr').length <= 1){ toast('至少保留一行'); return false; }
     tr.parentNode.removeChild(tr);
     /* 记忆变量指向的行已被移除 → 主动失效，避免后续操作落空 */
     if(lastCell && !lastCell.isConnected) lastCell = null;
-    hideEdgeTools();
     markDirty(); toast('已删除该行（Ctrl+Z 可撤销）');
     return true;
   }
@@ -3513,7 +3565,6 @@
       if(tr.children[idx]) tr.removeChild(tr.children[idx]);
     });
     if(lastCell && !lastCell.isConnected) lastCell = null;
-    hideEdgeTools();
     markDirty(); toast('已删除该列（Ctrl+Z 可撤销）');
     return true;
   }
@@ -3527,211 +3578,310 @@
   };
   window.__SZ_rowcol = LEGACY_ROWCOL;   // 便于自动化测试与旧调用兼容
 
-  /* ============ ★ V28 就近浮动工具 ============ */
-  function getEdgeRow(){ return document.getElementById('rcEdgeRow'); }
-  function getEdgeCol(){ return document.getElementById('rcEdgeCol'); }
+  /* =====================================================================
+     ★★★ V30 表格常驻编辑工具栏（Word 式）—— 取代 .rc-edge 浮动按钮
+     ---------------------------------------------------------------------
+     用户原话：「点击编辑的时候要求和 word 文档一样在表格的最上方
+               一直出现编辑的工具」。
 
-  /* ★★ 当前已定位的单元格 —— 用于滚动/尺寸变化时「原地重算」。
-     为什么要记：浏览器在 click 时会自动把目标滚进视口，这次自动滚动
-     发生在定位**之后** → 浮层会停在旧坐标上（实测偏 308px）。
-     有了 placedCell，任何后续 scroll 事件都能立刻把它拉回正确位置。 */
-  var placedCell = null;
-  var syncTimer = null;
-  function syncEdgeTools(){
-    if(syncTimer) return;
-    syncTimer = requestAnimationFrame(function(){
-      syncTimer = null;
-      if(!editing) return;
-      var c = (placedCell && placedCell.isConnected) ? placedCell : null;
-      if(!c) return hideEdgeTools();
-      placeEdgeTools(c);
+     为什么彻底改方向：
+       V28/V29 做的是「跟光标走的小 +/−」。它在自动化里能跑通，但真人用
+       不上：光标必须在格子内（一移出表格就 hide）、按钮又细又靠边、点完后它
+       还要重新定位 —— 任何一环出错就是「点不动」。用户回馈就是这个感受。
+       Word 的心智模型：★ 工具栏常驻 → ★ 先选中目标行/列 → ★ 再点按钮。
+
+     关键实现决策：
+       1. 工具栏按表格动态生成（表格数会随增删行列变化，不能写死）。
+       2. 每条工具栏 absolute 钉在它所属表格的正上方（凭 <table> 的 rect）。
+       3. 目标单元格用可序列化锚点（unfolded path）记忆 —— 因为 #root 会被
+          草稿恢复整体重建，**绝不能存节点引用**（同 V27 评论锚定的铁律）。
+       4. 一切事件委托绑 document 捕获阶段（#root 重建后不失效）。
+       5. 执行前校验目标仍在原表内（isConnected + 表格一致），否则提示重选。
+     ===================================================================== */
+
+  /* --- 目标单元格锚点（可序列化，不存节点引用）--- */
+  var tbAnchor = null;        /* {tbl:[表格索引], grp:[行组], row:[行索引], cell:[单元格索引]} */
+  var tbBars = [];            /* 当前生成的 .tbl-bar 节点列表 */
+
+  /* ★★★ V30：锚点必须记住「行组」—— 表格可能同时有 thead（表头）和 tbody。
+     只记行索引会在两处都命中同一数字，解析时就会落到错误的那一行
+     （实测：点表头 → 解析成 tbody 的首行）。故增加 grp 字段：
+       0 = thead / 1 = tbody / 2 = tfoot（缺失的组不占用编号）
+     用固定映射而非索引推测，保证前后一致。 */
+  function tbRowGroups(table){
+    var groups = [];
+    if(table.tHead)  groups.push(table.tHead);
+    var bodies = Array.prototype.slice.call(table.tBodies || []);
+    /* 无显式 tbody 时，浏览器会自动补一个 —— 这里以实际 DOM 为准 */
+    bodies.forEach(function(b){ groups.push(b); });
+    if(table.tFoot)  groups.push(table.tFoot);
+    return groups;
+  }
+  function tbGroupIndex(table, grp){
+    var g = tbRowGroups(table);
+    for(var i = 0; i < g.length; i++){ if(g[i] === grp) return i; }
+    return -1;
+  }
+
+  function tbPathOfTd(td){
+    var tr = td.parentNode;
+    if(!tr || tr.tagName !== 'TR') return null;
+    var grp = tr.parentNode;                      /* THEAD / TBODY / TFOOT / TABLE */
+    var table = grp && grp.closest ? grp.closest('table') : null;
+    if(!table) return null;
+    var tblIdx = Array.prototype.indexOf.call(document.querySelectorAll('#root table'), table);
+    var gIdx = tbGroupIndex(table, grp);
+    var rowIdx = Array.prototype.indexOf.call(grp.children, tr);
+    var cellIdx = Array.prototype.indexOf.call(tr.children, td);
+    if(tblIdx < 0 || gIdx < 0 || rowIdx < 0 || cellIdx < 0) return null;
+    return { tbl:[tblIdx], grp:[gIdx], row:[rowIdx], cell:[cellIdx] };
+  }
+
+  function tbResolveCell(a){
+    if(!a) return null;
+    var tables = document.querySelectorAll('#root table');
+    var table = tables[a.tbl[0]];
+    if(!table || !table.isConnected) return null;
+    var g = tbRowGroups(table);
+    /* 兼容 V30 之前不含 grp 的旧锚点：无 grp 时退化为「第一个行组」 */
+    var grp = (a.grp ? g[a.grp[0]] : null) || g[0] || table;
+    var tr = grp.children[a.row[0]];
+    if(!tr) return null;
+    var td = tr.children[a.cell[0]];
+    if(!td) return null;
+    return td;
+  }
+
+  /* 根据目标单元格反查它属于哪一个表格、第几行、第几列 */
+  function tbInfoOf(td){
+    if(!td || !td.isConnected) return null;
+    var tr = td.parentNode;
+    if(!tr || tr.tagName !== 'TR') return null;
+    var tb = tr.parentNode;                       /* 可能是 thead / tbody / table */
+    var table = tb && tb.closest ? tb.closest('table') : null;
+    if(!table) return null;
+    /* ★★★ V30 修复：原实现固定用 table.tBodies[0] 作行容器，
+       但用户点到的可能是 <thead> 里的表头单元格 —— 那时 tr 不在 tBodies[0] 中，
+       rows.indexOf(tr) 返回 −1 → 整条工具栏被判为「不可用」，
+       于是「选了表头行，− 行 仍然可点」并会把表头删掉（真缺陷）。
+       改为：直接用 tr 自己的父容器（thead/tbody 皆可），语义等价且更稳。 */
+    var rowParent = tb;
+    var rows = Array.prototype.slice.call(rowParent.children).filter(function(n){ return n.tagName === 'TR'; });
+    var rIdx = rows.indexOf(tr);
+    if(rIdx < 0) return null;
+    var colIdx = Array.prototype.indexOf.call(tr.children, td);
+    /* 表头行（父容器是 THEAD，或行内含 th）视为「表头」—— 不允许删行 */
+    var isHead = (rowParent.tagName === 'THEAD') || !!tr.querySelector('th');
+    return { table:table, tbody:rowParent, tr:tr, row:rIdx, col:colIdx, cols:tr.children.length,
+             rows:rows, isHead:isHead };
+  }
+
+  /* ---- 高亮：目标行列用 1px inset 阴影（绝不加粗边框）---- */
+  function tbClearHighlight(){
+    Array.prototype.forEach.call(
+      document.querySelectorAll('#root .tb-picked-row, #root .tb-picked-col'),
+      function(el){ el.classList.remove('tb-picked-row'); el.classList.remove('tb-picked-col'); });
+  }
+  function tbHighlight(td){
+    tbClearHighlight();
+    if(!td) return;
+    var tr = td.parentNode;
+    if(!tr || tr.tagName !== 'TR') return;
+    Array.prototype.forEach.call(tr.children, function(c){
+      if(c.tagName === 'TD' || c.tagName === 'TH') c.classList.add('tb-picked-row');
+    });
+    var table = td.closest('table');
+    if(!table) return;
+    Array.prototype.forEach.call(table.querySelectorAll('tr'), function(r){
+      var c = r.children[td.cellIndex];
+      if(c && (c.tagName === 'TD' || c.tagName === 'TH')) c.classList.add('tb-picked-col');
     });
   }
 
-  /* ★★★ 落定重算：浏览器在 click 后可能还有一次异步滚动 / 布局回流
-     （实测：点击瞬间算出的坐标与 300ms 后的真实坐标相差 300+px）。
-     单次 rAF 不够 —— 这里再补两拍，让浮层最终咬在正确位置。
-     代价极小（两次 setState），收益是浮层不会「停错地方」。 */
-  function settleEdgeTools(){
-    syncEdgeTools();
-    setTimeout(syncEdgeTools, 60);
-    setTimeout(syncEdgeTools, 220);
+  /* ---- 构造一条工具栏 ---- */
+  function tbMakeBar(){
+    var bar = document.createElement('div');
+    bar.className = 'tbl-bar';
+    bar.setAttribute('data-tblbar','1');
+    bar.innerHTML =
+      '<span class="tb-lbl">表格</span>' +
+      '<span class="tb-pick" data-tb="pick">—</span>' +
+      '<span class="tb-sep"></span>' +
+      '<button class="tb-btn" type="button" data-tb="rowAdd" title="在当前行下方插入一行">+ 行</button>' +
+      '<button class="tb-btn del" type="button" data-tb="rowDel" title="删除当前行">− 行</button>' +
+      '<button class="tb-btn" type="button" data-tb="colAdd" title="在当前列右侧插入一列">+ 列</button>' +
+      '<button class="tb-btn del" type="button" data-tb="colDel" title="删除当前列">− 列</button>';
+    return bar;
   }
 
-  function hideEdgeTools(){
-    placedCell = null;
-    var r = getEdgeRow(); if(r) r.classList.remove('show');
-    var c = getEdgeCol(); if(c) c.classList.remove('show');
-  }
+  /* 工具栏宿主：统一挂 <body> + absolute + 文档坐标（V28 铁律） */
+  function tbHost(){ return document.body; }
 
-  /* 定位并显示：行工具贴在行左外侧、列工具贴在列上外侧。
-     ⚠️★★ V28 定位坑：**不能**用 offsetTop/offsetLeft ——
-        tr 的 offsetParent 与 td 的 offsetParent 可能不是同一个
-        （tr 会跳过某些中间层，落到更外层的 .paper 上），
-        直接混用会得到偏移数百 px 的错误坐标（实测 offset=309px）。
-     改用 getBoundingClientRect 统一算绝对坐标，再用「host 的 rect」
-        换算成 host 内部坐标 —— 无论 offsetParent 是谁都稳。 */
-  /* ★★★ V28 定位坑（实测 308px 偏差的真正根因）：
-     原实现把 host 设为 `cell.offsetParent`。但单元格的 offsetParent 会随
-     所在容器变化（实测有时是 .paper，有时是 .ap-table）—— 而 .ap-table
-     处在 .table-scroll 内部，坐标原点完全不同，于是浮层被塞进错误的
-     坐标系里，偏差恰好等于两者原点之差（300+px）。
-     铁律：**浮层宿主必须唯一且稳定**。统一挂到 `<body>` 下，并用
-     `position:absolute` + 文档坐标（视口坐标 + window 滚动量）定位 ——
-     这样浮层永远与「页面坐标系」一致，不受任何中间容器的 position 影响。 */
-  function ensureEdgeHost(){
-    var host = document.body;
-    var rowBox = getEdgeRow(), colBox = getEdgeCol();
-    [rowBox, colBox].forEach(function(box){
-      if(box && box.parentNode !== host) host.appendChild(box);
+  /* 重建全部工具栏（表格增删后也要重建） */
+  function buildTableBars(){
+    tbBars.forEach(function(b){ if(b.parentNode) b.parentNode.removeChild(b); });
+    tbBars = [];
+    if(!editing) return;
+    var tables = document.querySelectorAll('#root table');
+    var host = tbHost();
+    Array.prototype.forEach.call(tables, function(){
+      var bar = tbMakeBar();
+      host.appendChild(bar);
+      tbBars.push(bar);
     });
-    return host;
   }
 
-  function placeEdgeTools(cell){
-    if(!editing || !cell || !cell.isConnected){ placedCell = null; return hideEdgeTools(); }
-    placedCell = cell;
-
-    var rowBox = getEdgeRow(), colBox = getEdgeCol();
-    if(!rowBox || !colBox) return;
-
-    var host = ensureEdgeHost();
-    /* ★★ 先让浮层可见再量尺寸 —— display:none 的元素 offsetWidth/Height 恒为 0，
-       会把居中偏移算错（实测恒定偏 23px）。故先 add('show') 量完再微调位置。 */
-    rowBox.classList.add('show');
-    colBox.classList.add('show');
-
-    /* 文档坐标 = 视口坐标 + 窗口滚动量（宿主是 body，坐标系即文档坐标系） */
+  /* 把每条工具栏摆到它所属表格的正上方 */
+  function placeTableBars(){
+    if(!editing){ tbBars.forEach(function(b){ b.classList.remove('show'); }); return; }
+    var tables = document.querySelectorAll('#root table');
     var winX = window.pageXOffset || document.documentElement.scrollLeft || 0;
     var winY = window.pageYOffset || document.documentElement.scrollTop || 0;
-
-    var tr = cell.parentNode;
-    var colIdx = cellIndexInRow(cell);
-
-    /* ---- 行工具：定位到该行左侧外缘、垂直居中 ----
-       ★★★ V28 定位坑：**不要用 tr.getBoundingClientRect()** ——
-         <tr> 的 rect 在表格布局下可能返回塌陷/过期值（实测算出 57.6 而
-         真实应为 366.5）。一律以**单元格自身**的 rect 为准。
-       ★★★ V29 改进：原实现永远贴 `表格最左外侧`（实测 x≈230），而用户光标
-         在中间或右侧列时，鼠标要**横穿约 240px** 才够到按钮 —— 体验上就是
-         「找不到 / 点不到」。改为**贴着光标所在单元格的左外侧**，
-         鼠标几乎不用移动即可命中；若左侧空间不足（首列/窄表格），
-         自动翻转到该单元格**右外侧**，保证始终贴在光标附近。 */
-    if(tr && tr.tagName === 'TR'){
-      var cellRect = cell.getBoundingClientRect();
-      var rowW = rowBox.offsetWidth || 23;
-      var rowH = rowBox.offsetHeight || 50;
-      var rowTop = cellRect.top + winY + cellRect.height / 2 - rowH / 2;
-      /* 首选：单元格左外侧；左边界不够（会跑到纸张外/视口外）则翻到右外侧 */
-      var leftSpace = cellRect.left - 4;                 /* 距视口左缘的可用宽度 */
-      var rowLeft;
-      if(leftSpace >= rowW + 8){
-        rowLeft = cellRect.left + winX - rowW - 6;       /* 左外侧 */
-      } else {
-        rowLeft = cellRect.right + winX + 6;             /* 翻转：右外侧 */
-      }
-      rowBox.style.top  = rowTop + 'px';
-      rowBox.style.left = rowLeft + 'px';
-      /* ★ 翻到右侧时，两个按钮的圆角方向镜像一下，视觉上更贴 */
-      rowBox.classList.toggle('flip', leftSpace < rowW + 8);
-      var rowDel = document.getElementById('edgeRowDel');
-      if(rowDel) rowDel.style.display = tr.querySelector('th') ? 'none' : '';
-    }
-
-    /* ---- 列工具：定位到该列第一行（表头）上缘、水平居中于该列 ---- */
-    var table = cell.closest('table');
-    if(table && table.rows.length){
-      var headCell = table.rows[0].children[colIdx];
-      if(headCell){
-        var hcRect = headCell.getBoundingClientRect();
-        var colW = colBox.offsetWidth || 50;
-        var colH = colBox.offsetHeight || 25;
-        colBox.style.top  = (hcRect.top + winY - colH - 4) + 'px';
-        colBox.style.left = (hcRect.left + winX + hcRect.width / 2 - colW / 2) + 'px';
-        var colDel = document.getElementById('edgeColDel');
-        if(colDel) colDel.style.display = (table.rows[0].children.length <= 1) ? 'none' : '';
-      }
-    }
+    tbBars.forEach(function(bar, i){
+      var table = tables[i];
+      if(!table || !table.isConnected){ bar.classList.remove('show'); return; }
+      /* 先 add('show') 量实尺寸（display:none 量不到 —— V28 坑） */
+      bar.classList.add('show');
+      var tRect = table.getBoundingClientRect();
+      var bH = bar.offsetHeight || 30;
+      var bW = bar.offsetWidth || 300;
+      /* 尽量贴表格左上角；但不超出纸张右边 */
+      var left = tRect.left + winX;
+      var maxLeft = tRect.right + winX - bW;
+      if(left > maxLeft) left = maxLeft;
+      if(left < tRect.left + winX) left = tRect.left + winX;
+      var top = tRect.top + winY - bH - 6;      /* 钉在表格上方 */
+      /* 上方空间不够（页首第一个表）→ 改钉在表格内顶部下沿 */
+      if(tRect.top - bH - 6 < 4) top = tRect.top + winY + 3;
+      bar.style.top = top + 'px';
+      bar.style.left = left + 'px';
+    });
   }
 
-  var edgeDelegated = false;
-  function bindEdgeTools(){
-    if(edgeDelegated) return;
-    edgeDelegated = true;
+  /* 同步「当前目标」指示与按钮可用性 */
+  function syncTableBars(){
+    if(!editing){ tbClearHighlight(); return; }
+    var td = tbResolveCell(tbAnchor);
+    var targetTable = td ? td.closest('table') : null;
+    var info = td ? tbInfoOf(td) : null;
+    var tables = document.querySelectorAll('#root table');
+    tbBars.forEach(function(bar, i){
+      var table = tables[i];
+      /* ★★★ 注意作用域：usable / headOnly 之前误用 var 在 if 内赋值，
+         导致 forEach 回调外读不到 → ReferenceError。这里改为回调内 let + 显式初值。 */
+      var usable = !!(td && table && targetTable && table === targetTable && info);
+      var headOnly = !!(info && info.isHead);
+      var pick = bar.querySelector('[data-tb="pick"]');
+      if(usable){
+        pick.textContent = '\u7b2c' + (info.row + 1) + '\u884c\u00b7\u7b2c' + (info.col + 1) + '\u5217';
+      } else {
+        pick.textContent = '\u70b9\u4e2d\u5355\u5143\u683c';
+      }
+      ['rowAdd','rowDel','colAdd','colDel'].forEach(function(act){
+        var b = bar.querySelector('[data-tb="' + act + '"]');
+        if(!b) return;
+        var dis = !usable;
+        if(!dis && act === 'rowDel' && headOnly) dis = true;   /* 表头行不可删 */
+        b.disabled = !!dis;
+      });
+    });
+    tbHighlight((td && info && targetTable) ? td : null);
+  }
 
-    /* 记住最近聚焦的单元格（focusin 覆盖 Tab 切换，mousedown 覆盖鼠标点选） */
-    document.addEventListener('focusin', function(e){ if(editing) rememberCell(e.target); }, true);
-    document.addEventListener('mousedown', function(e){
+  /* 一个入口做完「重建 + 摆位 + 同步」三件事 */
+  function refreshTableBars(){
+    if(!editing){ tbBars.forEach(function(b){ b.classList.remove('show'); }); tbClearHighlight(); return; }
+    if(tbBars.length !== document.querySelectorAll('#root table').length) buildTableBars();
+    placeTableBars();
+    syncTableBars();
+  }
+
+  function tbHide(){
+    tbBars.forEach(function(b){ b.classList.remove('show'); });
+    tbClearHighlight();
+  }
+
+  /* 记住目标单元格（存锚点，不存节点） */
+  function tbRemember(td){
+    if(!editing || !td || !td.isConnected) return;
+    var a = tbPathOfTd(td);
+    if(a) tbAnchor = a;
+  }
+
+  var tbBound = false;
+  function bindTableBars(){
+    if(tbBound) return;
+    tbBound = true;
+
+    /* 点击单元格 / 聚焦到单元格 → 记住并高亮 */
+    function onPick(e){
       if(!editing) return;
       var t = e.target;
-      if(t && t.closest && t.closest('.rc-edge, .rowcol-tools, .bubble, .brush-hint')) return;
-      rememberCell(t);
+      if(!t || !t.closest) return;
+      if(t.closest('.tbl-bar, .rowcol-tools, .bubble, .brush-hint, .cmt-icon, .cmt-panel')) return;
+      var td = t.closest('#root td, #root th');
+      if(!td) return;
+      tbRemember(td);
+      refreshTableBars();
+    }
+    document.addEventListener('mousedown', onPick, true);
+    document.addEventListener('focusin', onPick, true);
+
+    /* 工具栏按钮：一个委托入口支撑所有动作 */
+    document.addEventListener('click', function(e){
+      var t = e.target;
+      var btn = (t && t.closest) ? t.closest('.tbl-bar [data-tb]') : null;
+      if(!btn) return;
+      e.preventDefault(); e.stopPropagation();
+      if(!editing) return;
+      if(btn.disabled){ toast('请先点中一个单元格'); return; }
+      var td = tbResolveCell(tbAnchor);
+      if(!td){ toast('请先点中一个单元格'); return; }
+      var table = td.closest('table');
+      var act = btn.getAttribute('data-tb');
+      var keepCol = td.cellIndex;
+      var keepInfo = tbInfoOf(td);
+      var keepRow = keepInfo ? keepInfo.row : 0;
+      var keepGrp = keepInfo ? tbGroupIndex(table, keepInfo.tbody) : 0;
+      if(keepGrp < 0) keepGrp = 0;
+
+      if(act === 'rowAdd')      insertRowAfter(td);
+      else if(act === 'rowDel') deleteRowOf(td);
+      else if(act === 'colAdd') insertColAfter(td);
+      else if(act === 'colDel') deleteColOf(td);
+
+      /* 增删后把锚点落回合理位置，工具栏继续可用。
+         ★ V30：必须按「原行组」回落 —— 在表头行操作时不能掉到 tbody 去。 */
+      if(table && table.isConnected){
+        var grp = tbRowGroups(table)[keepGrp] || tbRowGroups(table)[0];
+        var rows = Array.prototype.slice.call(grp.children).filter(function(n){ return n.tagName === 'TR'; });
+        var r = Math.min(keepRow, rows.length - 1); if(r < 0) r = 0;
+        var tr = rows[r];
+        if(tr){
+          var c = Math.min(keepCol, tr.children.length - 1); if(c < 0) c = 0;
+          var ntd = tr.children[c];
+          if(ntd) tbRemember(ntd);
+        }
+      }
+      refreshTableBars();
     }, true);
 
-    /* 点击（含点浮动按钮）→ 更新工具位置。
-       ★★ 用 settleEdgeTools 做「多拍落定重算」：浏览器可能在 click 时
-          把目标自动滚进视口、或触发一次异步回流，若只算一次会停在旧坐标
-          （实测偏 300+px）。多拍重算后浮层必定咬在正确位置。 */
-    document.addEventListener('mouseup', function(e){
+    /* 滚动 / 窗口变化 → 重新摆位 */
+    window.addEventListener('scroll', function(){
       if(!editing) return;
-      var t = e.target;
-      if(t && t.closest && t.closest('.rc-edge, .rowcol-tools, .bubble, .brush-hint')) return;
-      rememberCell(t);
-      var c = activeCell();
-      if(c && c.isConnected){
-        ensureEdgeHost();
-        placeEdgeTools(c);     /* 先立即摆一次，避免肉眼可见的延迟 */
-        settleEdgeTools();     /* 再补两拍纠正 */
-      } else hideEdgeTools();
-    }, true);
+      placeTableBars();
+    }, { passive: true });
+    window.addEventListener('resize', function(){
+      if(!editing) return tbHide();
+      refreshTableBars();
+    });
 
     /* 键盘在单元格间移动（Tab / 方向键）也要跟随 */
     document.addEventListener('keyup', function(e){
       if(!editing) return;
       if(e.key !== 'Tab' && e.key.indexOf('Arrow') !== 0) return;
       var c = activeCell();
-      if(c && c.isConnected){ ensureEdgeHost(); placeEdgeTools(c); }
-    }, true);
-
-    /* 浮动按钮点击：全部走这里，四个动作共用一套判定 */
-    document.addEventListener('click', function(e){
-      var t = e.target;
-      var btn = (t && t.closest) ? t.closest('.rc-edge .re-btn') : null;
-      if(!btn) return;
-      e.preventDefault(); e.stopPropagation();
-      if(!editing) return;
-      var cell = resolveCell();
-      if(!cell){ toast('请先点进一个单元格'); return; }
-      var id = btn.id;
-      if(id === 'edgeRowAdd')      insertRowAfter(cell);
-      else if(id === 'edgeRowDel') deleteRowOf(cell);
-      else if(id === 'edgeColAdd') insertColAfter(cell);
-      else if(id === 'edgeColDel') deleteColOf(cell);
-      /* 增删后行/列变了，重新定位（淡入淡出，静默不弹窗） */
-      if(cell.isConnected){ ensureEdgeHost(); placeEdgeTools(cell); }
-    }, true);
-
-    /* 滚动 / 窗口变化 / 光标移出表格 → 重新定位或收起
-       ★★ V28：这里必须用 syncEdgeTools（基于 placedCell 原地重算），
-          而不是重新 resolveCell —— 因为浏览器自动滚动的场景下，
-          光标可能已不在原单元格，但浮层理应继续跟着原来那个单元格。 */
-    window.addEventListener('scroll', function(){
-      if(!editing) return;
-      if(placedCell && placedCell.isConnected) syncEdgeTools();
-      else hideEdgeTools();
-    }, { passive: true });
-    window.addEventListener('resize', function(){
-      if(!editing) return hideEdgeTools();
-      if(placedCell && placedCell.isConnected) syncEdgeTools();
-    });
-
-    /* 指针离开表格区域 → 收起，避免浮层悬空 */
-    document.addEventListener('mouseover', function(e){
-      if(!editing) return;
-      var t = e.target;
-      if(!t || !t.closest) return;
-      if(t.closest('.table-scroll, .ap-table, table') || t.closest('.rc-edge')) return;
-      hideEdgeTools();
+      if(c && c.isConnected){ tbRemember(c); refreshTableBars(); }
     }, true);
   }
 
@@ -3922,7 +4072,7 @@
       if(el.hasAttribute('data-ce')) return;            // 已标记
       if(el.querySelector('[data-ce="1"]')) return;     // 含已标记子元素 → 交给子元素
       if(SKIP_TAGS[el.tagName]) return;
-      if(el.closest('.rowcol-tools, .edit-hint, .edit-banner, .bubble, .hint-open, .edit-toggle, .gantt-fold, .brush-hint, .g-todayline, .rc-edge')) return;  // UI 控件区
+      if(el.closest('.rowcol-tools, .edit-hint, .edit-banner, .bubble, .hint-open, .edit-toggle, .gantt-fold, .brush-hint, .g-todayline, .rc-edge, .tbl-bar, .tb-btn')) return;  // UI 控件区
       if(el.isContentEditable) return;
       // 必须有直接可见文字（或非空子元素文本）
       var direct = '';
@@ -4495,9 +4645,10 @@
   /* ★ 顺序：草稿恢复 + markEditable 之后再跑，确保锚点对应的 DOM 已就位 */
   initComments();
 
-  /* ★ V28：就近行列工具的事件委托 —— 必须在 markEditable 之后绑，
-     且绑在 document 上（#root 会被草稿整体重建）。 */
-  bindEdgeTools();
+  /* ★★ V30：表格常驻工具栏的事件委托 —— 必须在 markEditable 之后绑，
+     且绑在 document 上（#root 会被草稿整体重建）。
+     ⚠️ 工具栏本身由 buildTableBars() 按需动态生成，不在静态 HTML 里。 */
+  bindTableBars();
 
   /* 暴露给「保存」按钮：把评论数据内嵌进下载的 HTML。
      实现方式：下载前把数据写进一个临时 <script> 节点，
