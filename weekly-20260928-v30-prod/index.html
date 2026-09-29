@@ -11,7 +11,7 @@
 <meta http-equiv="Expires" content="0">
 <!-- ★ V22.9c 构建指纹：由 _build.py 按内容哈希注入，
      用于让 _script.js 识别并丢弃「旧模板留下的过期草稿」 -->
-<script>window.__SZ_REPORT_BUILD__='bfbabdd5cbfb';</script>
+<script>window.__SZ_REPORT_BUILD__='b626a28d7834';window.__SZ_URL_VERSION__='b626a28d7834';</script>
 <title>数智化周报 20260928 · 可编辑模板</title>
 <meta name="description" content="墨迹天气数智化转型项目周报（20260928）在线可编辑版，支持直接修改文字与格式、保存 HTML、导出 Excel、打印 PDF。">
 <meta name="author" content="数智化转型项目组">
@@ -2704,6 +2704,30 @@
 <script>
 (function(){
   'use strict';
+
+  /* ★★★ V31 缓存根治疗法：URL 参数版本守卫
+     背景：V22.9c 的草稿守卫只管「草稿过期」，不管「浏览器把 HTML 文件本身缓存」。
+           症状：普通窗口看到旧版，无痕正常（因为无痕没缓存）。
+     原理：构建指纹每版不同。脚本用 history.replaceState 把 URL 补成
+           「带版本参数的组合」，这个组合浏览器从未见过 → 必须拉新。
+     效果：用户打开旧链接 / 书签旧链接 / 微信缓存链接 → 自动跳转到
+           「当前版本的正确 URL」→ 永远看到最新内容。
+     细节：
+       - 只在 URL 参数缺失或指纹不符时执行一次 replaceState（不循环）
+       - replaceState 同步更新 URL，用户刷新 / 分享出去就是带参数的干净 URL
+       - 书签 / 分享 / 微信卡片里存的是带 ?v=STAMP 的完整 URL，下次直接命中
+       - 对内网(file://)、公网(GitHub Pages)、短链(htmlcode.fun)均有效 */
+  (function _szCacheBust(){
+    var stamp = window.__SZ_URL_VERSION__;
+    if(!stamp) return;
+    var usp = new URLSearchParams(location.search);
+    var cur = usp.get('v') || '';
+    if(cur !== stamp){
+      var ns = location.pathname + '?v=' + stamp + (location.hash || '');
+      history.replaceState({_sz:true}, '', ns);
+    }
+  })();
+
   var LS_KEY = 'mozhi_digital_weekly_report_draft_v2';
   /* ★★★ V22.9c 草稿版本守卫 —— 解决「服务器已更新，但打开还是旧内容」
      原理：草稿存在浏览器 localStorage 里，是「上次打开时的整页 HTML 快照」。
