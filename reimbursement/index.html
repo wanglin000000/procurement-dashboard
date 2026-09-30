@@ -132,7 +132,7 @@
             <button class="refresh-btn" onclick="window.location.href=window.location.href.split('?')[0]+'?__r='+Date.now()">⟳ 刷新最新</button>
             <span id="updateTime">--</span>
             <span id="dataSource">数据来源：钉钉文档</span>
-            <span id="versionTag" style="color:#4da3ff;font-weight:700;">Build 260929 | 数据:13条</span>
+            <span id="versionTag" style="color:#4da3ff;font-weight:700;">Build 260930 | 数据:14条</span>
         </div>
     </div>
 
@@ -394,9 +394,21 @@
       "solution": "在dex中操作单据重新推送",
       "urgency": "P0",
       "handler": "吴川"
+    },
+    {
+      "id": "14",
+      "ticketNo": "PACR260929000008",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/9/30 10:24:59",
+      "status": "已完成",
+      "resolveTime": "2026/9/30 14:18:31",
+      "progress": "需要重新推送状态给商越",
+      "solution": "在dex中操作单据重新推送",
+      "urgency": "P0",
+      "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-09-29T17:25:57"
+  "fetchTime": "2026-09-30T17:25:48"
 };
 
         async function loadData() {
