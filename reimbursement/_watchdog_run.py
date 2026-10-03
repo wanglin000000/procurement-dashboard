@@ -4,7 +4,8 @@
 import os
 import subprocess
 import sys
-import signal
+import time
+import select
 
 TIMEOUT = 280
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,23 +18,34 @@ proc = subprocess.Popen(
     stderr=subprocess.STDOUT,
     text=True,
 )
+fd = proc.stdout.fileno()
 start = time.time()
 killed = False
-# 实时流式转发输出
-for line in proc.stdout:
-    sys.stdout.write(line)
-    sys.stdout.flush()
-if proc.wait() is None:
-    # 理论上 for 循环会消费到 EOF，这里做兜底
-    pass
-rc = proc.poll()
+rc = None
+
+while True:
+    remaining = TIMEOUT - (time.time() - start)
+    if remaining <= 0:
+        killed = True
+        try:
+            proc.kill()
+        except Exception:
+            pass
+        break
+    rlist, _, _ = select.select([fd], [], [], min(1.0, remaining))
+    if rlist:
+        chunk = os.read(fd, 4096)
+        if not chunk:
+            break
+        sys.stdout.write(chunk.decode("utf-8", errors="replace"))
+        sys.stdout.flush()
+    if proc.poll() is not None:
+        # 进程已退出，把剩余输出读完
+        for line in proc.stdout:
+            sys.stdout.write(line)
+        break
+
+rc = proc.wait()
 elapsed = time.time() - start
-if rc is None:
-    killed = True
-    try:
-        proc.kill()
-    except Exception:
-        pass
-    rc = -9
 print(f"\n[WATCHDOG] 退出码={rc} 耗时={elapsed:.1f}s 强杀={killed}")
 sys.exit(rc if not killed else 1)
