@@ -545,7 +545,7 @@ var LS = (function(){
     }).catch(function(){ setSyncState('err','云端读取失败'); return []; });
   }
 
-  /* 取正文 */
+  /* 取正文（服务端已自动解压，这里拿到的是明文 html） */
   function cloudFetchOne(id){
     if(!CLOUD.ready || !id) return Promise.resolve(null);
     return apiGet('?action=get&id=' + encodeURIComponent(id))
@@ -553,16 +553,73 @@ var LS = (function(){
       .catch(function(){ return null; });
   }
 
-  /* 发布：服务端追加一条新记录，同日期按 updatedAt 取最新 */
-  function cloudPublish(v){
-    if(!CLOUD.ready) return Promise.reject(new Error('云端未连接'));
-    return fetch(CLOUD.api + '?action=publish', {
+  /* ★★★ V33.1 核心修复 ★★★
+     症状：点「发布」报“Failed to fetch”。
+     根因：CloudBase HTTP 网关对请求体有 ~100KB 上限（实测 100000B 通过、105000B 直接
+           net::ERR_FAILED，请求根本到不了云函数）。而单周周报 HTML 有 190~240KB。
+     对策：gzip 压缩 → base64 → 切成 ≤48KB 的分片，逐片 POST，最后一片带 final 让服务端拼回。
+     这样即使周报再长一倍也不会撞上限。 */
+  var CHUNK = 48 * 1024;   // 每片 base64 字符数，48KB，留足余量
+
+  function gzipToBase64(str){
+    if(typeof CompressionStream === 'undefined'){
+      return Promise.reject(new Error('当前浏览器不支持压缩上传，请改用「导出当前版本」'));
+    }
+    try{
+      var blob = new Blob([str], {type:'text/plain'});
+      var cs = new CompressionStream('gzip');
+      var stream = blob.stream().pipeThrough(cs);
+      return new Response(stream).arrayBuffer().then(function(buf){
+        var bytes = new Uint8Array(buf), bin = '', n = 0x8000;
+        for(var i=0; i<bytes.length; i+=n){
+          bin += String.fromCharCode.apply(null, bytes.subarray(i, i+n));
+        }
+        return btoa(bin);
+      });
+    }catch(e){ return Promise.reject(e); }
+  }
+
+  function postJson(body){
+    return fetch(CLOUD.api + '?action=' + body.action, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({date:v.date, label:v.label, html:v.html})
-    }).then(function(r){ return r.json(); }).then(function(j){
-      if(!j || !j.ok) throw new Error((j && j.error) || '发布失败');
-      return j;
+      body: JSON.stringify(body)
+    }).then(function(r){ return r.json(); });
+  }
+
+  /* 发布：gzip+分片上传（服务端拼回并落库，同日期按 updatedAt 取最新） */
+  function cloudPublish(v){
+    if(!CLOUD.ready) return Promise.reject(new Error('云端未连接'));
+    var html = v.html || '';
+    if(!html) return Promise.reject(new Error('该版本没有正文'));
+
+    return gzipToBase64(html).then(function(b64){
+      var chunks = [], i;
+      for(i=0; i<b64.length; i+=CHUNK) chunks.push(b64.substr(i, CHUNK));
+      if(!chunks.length) chunks.push('');
+      var uploadId = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+      function step(k){
+        var isLast = (k === chunks.length - 1);
+        var body = {
+          action: 'publishPart',
+          uploadId: uploadId, seq: k, total: chunks.length,
+          data: chunks[k], date: v.date, label: v.label, final: isLast
+        };
+        setSyncState('on', '正在发布 ' + (k+1) + '/' + chunks.length + '…');
+        return postJson(body).then(function(j){
+          if(!j || !j.ok) throw new Error((j && j.error) || '发布失败');
+          return isLast ? j : step(k + 1);
+        });
+      }
+      return step(0);
+    }).catch(function(e){
+      /* 兜底：失败时给出可执行的替代路径，不要把技术异常直接抛给用户 */
+      var m = (e && e.message) ? e.message : String(e);
+      if(/Failed to fetch|网络|ERR_/i.test(m)){
+        throw new Error('网络请求失败（可能是网络波动或文件过大）。可先「导出当前版本」再重试');
+      }
+      throw e;
     });
   }
 
