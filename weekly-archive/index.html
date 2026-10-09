@@ -351,22 +351,125 @@ var LS = (function(){
 
   var blobURLs = [];
 
-  /* ★ V33.2 运行时 CSS 补丁：给 iframe 里的表格预留「工具栏带」。
-     为什么要注入而不是只改模板：云端/历史归档里的版本都是旧 CSS 构建的，
-     只改 _shell.html 救不了它们；在这里按加载时机统一注入，新旧版本全部生效。
-     与新版模板自带的同名规则重复时无害（同值覆盖）。 */
+  /* ★ V33.3 运行时补丁：旧版本（云端/历史归档，旧 JS 会生成 12 条 absolute 工具栏）
+     也统一成「一条固定底部工具条」，不占正文空间。
+     做法：CSS 隐藏旧栏（.tbl-bar:not(.szbar)），注入一条 .szbar 固定栏——
+     旧 JS 的按钮处理是 document 级委托（.tbl-bar [data-tb]）+ 按 tbAnchor 解析，
+     所以注入栏的按钮点击会直接走旧逻辑，无需碰旧代码。
+     新模板（含 V33.3 标记）自带固定工具条，检测到即跳过，避免双栏。 */
   function patchFrameCss(){
     try{
       var doc = frame.contentDocument;
-      if(!doc || !doc.head) return;
+      if(!doc || !doc.head || !doc.body) return;
       if(doc.getElementById('__sz_tb_band__')) return;
+      var marker = doc.createElement('meta');
+      marker.id = '__sz_tb_band__';
+      doc.head.appendChild(marker);          /* 幂等哨兵，先占位 */
+
+      var isNew = false;
+      try{ isNew = doc.documentElement.outerHTML.indexOf('V33.3') >= 0; }catch(e){}
+      if(isNew) return;                      /* 新模板自带，无需补丁 */
+
       var st = doc.createElement('style');
-      st.id = '__sz_tb_band__';
       st.textContent =
-        'body.editing #root table{margin-top:44px !important}' +
-        '@media print{body.editing #root table{margin-top:0 !important}}';
+        /* 旧栏全部隐藏；窄屏底部垫高防盖最后一行；打印态复位 */
+        'body.editing #root table{margin-top:0 !important}' +
+        'body.editing .tbl-bar:not(.szbar){display:none !important}' +
+        'body.editing{padding-bottom:48px !important}' +
+        /* 注入栏：默认底部居中，宽屏切侧边竖排。
+           ★ top 不能用 !important —— 否则会压掉 .side 的 top:50%（实测踩坑：
+             fixed 元素 top/bottom 双 auto 会落到文档流末尾，直接飞出视口）。 */
+        '.tbl-bar.szbar{position:fixed;left:0;right:0;bottom:14px;margin:0 auto;width:max-content;' +
+        'max-width:96vw;overflow-x:auto;top:auto;z-index:86;display:none;' +
+        'align-items:center;gap:4px;padding:4px 6px;background:#fff;border:1px solid #d7dce3;' +
+        'border-radius:7px;box-shadow:0 2px 8px rgba(16,24,40,.12);white-space:nowrap;font-size:11.5px;}' +
+        '.tbl-bar.szbar.side{flex-direction:column;top:50%;bottom:auto!important;margin:0!important;' +
+        'transform:translateY(-50%);max-width:none;overflow:visible;padding:7px 6px;gap:5px;}' +
+        'body.editing .tbl-bar.szbar{display:flex !important}' +
+        '.tbl-bar.szbar .tb-lbl{color:#8a94a3;font-weight:700;padding:0 4px 0 2px;font-size:11px;text-align:center}' +
+        '.tbl-bar.szbar [data-tb="pick"]{color:#2f6fdb;font-weight:700;min-width:64px;text-align:center}' +
+        '.tbl-bar.szbar .tb-btn{border:1px solid #d7dce3;background:#fff;color:#3c4657;height:23px;' +
+        'min-width:34px;padding:0 7px;border-radius:5px;cursor:pointer;font-size:11.5px;font-family:inherit}' +
+        '@media print{body.editing{padding-bottom:0 !important}body.editing .tbl-bar.szbar{display:none !important}}';
       doc.head.appendChild(st);
-    }catch(e){ /* 跨域等极端场景静默跳过，版本自带 CSS 仍兜底 */ }
+
+      /* 注入单条固定栏 + 标签同步 + 宽屏侧边摆位（旧栏保留在 DOM 但被 CSS 隐藏）
+         ★ relayout 一律用内联 style，绝不碰 body 的 class —— 本 observer 正盯着
+           body 的 class，class 级联会变成死循环（V33.3b 实测踩坑）。回调再 debounce。 */
+      function relayout(bar){
+        try{
+          var paper = doc.querySelector('.paper');
+          var side = null;
+          if(paper){
+            var pr = paper.getBoundingClientRect();
+            var need = 116;
+            var mL = pr.left, mR = doc.defaultView.innerWidth - pr.right;
+            if(mL >= need && mL >= mR) side = 'L';
+            else if(mR >= need) side = 'R';
+          }
+          if(side){
+            bar.classList.add('side');
+            if(side === 'L'){ bar.style.left = '12px'; bar.style.right = 'auto'; }
+            else { bar.style.left = 'auto'; bar.style.right = '12px'; }
+            doc.body.style.paddingBottom = '0px';
+          } else {
+            bar.classList.remove('side');
+            bar.style.left = ''; bar.style.right = '';
+            doc.body.style.paddingBottom = '';
+          }
+        }catch(e){}
+      }
+      function injectBar(){
+        try{
+          if(doc.querySelector('.tbl-bar.szbar')){ relayout(doc.querySelector('.tbl-bar.szbar')); return; }
+          var src = doc.querySelector('.tbl-bar');
+          if(!src) return;                   /* 还没进编辑态，旧栏未生成 */
+          var bar = doc.createElement('div');
+          bar.className = 'tbl-bar szbar';
+          bar.innerHTML = src.innerHTML;
+          /* ★ 克隆源栏的按钮可能带着 disabled（建栏时尚未选中单元格），
+             注入栏一律启用；未选中就点按钮时，旧委托逻辑会弹「请先点中一个单元格」。 */
+          Array.prototype.forEach.call(bar.querySelectorAll('[data-tb]'), function(b){
+            b.disabled = false;
+          });
+          doc.body.appendChild(bar);
+          var sync = function(){
+            try{
+              var tbls = doc.querySelectorAll('#root table');
+              var sel = doc.querySelector('.tb-picked-row');
+              var td = sel ? (sel.closest ? sel.closest('td,th') : null) : null;
+              var lbl = bar.querySelector('.tb-lbl');
+              var pick = bar.querySelector('[data-tb="pick"]');
+              if(td){
+                var table = td.closest('table');
+                var ti = -1;
+                for(var k=0;k<tbls.length;k++){ if(tbls[k] === table){ ti = k; break; } }
+                var grp = td.parentNode;                   /* TR 的父级 = thead/tbody */
+                var ri = 0, rows = grp.children || [];
+                for(var r2=0;r2<rows.length;r2++){ if(rows[r2] === td.parentNode){ ri = r2; break; } }
+                if(lbl) lbl.textContent = '表格 ' + (ti + 1) + '/' + tbls.length;
+                if(pick) pick.textContent = '第' + (ri + 1) + '行·第' + (td.cellIndex + 1) + '列';
+              }
+            }catch(e){}
+          };
+          doc.addEventListener('mousedown', sync, true);
+          doc.addEventListener('focusin', sync, true);
+          try{ doc.defaultView.addEventListener('resize', function(){ relayout(bar); }); }catch(e){}
+          relayout(bar);
+        }catch(e){}
+      }
+      /* 旧栏在「点编辑」之后才生成 → 监听 body class 变化，进编辑态即注入。
+         ★ debounce：回调里只做轻量调度，避免与 relayout 的 style 变更互相触发。 */
+      injectBar();
+      try{
+        var moTimer = null;
+        var mo = new MutationObserver(function(){
+          if(moTimer) return;
+          moTimer = setTimeout(function(){ moTimer = null; injectBar(); }, 120);
+        });
+        mo.observe(doc.body, {attributes:true, attributeFilter:['class']});
+      }catch(e){}
+    }catch(e){ /* 跨域等极端场景静默跳过 */ }
   }
 
   function loadVersion(idx){
@@ -659,6 +762,10 @@ var LS = (function(){
           versions[hit].cloudId = r._id;
           versions[hit].cloudAt = r.updatedAt;
           versions[hit].label = r.label || versions[hit].label;
+          /* ★ V33.3 内容优先级：用户本机编辑（local=true）绝不让位；
+             但「本地旧构建」（非用户编辑）必须给云端最新内容让位——
+             清空本地 html，打开时按需从云端拉取，保证「别人发布后所有人都看到」。 */
+          if(!versions[hit].local && versions[hit].html){ versions[hit].html = ''; }
           changed = true;
         }
       }else{
