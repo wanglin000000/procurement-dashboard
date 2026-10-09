@@ -48,6 +48,44 @@
   .sv-bullet{flex:0 0 auto;font-size:13px;color:var(--ink);line-height:1.5;}
   .sv-label{font-size:13px;color:var(--ink);line-height:1.5;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* ★V32.1「复制」按钮：常驻可见，绝不 hover 才出现（V29 铁律：hover 才出的按钮=用户找不到） */
+  .sv-copy{
+    flex:0 0 auto;margin-left:auto;font-size:11px;color:var(--brand-2);
+    padding:1px 6px;border:1px solid var(--line-strong);border-radius:4px;
+    background:var(--paper);cursor:pointer;line-height:1.5;font-family:inherit;
+  }
+  .sv-copy:hover{background:var(--brand-soft);border-color:var(--brand-2);}
+  /* 复制弹窗（★ 禁原生 prompt/alert） */
+  .cp-mask{
+    position:fixed;inset:0;background:rgba(20,24,30,.35);
+    display:flex;align-items:center;justify-content:center;z-index:99;
+  }
+  .cp-box{
+    width:330px;background:var(--paper);border-radius:10px;
+    box-shadow:0 12px 40px rgba(0,0,0,.18);padding:18px 20px 16px;
+  }
+  .cp-t{font-size:14px;font-weight:700;color:var(--ink);}
+  .cp-d{font-size:11.5px;color:var(--muted);line-height:1.7;margin-top:6px;}
+  .cp-lab{display:block;font-size:11.5px;color:var(--ink-2);margin:12px 0 4px;}
+  .cp-in{
+    width:100%;padding:6px 8px;font-size:13px;font-family:inherit;
+    border:1px solid var(--line-strong);border-radius:6px;box-sizing:border-box;
+  }
+  .cp-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+  .cp-btn{
+    padding:6px 14px;font-size:12px;font-family:inherit;cursor:pointer;
+    border:1px solid var(--line-strong);border-radius:6px;background:var(--paper);
+  }
+  .cp-btn:hover{background:#f4f6f9;}
+  .cp-ok{background:var(--brand);border-color:var(--brand);color:#fff;}
+  .cp-ok:hover{background:var(--brand-2);}
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+    background:#2f3540;color:#fff;font-size:12.5px;padding:9px 16px;
+    border-radius:6px;z-index:120;opacity:0;transition:opacity .25s;pointer-events:none;
+    max-width:70vw;line-height:1.6;
+  }
+  .toast.show{opacity:.96;}
   .sb-foot{
     flex:0 0 auto; padding:8px 16px;
     border-top:1px solid var(--line); background:var(--paper);
@@ -112,6 +150,21 @@
   </main>
 </div>
 
+<!-- 复制为新版本弹窗 -->
+<div class="cp-mask" id="cpMask" style="display:none">
+  <div class="cp-box">
+    <div class="cp-t">复制为新版本</div>
+    <div class="cp-d" id="cpDesc"></div>
+    <label class="cp-lab" for="cpDate">新版本日期</label>
+    <input class="cp-in" id="cpDate" type="date">
+    <div class="cp-row">
+      <button class="cp-btn" id="cpCancel">取消</button>
+      <button class="cp-btn cp-ok" id="cpOk">下载新版 HTML</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
 /* ===== 版本数据（由 _build_archive.py 自动注入）===== */
 window.__SZ_ARCHIVE__ = [
@@ -150,10 +203,16 @@ window.__SZ_ARCHIVE__ = [
     var el = document.createElement('div');
     el.className = 'sb-ver';
     el.dataset.idx = revIdx;
-    el.title = verName(v);
+    el.title = verName(v) + '（点「复制」可基于本周生成新版）';
     el.innerHTML =
       '<span class="sv-bullet">•</span>' +
-      '<span class="sv-label">' + verName(v) + '</span>';
+      '<span class="sv-label">' + verName(v) + '</span>' +
+      '<button class="sv-copy" type="button" title="复制为新版本">复制</button>';
+    var cpBtn = el.querySelector('.sv-copy');
+    cpBtn.addEventListener('click', function(ev){
+      ev.stopPropagation();          // ★ 不触发「切换版本」
+      openCopy(revIdx);
+    });
     el.addEventListener('click', function(){
       loadVersion(revIdx);
       document.querySelectorAll('.sb-ver').forEach(function(e){e.classList.remove('active');});
@@ -190,6 +249,80 @@ window.__SZ_ARCHIVE__ = [
     frame.style.display = 'block';
     frame.src = blobURLs[idx];
   }
+
+  /* ===== V32.1：复制为新版本 ===== */
+  var cpMask = document.getElementById('cpMask');
+  var cpDesc = document.getElementById('cpDesc');
+  var cpDate = document.getElementById('cpDate');
+  var cpSrc = null;
+
+  function isoToDash(s){ return String(s||'').replace(/\//g,'-'); }
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  function fmt(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function plusDays(iso, n){
+    var p = iso.split('-');
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    d.setDate(d.getDate() + n);
+    return fmt(d);
+  }
+
+  function openCopy(idx){
+    var v = versions[idx];
+    if(!v || !v.html){ return; }
+    cpSrc = v;
+    var base = isoToDash(v.date) || fmt(new Date());
+    var dflt = plusDays(base, 7);          // 默认 +7 天（下周同一周次）
+    cpDate.value = dflt;
+    cpDesc.innerHTML = '以 <b>' + verName(v) + '</b> 为模板生成新版本，<br>' +
+      '文件内容与本周完全一致，下载后可直接编辑改稿。';
+    cpMask.style.display = 'flex';
+    cpDate.focus();
+  }
+  function closeCopy(){ cpMask.style.display = 'none'; cpSrc = null; }
+
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(function(){ t.classList.remove('show'); }, 6000);
+  }
+
+  function doCopy(){
+    if(!cpSrc) return;
+    var nd = cpDate.value || plusDays(isoToDash(cpSrc.date)||fmt(new Date()), 7);
+    var ndDash = isoToDash(nd);
+    var nd8 = ndDash.replace(/-/g, '');
+    var od = isoToDash(cpSrc.date);
+    var od8 = od.replace(/-/g, '');
+
+    // 把内容里的旧日期替换为新日期（8 位与横线两种写法都处理）
+    var html = cpSrc.html || '';
+    if(od8){ html = html.split(od8).join(nd8); }
+    if(od){  html = html.split(od).join(ndDash); }
+
+    var fname = '数智化周报-' + nd8 + '.html';
+    try{
+      var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      closeCopy();
+      toast('已下载 ' + fname + '。把它交给助理（或运行 _build_archive.py --add ' + fname + ' ' + ndDash + '）即可加入左侧栏。');
+    }catch(e){
+      toast('复制失败：' + (e && e.message ? e.message : e));
+    }
+  }
+
+  document.getElementById('cpCancel').addEventListener('click', closeCopy);
+  document.getElementById('cpOk').addEventListener('click', doCopy);
+  cpMask.addEventListener('click', function(e){ if(e.target === cpMask) closeCopy(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && cpMask.style.display !== 'none'){ e.stopPropagation(); closeCopy(); }
+  });
 
   // 自动加载最新版本
   loadVersion(latestIdx);
