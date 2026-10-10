@@ -167,7 +167,43 @@
       "solution": "在dex中操作单据重新推送",
       "urgency": "P0",
       "handler": "吴川"
+    },
+    {
+      "id": "15",
+      "ticketNo": "CON20250828000001-576895",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/10/8 11:42:43",
+      "status": "已完成",
+      "resolveTime": "2026/10/8 15:18:31",
+      "progress": "由于单据时间过于久远，用通用的办法已经无法推送。需要联系集成处曾浩老师重新推送一下。",
+      "solution": "联系集成方面重新推送",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "16",
+      "ticketNo": "PACR260929000008",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/10/9 13:48:36",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
+    },
+    {
+      "id": "17",
+      "ticketNo": "CON20260813000001",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/10/10 12:03:23",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-10-07T17:41:27"
+  "fetchTime": "2026-10-10T17:26:01"
 }
