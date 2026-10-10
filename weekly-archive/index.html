@@ -55,6 +55,34 @@
     background:var(--paper);cursor:pointer;line-height:1.5;font-family:inherit;
   }
   .sv-copy:hover{background:var(--brand-soft);border-color:var(--brand-2);}
+  /* ★V33.5「删除」按钮：与本机隐藏配套（常驻可见，同 V29 铁律） */
+  .sv-del{
+    flex:0 0 auto;font-size:11px;color:#b23b2e;
+    padding:1px 6px;border:1px solid var(--line-strong);border-radius:4px;
+    background:var(--paper);cursor:pointer;line-height:1.5;font-family:inherit;
+  }
+  .sv-del:hover{background:#fdf0ee;border-color:#b23b2e;}
+  /* 被本机隐藏的版本（底部「已隐藏」区，可一键恢复） */
+  .sb-hid-head{
+    font-size:11px;color:var(--muted);padding:10px 16px 4px;
+    border-top:1px solid var(--line);margin-top:6px;cursor:pointer;
+    display:flex;align-items:center;gap:5px;user-select:none;
+  }
+  .sb-hid-head:hover{color:var(--brand-2);}
+  .sb-hid-head .ar{font-size:9px;transition:transform .15s ease;}
+  .sb-hid.collapsed .ar{transform:rotate(-90deg);}
+  .sb-hid.collapsed .sb-hid-list{display:none;}
+  .sb-hid-item{
+    display:flex;align-items:baseline;gap:6px;padding:5px 14px 5px 24px;
+    font-size:12px;color:var(--muted);
+  }
+  .sb-hid-item .sv-label{color:var(--muted);}
+  .sv-restore{
+    flex:0 0 auto;margin-left:auto;font-size:11px;color:var(--brand-2);
+    padding:1px 6px;border:1px solid var(--line-strong);border-radius:4px;
+    background:var(--paper);cursor:pointer;line-height:1.5;font-family:inherit;
+  }
+  .sv-restore:hover{background:var(--brand-soft);border-color:var(--brand-2);}
   .sv-tag{
     font-size:10px;color:var(--brand-2);border:1px solid var(--line-strong);
     border-radius:3px;padding:0 3px;margin-left:4px;vertical-align:1px;
@@ -98,6 +126,8 @@
   .cp-btn:hover{background:#f4f6f9;}
   .cp-ok{background:var(--brand);border-color:var(--brand);color:#fff;}
   .cp-ok:hover{background:var(--brand-2);}
+  .cp-danger{background:#b23b2e;border-color:#b23b2e;color:#fff;}
+  .cp-danger:hover{background:#9a3126;}
   .toast{
     position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
     background:#2f3540;color:#fff;font-size:12.5px;padding:9px 16px;
@@ -150,6 +180,13 @@
       <div class="sb-sub">历史版本 · 点击切换查看</div>
     </div>
     <div class="sb-list" id="verList"></div>
+    <!-- ★V33.5：被本机隐藏的版本（可一键恢复）。仅当有隐藏项时显示。 -->
+    <div class="sb-hid" id="hidWrap" style="display:none">
+      <div class="sb-hid-head" id="hidHead" role="button" tabindex="0" title="展开/收起已隐藏版本">
+        <span class="ar">▼</span><span id="hidTitle">已隐藏</span>
+      </div>
+      <div class="sb-hid-list" id="hidList"></div>
+    </div>
     <div class="sb-foot">
       <div class="ver-count">共 <strong id="verCount">0</strong> 个版本</div>
       <div class="sync-line"><span class="sync-dot" id="syncDot"></span><span id="syncText">离线模式</span></div>
@@ -187,6 +224,18 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- ★V33.5 删除确认弹窗（★ 禁原生 confirm/prompt） -->
+<div class="cp-mask" id="delMask" style="display:none">
+  <div class="cp-box">
+    <div class="cp-t">删除历史版本</div>
+    <div class="cp-d" id="delDesc"></div>
+    <div class="cp-row">
+      <button class="cp-btn" id="delCancel">取消</button>
+      <button class="cp-btn cp-danger" id="delOk">确认删除</button>
+    </div>
+  </div>
+</div>
 
 
 <script>
@@ -266,8 +315,7 @@ var LS = (function(){
       }
       LS.setItem(LOCAL_KEY, JSON.stringify(arr));
       return true;
-    }catch(e){
-      toast('本机存储已满：本次改动只在当前页面有效。建议点「导出当前版本」把 HTML 交给我合并进主文件。');
+    }catch(e){      toast('本机存储已满：本次改动只在当前页面有效。建议点「导出当前版本」把 HTML 交给我合并进主文件。');
       return false;
     }
   }
@@ -283,28 +331,139 @@ var LS = (function(){
   }
   mergeLocal();
 
+  /* ===== ★V33.5：本机隐藏名单 =====
+     语义：只从「本机列表」移除，绝不动云端、不动内置 HTML。
+     实现：**不删数据**，只维护一个 hidden(date 数组)，渲染与选中时统一过滤。
+     好处：恢复 = 纯重新渲染，零数据丢失（刷新/换设备都不会丢正文）；
+           云端轮询也不会把隐藏项「复活」——过滤发生在展示层。 */
+  var HIDE_KEY = 'szhWeekly.archiveHidden.v1';
+  var hidden = (function(){
+    try{ var r = LS.getItem(HIDE_KEY); return r ? (JSON.parse(r) || []) : []; }
+    catch(e){ return []; }
+  })();
+  var hidWrap = document.getElementById('hidWrap');
+  var hidList = document.getElementById('hidList');
+  var hidTitle = document.getElementById('hidTitle');
+
+  function isHidden(date){ return !!date && hidden.indexOf(date) >= 0; }
+
+  /* 展示用列表：从全量 versions 里剔除隐藏项（每次读取时现算，永远一致） */
+  function visibleVersions(){
+    return versions.filter(function(v){ return !isHidden(v.date); });
+  }
+
+  function saveHidden(){
+    try{
+      LS.setItem(HIDE_KEY, JSON.stringify(hidden));
+      return !LS.__mem;
+    }catch(e){ return false; }
+  }
+
+  function renderHidden(){
+    if(!hidden.length){ hidWrap.style.display = 'none'; hidList.innerHTML = ''; hidTitle.textContent = '已隐藏'; return; }
+    hidWrap.style.display = '';
+    hidTitle.textContent = '已隐藏（' + hidden.length + '）';
+    hidList.innerHTML = '';
+    hidden.slice().sort().reverse().forEach(function(d){
+      /* 只列「确实存在于全量列表」的隐藏项（避免历史遗留脏数据） */
+      var exists = versions.some(function(v){ return v.date === d; });
+      if(!exists) return;
+      var el = document.createElement('div');
+      el.className = 'sb-hid-item';
+      el.innerHTML = '<span class="sv-bullet">•</span>' +
+        '<span class="sv-label">数智化周报-' + String(d).replace(/-/g,'') + '</span>' +
+        '<button class="sv-restore" type="button" title="恢复到列表">恢复</button>';
+      el.querySelector('.sv-restore').addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var i = hidden.indexOf(d);
+        if(i < 0) return;
+        hidden.splice(i, 1);
+        var persisted = saveHidden();
+        renderList(); renderHidden();
+        openByDate(d);          /* ★ 按 date 打开，避免异步拉取期间索引错位 */
+        toast(persisted ? ('已恢复 数智化周报-' + String(d).replace(/-/g,''))
+                        : ('已恢复（本机存储不可用，刷新后可能失效）'));
+      });
+      hidList.appendChild(el);
+    });
+  }
+
+  document.getElementById('hidHead').addEventListener('click', function(){
+    hidWrap.classList.toggle('collapsed');
+  });
+  document.getElementById('hidHead').addEventListener('keydown', function(ev){
+    if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); hidWrap.classList.toggle('collapsed'); }
+  });
+
+  /* ===== ★V33.5：删除确认弹窗（禁原生 confirm） ===== */
+  var delMask = document.getElementById('delMask');
+  var delDesc = document.getElementById('delDesc');
+  var delOk = document.getElementById('delOk');
+  var delCancel = document.getElementById('delCancel');
+  var pendingDel = null;   /* { date, idx } */
+
+  function closeDel(){ delMask.style.display = 'none'; pendingDel = null; }
+
+  function openDel(idx){
+    var v = versions[idx];
+    if(!v) return;
+    pendingDel = { date: v.date, idx: idx };
+    delDesc.innerHTML =
+      '将从本机列表中移除 <b>数智化周报-' + String(v.date).replace(/-/g,'') + '</b>。<br>' +
+      '<span style="color:var(--muted)">仅在你这台设备隐藏，云端与他人不受影响；' +
+      '底部「已隐藏」区可随时恢复。</span>';
+    delMask.style.display = 'flex';
+    delOk.focus();
+  }
+
+  delCancel.addEventListener('click', closeDel);
+  delMask.addEventListener('click', function(ev){ if(ev.target === delMask) closeDel(); });
+
+  delOk.addEventListener('click', function(){
+    if(!pendingDel) return;
+    var d = pendingDel.date;
+    /* 不删数据！只把 date 记进 hidden 名单，展示层过滤（恢复=纯重渲染，零丢失） */
+    var wasCur = (curIdx >= 0 && versions[curIdx] && versions[curIdx].date === d);
+    if(hidden.indexOf(d) < 0) hidden.push(d);
+
+    var persisted = saveHidden();
+    closeDel();
+    renderList(); renderHidden();
+    if(wasCur){
+      var vis = visibleVersions();
+      if(vis.length){ openByDate(vis[vis.length - 1].date); }
+      else { showWelcome(); }
+    }
+    toast(persisted ? ('已从本机隐藏 数智化周报-' + String(d).replace(/-/g,'') + '（底部可恢复）')
+                    : ('已隐藏（本机存储不可用，刷新后会重新出现）'));
+  });
+
   countEl.textContent = versions.length;
 
   function renderList(){
     listEl.innerHTML = '';
-    countEl.textContent = versions.length;
-    if(versions.length === 0){
+    var vis = visibleVersions();
+    var curDate = (curIdx >= 0 && versions[curIdx]) ? versions[curIdx].date : null;
+    countEl.textContent = vis.length;
+    renderHidden();
+    if(vis.length === 0){
       listEl.innerHTML = '<div style="padding:14px 16px;font-size:12px;color:var(--muted)">暂无历史版本</div>';
       return;
     }
-    // 倒序渲染（最新在最上）
-    for(var i = versions.length - 1; i >= 0; i--){
+    // 倒序渲染（最新在最上）；idx 基于 vis（展示列表）而非全量 versions
+    for(var i = vis.length - 1; i >= 0; i--){
       (function(idx){
-        var v = versions[idx];
+        var v = vis[idx];
         var el = document.createElement('div');
-        el.className = 'sb-ver' + (idx === curIdx ? ' active' : '');
+        el.className = 'sb-ver' + (curDate === v.date ? ' active' : '');
         el.title = verName(v) + '（点「复制」= 基于本周生成一条新版）';
         var badge = v.local ? '<span class="sv-tag">本机' + (v.cloud ? '·未发布' : '') + '</span>'
                             : (v.cloud ? '' : '');
         var html =
           '<span class="sv-bullet">•</span>' +
           '<span class="sv-label">' + verName(v) + badge + '</span>' +
-          '<button class="sv-copy" type="button" title="复制为新版本">复制</button>';
+          '<button class="sv-copy" type="button" title="复制为新版本">复制</button>' +
+          '<button class="sv-del" type="button" title="从本机列表删除（可恢复）">删除</button>';
         el.innerHTML = html;
         /* 本机还没同步到云上的版本 → 给「发布」按钮，点了全员可见 */
         if(v.local && v.html){
@@ -336,6 +495,10 @@ var LS = (function(){
           ev.stopPropagation();          // ★ 不触发「切换版本」
           openCopy(idx);
         });
+        el.querySelector('.sv-del').addEventListener('click', function(ev){
+          ev.stopPropagation();          // ★ 不触发「切换版本」
+          openDel(idx);
+        });
         el.addEventListener('click', function(){ selectVersion(idx); });
         listEl.appendChild(el);
       })(i);
@@ -345,12 +508,12 @@ var LS = (function(){
   function selectVersion(idx){
     curIdx = idx;
     renderList();
-    ensureHtml(versions[idx], function(ok){
-      if(ok) loadVersion(idx);
-    });
+    var v = versions[idx];
+    if(!v) return;
+    ensureHtml(v, function(ok){ if(ok) loadVersion(-1, v); });
   }
 
-  var blobURLs = [];
+  var blobURLs = {};   /* ★V33.5：按 date 作为 key（索引会因排序/云端合并而变动） */
 
   /* ★ V33.3 运行时补丁：旧版本（云端/历史归档，旧 JS 会生成 12 条 absolute 工具栏）
      也统一成「一条固定底部工具条」，不占正文空间。
@@ -473,17 +636,27 @@ var LS = (function(){
     }catch(e){ /* 跨域等极端场景静默跳过 */ }
   }
 
-  function loadVersion(idx){
-    var v = versions[idx];
+  /* ★V33.5：回到「未选中」的欢迎态（删除掉当前版本且列表非空时也可能用到） */
+  function showWelcome(){
+    try{ frame.src = 'about:blank'; }catch(e){}
+    frame.style.display = 'none';
+    welcome.style.display = '';
+    vbTitle.textContent = '请选择要查看的周报版本';
+    curIdx = -1;
+  }
+
+  function loadVersion(idx, versionObj){
+    var v = versionObj || versions[idx];
     if(!v || !v.html){
       vbTitle.textContent = '版本内容加载失败';
       return;
     }
 
-    // 复用已有 blob URL，或创建新的
-    if(!blobURLs[idx]){
+    // 复用已有 blob URL，或创建新的（★V33.5：按 date 缓存，索引会因排序变动而失效）
+    var key = v.date || ('i' + idx);
+    if(!blobURLs[key]){
       var blob = new Blob([v.html], {type: 'text/html'});
-      blobURLs[idx] = URL.createObjectURL(blob);
+      blobURLs[key] = URL.createObjectURL(blob);
     }
 
     // 更新顶部标题
@@ -492,7 +665,7 @@ var LS = (function(){
     // 隐藏欢迎、显示 iframe
     welcome.style.display = 'none';
     frame.style.display = 'block';
-    frame.src = blobURLs[idx];
+    frame.src = blobURLs[key];
     /* 每次加载完成后注入工具栏带 CSS（幂等） */
     frame.addEventListener('load', patchFrameCss);
   }
@@ -589,9 +762,11 @@ var LS = (function(){
     var okSave = saveLocal();
     closeCopy();
 
-    var ni = -1;
-    for(var j=0;j<versions.length;j++){ if(versions[j].date === ndDash){ ni = j; break; } }
-    if(ni >= 0) selectVersion(ni);
+    /* ★V33.5：复制出的新版本若此前被隐藏过，先解除隐藏，否则「复制了但看不到」 */
+    var hid = hidden.indexOf(ndDash);
+    if(hid >= 0){ hidden.splice(hid, 1); saveHidden(); }
+    renderList();
+    openByDate(ndDash);
     toast(okSave
       ? ('已复制为 数智化周报-' + nd8 + '，左边多了一条，刷新也不会丢。')
       : ('已复制为 数智化周报-' + nd8 + '（本机存储不可用，刷新会丢，点「导出当前版本」存成文件更安全）'));
@@ -749,11 +924,16 @@ var LS = (function(){
 
   /* 云端清单并入本地列表：
      云端有的标 cloud=true；本机还没发布过的本地版本保留本地正文（避免别人的版本盖掉自己未发布的稿） */
+  var cloudList = [];      /* ★V33.5：最近一次云端清单，供「恢复」时回填 cloud 元数据 */
+
   function mergeCloudList(list){
     var changed = false;
+    cloudList = list || [];
     for(var i=0;i<list.length;i++){
       var r = list[i];
       if(!r.date) continue;
+      /* ★V33.5：被本机隐藏的版本不要再并回来（否则删除后一同步就复活） */
+      if(isHidden(r.date)) continue;
       var hit = -1;
       for(var j=0;j<versions.length;j++){ if(versions[j].date === r.date){ hit = j; break; } }
       if(hit >= 0){
@@ -775,7 +955,7 @@ var LS = (function(){
         changed = true;
       }
     }
-    if(changed){ sortVersions(); renderList(); }
+    if(changed){ sortVersions(); renderList(); renderHidden(); }
   }
 
   function cloudSync(silent){
@@ -788,6 +968,20 @@ var LS = (function(){
       }
       setSyncState('on', '已连接云端 · 云端 ' + list.length + ' 版');
     });
+  }
+
+  /* ★V33.5：按 date 打开版本（不用索引）——异步拉取期间若有云端轮询/排序改动，
+     索引会错位；date 是稳定标识。 */
+  function openByDate(date){
+    for(var i=0;i<versions.length;i++){
+      if(versions[i].date === date){
+        curIdx = i;
+        renderList();
+        var v = versions[i];
+        ensureHtml(v, function(ok){ if(ok) loadVersion(-1, v); });
+        return;
+      }
+    }
   }
 
   /* 打开版本时按需补齐正文 */
@@ -806,10 +1000,14 @@ var LS = (function(){
     exportHtml(curIdx >= 0 ? versions[curIdx] : null);
   });
 
-  /* 初始：先本机渲染，再尝试连云端补齐 */
-  var li0 = versions.length - 1;
-  selectVersion(li0);
-  if(versions.length === 0) renderList();
+  /* 初始：先本机渲染，再尝试连云端补齐
+     ★V33.5：按「展示列表」（已剔除隐藏项）选中的最后一条，且用 date 打开 */
+  renderList();
+  (function(){
+    var vis = visibleVersions();
+    if(vis.length){ openByDate(vis[vis.length - 1].date); }
+    else { showWelcome(); }
+  })();
 
   cloudInit().then(function(ok){
     if(!ok) return;
