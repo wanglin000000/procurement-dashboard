@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>数智化周报 · 历史归档</title>
 <style>
   :root{
@@ -248,6 +250,14 @@ window.__SZ_ARCHIVE__ = [
 /* ===== 云端同步配置（为空 = 纯离线模式，页面照常使用）===== */
 window.__SZ_CLOUD_API__ = "https://marathon-h5-d8gf5ov81b951832a-1425718377.ap-shanghai.app.tcloudbase.com/weeklyApi";
 
+/* ===== ★★★ V34.2：归档页构建指纹（用于识别并丢弃「过期本地副本」）=====
+   病因：mergeLocal() 无条件用 localStorage 里的本地副本覆盖内置版本正文，
+         且本地副本不带任何版本信息 → 页面更新后，旧的本地草稿会永久盖住新内容，
+         表现为「无痕正常、普通窗口永远看到旧版」。
+   方案：每次构建注入内容哈希指纹；本地副本保存时一并记录指纹；
+         加载时若指纹不一致 → 静默丢弃该副本，回落到内置/云端的最新正文。 */
+window.__SZ_ARCHIVE_BUILD__ = "144bd31a6df2";
+
 /* ===== localStorage 安全垫片（同 _script.js，某些环境禁访问会抛错）===== */
 var LS = (function(){
   try{
@@ -312,11 +322,30 @@ var LS = (function(){
 
   /* ===== 本地版本持久化（归档页自身有 localStorage，与 iframe 的 blob 无关）===== */
   var LOCAL_KEY = 'szhWeekly.archiveLocal.v1';
+  /* ★★★ V34.2：本地副本指纹 key —— 记录「保存该副本时的页面构建指纹」。 */
+  var LOCAL_STAMP_KEY = 'szhWeekly.archiveLocal.v1__build';
+  var ARCHIVE_BUILD = window.__SZ_ARCHIVE_BUILD__ || '';
   function loadLocal(){
     try{
       var raw = LS.getItem(LOCAL_KEY);
       return raw ? (JSON.parse(raw) || []) : [];
     }catch(e){ return []; }
+  }
+  /* ★★★ V34.2：本地副本是否「过期」——三分支判定，只认记录在案的过期证据，
+     绝不凭推测删数据；ARCHIVE_BUILD 为空（未注入指纹）时一律不判定（不误杀）。 */
+  function localStale(){
+    if(!ARCHIVE_BUILD){ return false; }                          /* 无指纹 → 不判定 */
+    var saved = '';
+    try{ saved = LS.getItem(LOCAL_STAMP_KEY) || ''; }catch(e){ saved = ''; }
+    if(!saved){ return true; }                                   /* 旧副本无指纹 → 必来自旧模板 */
+    return saved !== ARCHIVE_BUILD;                              /* 指纹不一致 → 过期 */
+  }
+  /* ★★★ V34.2：清理过期本地副本（静默）。这样页面上线新构建后，
+     普通窗口的老用户也能自动看到最新内容，无需手动清缓存。 */
+  function purgeStaleLocal(){
+    if(!localStale()){ return false; }
+    try{ LS.removeItem(LOCAL_KEY); LS.removeItem(LOCAL_STAMP_KEY); }catch(e){}
+    return true;
   }
   function saveLocal(){
     if(LS.__mem){
@@ -328,12 +357,16 @@ var LS = (function(){
         if(versions[i].local) arr.push(versions[i]);
       }
       LS.setItem(LOCAL_KEY, JSON.stringify(arr));
+      /* ★★★ V34.2：同步记录当前构建指纹，供下次加载时判定是否过期 */
+      if(ARCHIVE_BUILD){ LS.setItem(LOCAL_STAMP_KEY, ARCHIVE_BUILD); }
       return true;
     }catch(e){      toast('本机存储已满：本次改动只在当前页面有效。建议点「导出当前版本」把 HTML 交给我合并进主文件。');
       return false;
     }
   }
   function mergeLocal(){
+    /* ★★★ V34.2：先清理过期本地副本，避免旧草稿盖住新内容 */
+    if(purgeStaleLocal()) return;
     var arr = loadLocal();
     for(var k=0;k<arr.length;k++){
       var lv = arr[k], hit = -1;
