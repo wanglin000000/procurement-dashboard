@@ -239,7 +239,19 @@
       "solution": "",
       "urgency": "P0",
       "handler": "吴川"
+    },
+    {
+      "id": "21",
+      "ticketNo": "CON20261019000001-084657",
+      "description": "在钉钉工作台登陆每刻系统没有分享功能",
+      "createTime": "2026/10/20 9:35:19",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "昨晚更新导致该功能受到影响，目前已经让技术那边在紧急排查处理中",
+      "solution": "产品修复",
+      "urgency": "P0",
+      "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-10-19T17:26:20"
+  "fetchTime": "2026-10-20T17:25:49"
 }
