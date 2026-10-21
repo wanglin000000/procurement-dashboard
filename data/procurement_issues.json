@@ -419,7 +419,127 @@
       "urgency": "P0",
       "handler": "周娜",
       "type": "BUG"
+    },
+    {
+      "id": "36",
+      "ticketNo": "RFx202609080001",
+      "description": "申请对数据订正为“通过”",
+      "createTime": "2026/10/19 15:24:00",
+      "status": "已解决",
+      "resolveTime": "2026/10/19 17:44:00",
+      "solution": "研发对数据进行修正",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "37",
+      "ticketNo": "PACR261019000007",
+      "description": "采购系统付款申请推送每刻失败",
+      "createTime": "2026/10/20 9:20:29",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "结算单重推失败，待每刻排查",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "38",
+      "ticketNo": "PACR261019000008",
+      "description": "采购系统付款申请推送每刻失败",
+      "createTime": "2026/10/20 9:21:46",
+      "status": "已解决",
+      "resolveTime": "",
+      "solution": "单据转派问题需转派回去后找周娜重推",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "39",
+      "ticketNo": "PACR261019000005",
+      "description": "采购系统付款申请推送每刻失败",
+      "createTime": "2026/10/20 9:21:46",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "PO260804000034-270545，每刻无",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "40",
+      "ticketNo": "CF260924000006",
+      "description": "结算单推送每刻失败",
+      "createTime": "2026/10/20 9:25:24",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "结算单重推失败，待每刻排查",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "41",
+      "ticketNo": "CF261015000007",
+      "description": "结算单推送每刻失败",
+      "createTime": "2026/10/20 9:25:27",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "结算单重推失败，待每刻排查",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "42",
+      "ticketNo": "CF260811000005",
+      "description": "结算单推送每刻失败",
+      "createTime": "2026/10/20 9:26:22",
+      "status": "解决中",
+      "resolveTime": "",
+      "solution": "PO260804000034-270545，每刻无",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "43",
+      "ticketNo": "PO261013000002",
+      "description": "订单推送每刻失败",
+      "createTime": "2026/10/20 9:28:16",
+      "status": "已解决",
+      "resolveTime": "",
+      "solution": "CON20260831000003-368254",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "44",
+      "ticketNo": "PO261013000001",
+      "description": "订单推送每刻失败",
+      "createTime": "2026/10/20 9:28:16",
+      "status": "已解决",
+      "resolveTime": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
+    },
+    {
+      "id": "45",
+      "ticketNo": "PO261012000022",
+      "description": "订单推送每刻失败",
+      "createTime": "2026/10/20 9:28:16",
+      "status": "已解决",
+      "resolveTime": "",
+      "solution": "附件过大或获取附件失败，请检查",
+      "urgency": "P0",
+      "handler": "周娜",
+      "type": "BUG"
     }
   ],
-  "fetchTime": "2026-10-19T16:55:46"
+  "fetchTime": "2026-10-21T16:55:49"
 }
