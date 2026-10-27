@@ -233,7 +233,7 @@
       "ticketNo": "CON20260609000004",
       "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
       "createTime": "2026/10/14 19:05:27",
-      "status": "解决中",
+      "status": "已完成",
       "resolveTime": "",
       "progress": "",
       "solution": "",
@@ -245,13 +245,25 @@
       "ticketNo": "CON20261019000001-084657",
       "description": "在钉钉工作台登陆每刻系统没有分享功能",
       "createTime": "2026/10/20 9:35:19",
-      "status": "解决中",
+      "status": "已完成",
       "resolveTime": "",
       "progress": "昨晚更新导致该功能受到影响，目前已经让技术那边在紧急排查处理中",
       "solution": "产品修复",
       "urgency": "P0",
       "handler": "吴川"
+    },
+    {
+      "id": "22",
+      "ticketNo": "CON20260805000004",
+      "description": "每刻系统与采购系统单据状态不一致，需重新推送状态",
+      "createTime": "2026/10/27 12:14:00",
+      "status": "解决中",
+      "resolveTime": "",
+      "progress": "",
+      "solution": "",
+      "urgency": "P0",
+      "handler": "吴川"
     }
   ],
-  "fetchTime": "2026-10-26T17:35:48"
+  "fetchTime": "2026-10-27T17:25:33"
 }
